@@ -216,6 +216,118 @@
     "kickoff": "04:00",
     "date": "2026-06-18",
     "disabled": false
+  },
+
+
+
+  {
+    "id": 25,
+    "kolejkaId": "A",
+    "home": "South Africa",
+    "away": "Czech Republic",
+    "kickoff": "23:00",
+    "date": "2026-06-18",
+    "disabled": false
+  },
+  {
+    "id": 26,
+    "kolejkaId": "A",
+    "home": "Mexico",
+    "away": "South Korea",
+    "kickoff": "08:00",
+    "date": "2026-06-19",
+    "disabled": false
+  },
+  {
+    "id": 27,
+    "kolejkaId": "B",
+    "home": "Switzerland",
+    "away": "Bosnia and Herzegovina",
+    "kickoff": "22:00",
+    "date": "2026-06-19",
+    "disabled": false
+  },
+  {
+    "id": 28,
+    "kolejkaId": "C",
+    "home": "Scotland",
+    "away": "Morocco",
+    "kickoff": "22:00",
+    "date": "2026-06-19",
+    "disabled": false
+  },
+  {
+    "id": 29,
+    "kolejkaId": "D",
+    "home": "USA",
+    "away": "Turkey",
+    "kickoff": "01:00",
+    "date": "2026-06-20",
+    "disabled": false
+  },
+  {
+    "id": 30,
+    "kolejkaId": "C",
+    "home": "Brazil",
+    "away": "Haiti",
+    "kickoff": "04:00",
+    "date": "2026-06-20",
+    "disabled": false
+  },
+  {
+    "id": 31,
+    "kolejkaId": "B",
+    "home": "Canada",
+    "away": "Qatar",
+    "kickoff": "03:00",
+    "date": "2026-06-20",
+    "disabled": false
+  },
+  {
+    "id": 32,
+    "kolejkaId": "D",
+    "home": "Paraguay",
+    "away": "Australia",
+    "kickoff": "22:00",
+    "date": "2026-06-20",
+    "disabled": false
+  },
+  {
+    "id": 33,
+    "kolejkaId": "E",
+    "home": "Germany",
+    "away": "Ecuador",
+    "kickoff": "01:00",
+    "date": "2026-06-21",
+    "disabled": false
+  },
+  {
+    "id": 34,
+    "kolejkaId": "E",
+    "home": "Ivory Coast",
+    "away": "Curacao",
+    "kickoff": "04:00",
+    "date": "2026-06-21",
+    "disabled": false
+  },
+  {
+    "id": 35,
+    "kolejkaId": "F",
+    "home": "Japan",
+    "away": "Tunisia",
+    "kickoff": "19:00",
+    "date": "2026-06-21",
+    "disabled": false
+  },
+  {
+    "id": 36,
+    "kolejkaId": "F",
+    "home": "Netherlands",
+    "away": "Sweden",
+    "kickoff": "22:00",
+    "date": "2026-06-21",
+    "disabled": false
   }
+
 
 ]
