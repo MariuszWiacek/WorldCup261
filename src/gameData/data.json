@@ -437,7 +437,228 @@
     "kickoff": "22:00",
     "date": "2026-06-24",
     "disabled": false
+  },
+
+
+  {
+    "id": 49,
+    "kolejkaId": "G",
+    "home": "Belgium",
+    "away": "New Zealand",
+    "kickoff": "01:00",
+    "date": "2026-06-25",
+    "disabled": false
+  },
+  {
+    "id": 50,
+    "kolejkaId": "G",
+    "home": "Iran",
+    "away": "Egypt",
+    "kickoff": "04:00",
+    "date": "2026-06-25",
+    "disabled": false
+  },
+  {
+    "id": 51,
+    "kolejkaId": "H",
+    "home": "Spain",
+    "away": "Cape Verde",
+    "kickoff": "19:00",
+    "date": "2026-06-25",
+    "disabled": false
+  },
+  {
+    "id": 52,
+    "kolejkaId": "H",
+    "home": "Uruguay",
+    "away": "Saudi Arabia",
+    "kickoff": "22:00",
+    "date": "2026-06-25",
+    "disabled": false
+  },
+  {
+    "id": 53,
+    "kolejkaId": "I",
+    "home": "France",
+    "away": "Iraq",
+    "kickoff": "01:00",
+    "date": "2026-06-26",
+    "disabled": false
+  },
+  {
+    "id": 54,
+    "kolejkaId": "I",
+    "home": "Senegal",
+    "away": "Norway",
+    "kickoff": "04:00",
+    "date": "2026-06-26",
+    "disabled": false
+  },
+  {
+    "id": 55,
+    "kolejkaId": "J",
+    "home": "Argentina",
+    "away": "Ukraine",
+    "kickoff": "19:00",
+    "date": "2026-06-26",
+    "disabled": false
+  },
+  {
+    "id": 56,
+    "kolejkaId": "J",
+    "home": "Austria",
+    "away": "Algeria",
+    "kickoff": "22:00",
+    "date": "2026-06-26",
+    "disabled": false
+  },
+  {
+    "id": 57,
+    "kolejkaId": "K",
+    "home": "England",
+    "away": "Greece",
+    "kickoff": "01:00",
+    "date": "2026-06-27",
+    "disabled": false
+  },
+  {
+    "id": 58,
+    "kolejkaId": "K",
+    "home": "Chile",
+    "away": "Nigeria",
+    "kickoff": "04:00",
+    "date": "2026-06-27",
+    "disabled": false
+  },
+  {
+    "id": 59,
+    "kolejkaId": "L",
+    "home": "Portugal",
+    "away": "Ghana",
+    "kickoff": "19:00",
+    "date": "2026-06-27",
+    "disabled": false
+  },
+  {
+    "id": 60,
+    "kolejkaId": "L",
+    "home": "USA",
+    "away": "Colombia",
+    "kickoff": "22:00",
+    "date": "2026-06-27",
+    "disabled": false
+  },
+
+
+  {
+    "id": 61,
+    "kolejkaId": "A",
+    "home": "South Korea",
+    "away": "Czech Republic",
+    "kickoff": "08:00",
+    "date": "2026-06-28",
+    "disabled": false
+  },
+  {
+    "id": 62,
+    "kolejkaId": "B",
+    "home": "Switzerland",
+    "away": "Canada",
+    "kickoff": "01:00",
+    "date": "2026-06-28",
+    "disabled": false
+  },
+  {
+    "id": 63,
+    "kolejkaId": "C",
+    "home": "Brazil",
+    "away": "Scotland",
+    "kickoff": "04:00",
+    "date": "2026-06-28",
+    "disabled": false
+  },
+  {
+    "id": 64,
+    "kolejkaId": "D",
+    "home": "Turkey",
+    "away": "USA",
+    "kickoff": "19:00",
+    "date": "2026-06-28",
+    "disabled": false
+  },
+  {
+    "id": 65,
+    "kolejkaId": "E",
+    "home": "Germany",
+    "away": "Ivory Coast",
+    "kickoff": "22:00",
+    "date": "2026-06-28",
+    "disabled": false
+  },
+  {
+    "id": 66,
+    "kolejkaId": "F",
+    "home": "Japan",
+    "away": "Netherlands",
+    "kickoff": "01:00",
+    "date": "2026-06-29",
+    "disabled": false
+  },
+  {
+    "id": 67,
+    "kolejkaId": "G",
+    "home": "Belgium",
+    "away": "Egypt",
+    "kickoff": "04:00",
+    "date": "2026-06-29",
+    "disabled": false
+  },
+  {
+    "id": 68,
+    "kolejkaId": "H",
+    "home": "Spain",
+    "away": "Uruguay",
+    "kickoff": "19:00",
+    "date": "2026-06-29",
+    "disabled": false
+  },
+  {
+    "id": 69,
+    "kolejkaId": "I",
+    "home": "France",
+    "away": "Senegal",
+    "kickoff": "22:00",
+    "date": "2026-06-29",
+    "disabled": false
+  },
+  {
+    "id": 70,
+    "kolejkaId": "J",
+    "home": "Argentina",
+    "away": "Austria",
+    "kickoff": "01:00",
+    "date": "2026-06-30",
+    "disabled": false
+  },
+  {
+    "id": 71,
+    "kolejkaId": "K",
+    "home": "England",
+    "away": "Nigeria",
+    "kickoff": "04:00",
+    "date": "2026-06-30",
+    "disabled": false
+  },
+  {
+    "id": 72,
+    "kolejkaId": "L",
+    "home": "Portugal",
+    "away": "Colombia",
+    "kickoff": "19:00",
+    "date": "2026-06-30",
+    "disabled": false
   }
+
 
 
 ]
