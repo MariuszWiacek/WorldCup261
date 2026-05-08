@@ -327,6 +327,116 @@
     "kickoff": "22:00",
     "date": "2026-06-21",
     "disabled": false
+  },
+
+
+  {
+    "id": 37,
+    "kolejkaId": "A",
+    "home": "Mexico",
+    "away": "South Korea",
+    "kickoff": "01:00",
+    "date": "2026-06-22",
+    "disabled": false
+  },
+  {
+    "id": 38,
+    "kolejkaId": "A",
+    "home": "South Africa",
+    "away": "Czech Republic",
+    "kickoff": "04:00",
+    "date": "2026-06-22",
+    "disabled": false
+  },
+  {
+    "id": 39,
+    "kolejkaId": "B",
+    "home": "Canada",
+    "away": "Qatar",
+    "kickoff": "19:00",
+    "date": "2026-06-22",
+    "disabled": false
+  },
+  {
+    "id": 40,
+    "kolejkaId": "B",
+    "home": "Bosnia and Herzegovina",
+    "away": "Switzerland",
+    "kickoff": "22:00",
+    "date": "2026-06-22",
+    "disabled": false
+  },
+  {
+    "id": 41,
+    "kolejkaId": "C",
+    "home": "Haiti",
+    "away": "Morocco",
+    "kickoff": "01:00",
+    "date": "2026-06-23",
+    "disabled": false
+  },
+  {
+    "id": 42,
+    "kolejkaId": "C",
+    "home": "Scotland",
+    "away": "Brazil",
+    "kickoff": "04:00",
+    "date": "2026-06-23",
+    "disabled": false
+  },
+  {
+    "id": 43,
+    "kolejkaId": "D",
+    "home": "USA",
+    "away": "Turkey",
+    "kickoff": "19:00",
+    "date": "2026-06-23",
+    "disabled": false
+  },
+  {
+    "id": 44,
+    "kolejkaId": "D",
+    "home": "Paraguay",
+    "away": "Australia",
+    "kickoff": "22:00",
+    "date": "2026-06-23",
+    "disabled": false
+  },
+  {
+    "id": 45,
+    "kolejkaId": "E",
+    "home": "Ivory Coast",
+    "away": "Curacao",
+    "kickoff": "01:00",
+    "date": "2026-06-24",
+    "disabled": false
+  },
+  {
+    "id": 46,
+    "kolejkaId": "E",
+    "home": "Ecuador",
+    "away": "Germany",
+    "kickoff": "04:00",
+    "date": "2026-06-24",
+    "disabled": false
+  },
+  {
+    "id": 47,
+    "kolejkaId": "F",
+    "home": "Netherlands",
+    "away": "Sweden",
+    "kickoff": "19:00",
+    "date": "2026-06-24",
+    "disabled": false
+  },
+  {
+    "id": 48,
+    "kolejkaId": "F",
+    "home": "Japan",
+    "away": "Tunisia",
+    "kickoff": "22:00",
+    "date": "2026-06-24",
+    "disabled": false
   }
 
 
