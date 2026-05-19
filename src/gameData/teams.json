@@ -1,75 +1,194 @@
-
 {
-    "Cracovia": {
-      
-      "logo": "images/herby/Craxa.png"
-    },
-    "Piast": {
-      
-      "logo": "images/herby/Piast.png"
-    },
-    "GKS": {
-      
-      "logo": "images/herby/GKS.png"
-    },
-    "Radomiak": {
-      
-      "logo": "images/herby/Radomiak.png"
-    },
-    "Jagiellonia": {
-
-      "logo": "images/herby/Jaga.png"
-    },
-    "Arka": {
-      
-      "logo": "images/herby/Arka.png"
-    },
-    "Lech": {
-      
-      "logo": "images/herby/Lech.png"
-    },
-    "Górnik": {
-      
-      "logo": "images/herby/KSG.png"
-    },
-    "Legia": {
-      
-      "logo": "images/herby/Legia.png"
-    },
-    "Zagłębie": {
-      
-      "logo": "images/herby/Zaglebie.png"
-    },
-    "Motor": {
-      
-      "logo": "images/herby/Motor.png"
-    },
-    "Raków": {
-      
-      "logo": "images/herby/Rakow.png"
-    },
-    "Pogoń": {
-      
-      "logo": "images/herby/Pogon.png"
-    },
-    "Korona": {
-      
-      "logo": "images/herby/Korona.png"
-    },
-    "Termalica": {
-      
-      "logo": "images/herby/Terma.png"
-    },
-    "Widzew": {
-     
-      "logo": "images/herby/Widzew.png"
-    },
-    "Wisła": {
-      
-      "logo": "images/herby/Wisla.png"
-    },
-    "Lechia": {
-      "logo": "images/herby/Lechia.png"
-    }
+  "Mexico": {
+    "logo": "MX",
+    "group": "A"
+  },
+  "South Africa": {
+    "logo": "ZA",
+    "group": "A"
+  },
+  "South Korea": {
+    "logo": "KR",
+    "group": "A"
+  },
+  "Czech Republic": {
+    "logo": "CZ",
+    "group": "A"
+  },
+  "Canada": {
+    "logo": "CA",
+    "group": "B"
+  },
+  "Bosnia and Herzegovina": {
+    "logo": "BA",
+    "group": "B"
+  },
+  "Qatar": {
+    "logo": "QA",
+    "group": "B"
+  },
+  "Switzerland": {
+    "logo": "CH",
+    "group": "B"
+  },
+  "Brazil": {
+    "logo": "BR",
+    "group": "C"
+  },
+  "Morocco": {
+    "logo": "MA",
+    "group": "C"
+  },
+  "Haiti": {
+    "logo": "HT",
+    "group": "C"
+  },
+  "Scotland": {
+    "logo": "GB-SCT",
+    "group": "C"
+  },
+  "United States": {
+    "logo": "US",
+    "group": "D"
+  },
+  "Paraguay": {
+    "logo": "PY",
+    "group": "D"
+  },
+  "Australia": {
+    "logo": "AU",
+    "group": "D"
+  },
+  "Turkey": {
+    "logo": "TR",
+    "group": "D"
+  },
+  "Germany": {
+    "logo": "DE",
+    "group": "E"
+  },
+  "Curaçao": {
+    "logo": "CW",
+    "group": "E"
+  },
+  "Ivory Coast": {
+    "logo": "CI",
+    "group": "E"
+  },
+  "Ecuador": {
+    "logo": "EC",
+    "group": "E"
+  },
+  "Netherlands": {
+    "logo": "NL",
+    "group": "F"
+  },
+  "Japan": {
+    "logo": "JP",
+    "group": "F"
+  },
+  "Tunisia": {
+    "logo": "TN",
+    "group": "F"
+  },
+  "Sweden": {
+    "logo": "SE",
+    "group": "F"
+  },
+  "Belgium": {
+    "logo": "BE",
+    "group": "G"
+  },
+  "Egypt": {
+    "logo": "EG",
+    "group": "G"
+  },
+  "Iran": {
+    "logo": "IR",
+    "group": "G"
+  },
+  "New Zealand": {
+    "logo": "NZ",
+    "group": "G"
+  },
+  "Spain": {
+    "logo": "ES",
+    "group": "H"
+  },
+  "Cape Verde": {
+    "logo": "CV",
+    "group": "H"
+  },
+  "Saudi Arabia": {
+    "logo": "SA",
+    "group": "H"
+  },
+  "Uruguay": {
+    "logo": "UY",
+    "group": "H"
+  },
+  "France": {
+    "logo": "FR",
+    "group": "I"
+  },
+  "Senegal": {
+    "logo": "SN",
+    "group": "I"
+  },
+  "Iraq": {
+    "logo": "IQ",
+    "group": "I"
+  },
+  "Norway": {
+    "logo": "NO",
+    "group": "I"
+  },
+  "Argentina": {
+    "logo": "AR",
+    "group": "J"
+  },
+  "Algeria": {
+    "logo": "DZ",
+    "group": "J"
+  },
+  "Austria": {
+    "logo": "AT",
+    "group": "J"
+  },
+  "Jordan": {
+    "logo": "JO",
+    "group": "J"
+  },
+  "Portugal": {
+    "logo": "PT",
+    "group": "K"
+  },
+  "DR Congo": {
+    "logo": "CD",
+    "group": "K"
+  },
+  "Uzbekistan": {
+    "logo": "UZ",
+    "group": "K"
+  },
+  "Colombia": {
+    "logo": "CO",
+    "group": "K"
+  },
+  "England": {
+    "logo": "GB-ENG",
+    "group": "L"
+  },
+  "Croatia": {
+    "logo": "HR",
+    "group": "L"
+  },
+  "Ghana": {
+    "logo": "GH",
+    "group": "L"
+  },
+  "Panama": {
+    "logo": "PA",
+    "group": "L"
   }
-  
+}

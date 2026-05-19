@@ -14,8 +14,9 @@ import History from './pages/history';
 import Stats from './pages/stats';
 import Rules from './pages/rules';
 import Loading from './components/loading';
-
+import SignupPage from './pages/poll';
 import pitch from './images/pitc.jpeg';
+import TeamLogos from './components/teamLogos';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +63,9 @@ function App() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <Navbar />
+            
             <div className="container" style={containerStyle}>
+              <TeamLogos />
               <Timer />
               <hr style={{ color: 'white' }} />
               <Routes>
@@ -78,7 +81,7 @@ function App() {
               </Routes>
             </div>
             <Footer />
-             
+             {showSignup && <SignupPage onClose={() => setShowSignup(false)} />}
           </div>
         )}
       </AnimatePresence>

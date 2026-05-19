@@ -5,14 +5,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCoins } from '@fortawesome/free-solid-svg-icons';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB3AOrOzAQ-WVMjeZ3ayNwklR7axBgXJ0I",
-  authDomain: "wiosna26-951d6.firebaseapp.com",
-  databaseURL: "https://wiosna26-951d6-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "wiosna26-951d6",
-  storageBucket: "wiosna26-951d6.firebasestorage.app",
-  messagingSenderId: "58145083288",
-  appId: "1:58145083288:web:f2d813d31a64bcdfcba5ed",
-  measurementId: "G-0R5JLD75SW"
+  apiKey: "AIzaSyBnSIOvM6OkqRqujx_kDWzo8RhFBPS7aVw",
+  authDomain: "wc2026-396b7.firebaseapp.com",
+  databaseURL: "https://wc2026-396b7-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "wc2026-396b7",
+  storageBucket: "wc2026-396b7.firebasestorage.app",
+  messagingSenderId: "723842578362",
+  appId: "1:723842578362:web:3e5e7f8fce7c2015168f83",
+  measurementId: "G-KLLLNCET00"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -45,12 +45,12 @@ const SignupPage = ({ onClose }) => {
       <div style={boxStyle}>
         <button onClick={onClose} style={closeButtonStyle}>X</button>
         <h8 style={headingStyle}>
-          Zapisy ! Typer Ekstraklasa Wiosna 2026 <br /> udowodnij, że znasz się na piłce!
+          Zapisy ! Typer WORLD CUP 2026 <br /> udowodnij, że znasz się na piłce!
         </h8>
         <hr />
         <p style={descriptionStyle}>
           Zrzutka po ok. 60 <FontAwesomeIcon icon={faCoins} style={{ color: "#f0c419" }} />, w zależności od ilości graczy.<br /><br />
-          Zapisy do 30.1
+          Zapisy do 10.6
         </p>
         <input
           type="text"

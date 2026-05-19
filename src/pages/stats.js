@@ -16,14 +16,14 @@ import {
 
 // Firebase configuration
 const firebaseConfig = {
- apiKey: "AIzaSyB3AOrOzAQ-WVMjeZ3ayNwklR7axBgXJ0I",
-  authDomain: "wiosna26-951d6.firebaseapp.com",
-  databaseURL: "https://wiosna26-951d6-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "wiosna26-951d6",
-  storageBucket: "wiosna26-951d6.firebasestorage.app",
-  messagingSenderId: "58145083288",
-  appId: "1:58145083288:web:f2d813d31a64bcdfcba5ed",
-  measurementId: "G-0R5JLD75SW"
+  apiKey: "AIzaSyBnSIOvM6OkqRqujx_kDWzo8RhFBPS7aVw",
+  authDomain: "wc2026-396b7.firebaseapp.com",
+  databaseURL: "https://wc2026-396b7-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "wc2026-396b7",
+  storageBucket: "wc2026-396b7.firebasestorage.app",
+  messagingSenderId: "723842578362",
+  appId: "1:723842578362:web:3e5e7f8fce7c2015168f83",
+  measurementId: "G-KLLLNCET00"
 };
 
 // Initialize Firebase

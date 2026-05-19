@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import gameData from '../gameData/data.json';
 import teamsData from '../gameData/teams.json';
 import { DateTime } from 'luxon';
+import Flag from 'react-world-flags';
 
 const getTeamLogo = (teamName) => {
   const team = teamsData[teamName];
-  return team && team.logo ? `${team.logo}` : '/assets/default-logo.png';
+  return team && team.logo ? `${team.logo}` : null;
 };
 
 const CountdownTimer = () => {
@@ -40,10 +41,10 @@ const CountdownTimer = () => {
       // Calculate countdown to that earliest game
       const diff = earliestDateTime.diff(now, ["days", "hours", "minutes", "seconds"]).toObject();
       setTimeRemaining({
-        days: Math.floor(diff.days),
-        hours: Math.floor(diff.hours),
-        minutes: Math.floor(diff.minutes),
-        seconds: Math.floor(diff.seconds),
+        days: Math.floor(diff.days || 0),
+        hours: Math.floor(diff.hours || 0),
+        minutes: Math.floor(diff.minutes || 0),
+        seconds: Math.floor(diff.seconds || 0),
       });
     };
 
@@ -52,13 +53,20 @@ const CountdownTimer = () => {
     return () => clearInterval(interval);
   }, []);
 
-
   // Check if this is the last round (kolejka 16)
   const isLastRound = nextGames.length > 0 && nextGames[0].round === 16;
 
-
   // Check if all 9 matches are at the same time (meaning all are starting simultaneously)
   const all9MatchesSimultaneous = isLastRound && nextGames.length === 9;
+
+  // Global styling tweaks to keep flag dimensions consistent with your original layouts
+  const flagStyle = {
+    width: '65px',
+    height: '45px', // Adjusted aspect ratio for flags vs your original 65x65 squares
+    borderRadius: '4px',
+    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.01)',
+    objectFit: 'cover'
+  };
 
   return (
     <div style={{ textAlign: 'center', marginBottom: '10px' }}>
@@ -76,27 +84,28 @@ const CountdownTimer = () => {
         </div>
       ) : (
         // Normal countdown for single game (or multiple but less than 9)
-        <div style={{ backgroundColor: '#212529ab', color: 'aliceblue', padding: '24px' }}>
+        <div style={{ backgroundColor: '#212529cb', color: 'aliceblue', padding: '24px' }}>
           <p style={{ color: "gold", fontSize: '14px', marginBottom: '10px' }}>Następny mecz:</p>
 
-         {nextGames.length > 0 && nextGames.length < 9 ? (
- 
-            // Show logos for single next game
+          {nextGames.length > 0 && nextGames.length < 9 ? (
+            // Show vector flags for single next game
             <div style={{ marginTop: '10px', marginBottom: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px' }}>
               <div style={{ textAlign: 'center' }}>
-                <img style={{ width: '65px', height: '65px' }} src={getTeamLogo(nextGames[0].home)} alt={nextGames[0].home} />
+                <Flag code={getTeamLogo(nextGames[0].home)} style={flagStyle} fallback={<span>🏳️</span>} />
+                <p style={{ margin: '5px 0 0 0', fontSize: '14px', fontWeight: 'bold' }}>{nextGames[0].home}</p>
                 <hr />
               </div>
               <span style={{ fontSize: '24px', fontWeight: 'bold', color: 'gold' }}>VS</span>
               <div style={{ textAlign: 'center' }}>
-                <img style={{ width: '65px', height: '65px' }} src={getTeamLogo(nextGames[0].away)} alt={nextGames[0].away} />
+                <Flag code={getTeamLogo(nextGames[0].away)} style={flagStyle} fallback={<span>🏳️</span>} />
+                <p style={{ margin: '5px 0 0 0', fontSize: '14px', fontWeight: 'bold' }}>{nextGames[0].away}</p>
                 <hr />
               </div>
             </div>
           ) : (
             // If multiple games but not 9 simultaneous, just show count of next games
-            <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#00FFAA', fontFamily:"Rubik" }}>
-              Wielki finał -  Powodzenia !
+            <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#00FFAA', fontFamily: "Rubik" }}>
+              Wielki finał - Powodzenia !
             </p>
           )}
 
@@ -115,11 +124,7 @@ const CountdownTimer = () => {
         </div>
       )}
 
-      
       <div style={{ marginTop: '12px', fontSize: '14px', lineHeight: '1.6', color: '#fff' }}>
-      
-
-        
       </div>
     </div>
   );

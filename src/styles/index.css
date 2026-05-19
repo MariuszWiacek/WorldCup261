@@ -3,9 +3,12 @@ body {
   font-family: 'Syne', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-image: url("../images/stadium.png") !important; /* Specify the correct path to your image */
-  background-size: cover; /* Adjust the background size as needed */
-  background-repeat: no-repeat; /* Prevent the image from repeating */
+  background-image: url("../images/wc2026.png") !important; /* Specify the correct path to your image */
+  
+background-size: contain;
+background-position: center;
+background-repeat: no-repeat;
+ 
   position: relative; /* Needed for the overlay */
   background-attachment: fixed; /* Ensures the image covers the full height */
 

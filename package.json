@@ -33,6 +33,7 @@
     "react-router-dom": "^6.17.0",
     "react-scripts": "^5.0.1",
     "react-spinners": "^0.13.8",
+    "react-world-flags": "^1.6.0",
     "styled-components": "^6.1.12",
     "web-vitals": "^2.1.4"
   },

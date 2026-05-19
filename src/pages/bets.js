@@ -13,19 +13,23 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { DateTime } from 'luxon';
 import InstallPWAButton from '../components/PWA';
+import Flag from 'react-world-flags';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB3AOrOzAQ-WVMjeZ3ayNwklR7axBgXJ0I",
-  authDomain: "wiosna26-951d6.firebaseapp.com",
-  databaseURL: "https://wiosna26-951d6-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "wiosna26-951d6",
-  storageBucket: "wiosna26-951d6.firebasestorage.app",
-  messagingSenderId: "58145083288",
-  appId: "1:58145083288:web:f2d813d31a64bcdfcba5ed",
-  measurementId: "G-0R5JLD75SW"
+  apiKey: "AIzaSyBnSIOvM6OkqRqujx_kDWzo8RhFBPS7aVw",
+  authDomain: "wc2026-396b7.firebaseapp.com",
+  databaseURL: "https://wc2026-396b7-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "wc2026-396b7",
+  storageBucket: "wc2026-396b7.firebasestorage.app",
+  messagingSenderId: "723842578362",
+  appId: "1:723842578362:web:3e5e7f8fce7c2015168f83",
+  measurementId: "G-KLLLNCET00"
 };
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+// Fixed the "assigned but never used" warning here
+if (getApps().length === 0) {
+  initializeApp(firebaseConfig);
+}
 const auth = getAuth();
 const database = getDatabase();
 
@@ -139,7 +143,7 @@ const Bets = () => {
       });
   };
 
-  const getTeamLogo = (name) => teamsData[name]?.logo || '';
+  const getTeamLogo = (name) => teamsData[name]?.logo || null;
   const toggleEditableOff = () => setAreInputsEditable(false);
   const toggleEditableOn = () => setAreInputsEditable(true);
 
@@ -153,6 +157,19 @@ const Bets = () => {
   };
   const modalButtonStyle = {
     backgroundColor: "#DC3545", color: "white", border: "none", padding: "10px 30px", borderRadius: "15px", fontWeight: "bold", marginTop: "15px", cursor: "pointer"
+  };
+
+  // Inline CSS to mimic your old logo styling structure cleanly
+  const flagStyle = {
+    width: '32px',
+    height: '22px',
+    verticalAlign: 'middle',
+    marginRight: '8px',
+    marginLeft: '8px',
+    display: 'inline-block',
+    borderRadius: '3px',
+    boxShadow: '0px 1px 3px rgba(0,0,0,0.3)',
+    objectFit: 'cover'
   };
 
   return (
@@ -176,6 +193,7 @@ const Bets = () => {
       >
         {Object.keys(usersData).map((user) => (<option key={user} value={user}>{user}</option>))}
       </select>
+      
 
       <div style={{ backgroundColor: '#212529ab', color: 'aliceblue', padding: '20px', textAlign: 'center', marginBottom: '10px', marginTop: '5%' }}>
         <Pagination currentPage={currentKolejkaIndex} totalPages={kolejki.length} onPageChange={(page) => setCurrentKolejkaIndex(page)} label="Kolejka" />
@@ -202,13 +220,21 @@ const Bets = () => {
                 </tr>
                 <tr style={{ borderBottom: '1px solid #444', opacity: game.disabled || isFrozenGame(game.id) ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}>
                   <td><p style={{ color: 'grey' }}>{game.id}.</p></td>
+                  
+                  {/* HOME TEAM CELL */}
                   <td style={{ textAlign: 'center', paddingRight: '10px', fontSize: '20px' }}>
-                    <img src={getTeamLogo(game.home)} className="logo" alt="logo" /> {game.home}
+                    <Flag code={getTeamLogo(game.home)} style={flagStyle} fallback={<span>🏳️ </span>} />
+                    {game.home}
                   </td>
+                  
                   <td style={{ textAlign: 'center', fontSize: '20px' }}>-</td>
+                  
+                  {/* AWAY TEAM CELL */}
                   <td style={{ textAlign: 'left', paddingLeft: '10px', fontSize: '20px' }}>
-                    <img src={getTeamLogo(game.away)} className="logo" alt="logo" /> {game.away}
+                    <Flag code={getTeamLogo(game.away)} style={flagStyle} fallback={<span>🏳️ </span>} />
+                    {game.away}
                   </td>
+                  
                   <td style={{ textAlign: 'center', fontSize: '20px' }}>{results[game.id]}</td>
                   <td style={{ textAlign: 'center' }}>
                     <select value={game.bet} disabled>
@@ -266,7 +292,6 @@ const Bets = () => {
         <button style={{ backgroundColor: '#007bff', color: 'white', padding: '10px 1px', border: 'none', borderRadius: '5px', cursor: 'pointer' }} onClick={toggleEditableOn}>..</button>
       </div>
       
-      {/* Opcjonalnie: Przycisk instalacji PWA na dole */}
       <InstallPWAButton />
     </div>
   );
