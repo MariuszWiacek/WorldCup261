@@ -68,7 +68,7 @@ p {
   font-size: 36px;
   font-weight: bold;
   font-style: italic;
-  background: linear-gradient(45deg, aliceblue, gold);
+  background: linear-gradient(45deg, rgb(255, 0, 43), rgb(0, 21, 255));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   position: relative;

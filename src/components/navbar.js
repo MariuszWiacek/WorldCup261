@@ -49,7 +49,7 @@ const Navbar = () => {
     position: 'fixed',
     top: 0,
     width: '100%',
-    background: scrollPosition > 0 ? '#483e00f1' : 'black',
+    background: scrollPosition > 0 ? '#a3953ef1' : 'black',
     zIndex: 1000,
     transition: 'background-color 0.3s ease',
   };
@@ -96,7 +96,7 @@ const Navbar = () => {
 
 
   const iconStyle = {
-    color: '#ffea02',
+    color: '#0274ff',
   };
 
   return (
