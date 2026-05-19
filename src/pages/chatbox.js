@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getDatabase, ref, push, onValue } from 'firebase/database';
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-
 
 import '../styles/guestbook.css';
 
@@ -19,14 +17,12 @@ const firebaseConfig = {
 
 const Chatbox = ({ isOpen, toggleChatbox }) => {
   const [username, setUsername] = useState('');
-
   const [message, setMessage] = useState('');
   const [guestbookEntries, setGuestbookEntries] = useState([]);
   const chatContainerRef = useRef(null);
 
-  // Initialize a secondary Firebase app
+  // Initialize a secondary Firebase app (analytics removed to fix warning)
   const secondaryApp = initializeApp(firebaseConfig, 'secondary');
-  const analytics = getAnalytics(secondaryApp);
   const db = getDatabase(secondaryApp);
 
   useEffect(() => {
@@ -163,7 +159,9 @@ const Chatbox = ({ isOpen, toggleChatbox }) => {
         <ul className="message-list">
           {guestbookEntries.map((entry, index) => (
             <div key={index} className="message">
-              <strong className="username" style={{ color: "red" }}>{entry.name}:</strong> <strong style={{ color: "aliceblue" }}>{entry.message}</strong>
+              <strong className="username" style={{ color: "red", fontSize: '16px' }}>{entry.name}:</strong>{' '}
+              {/* Added messageStyle here to fix warning and apply styles */}
+              <strong style={messageStyle}>{entry.message}</strong>
               <div className="date-time" style={{ color: "grey", fontSize:'10px' }}>wysłano :  {new Date(entry.dateAndTime).toLocaleString()}</div>
             </div>
           )).reverse() // Reverse the order when mapping to display newest messages at the bottom

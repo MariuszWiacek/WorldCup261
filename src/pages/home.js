@@ -25,7 +25,7 @@ const Home = () => {
                     <Col md={6} className="spde-in">
                         <div className="section">
                             <p>
-                                Typer LIGI POLSKIEJ sezonu 2025/26.<br />
+                                Typer WORLD CUP 2026.<br />
                                 To idealne miejsce dla pasjonatów piłki nożnej, którzy chcą sprawdzić swoje umiejętności przewidywania wyników meczów.
                             </p>
                         </div>
@@ -36,14 +36,11 @@ const Home = () => {
                             <h2>Jak to działa?</h2>
                             <hr />
                             <p>Rejestracja: <br /> Utwórz konto, aby móc typować wyniki.</p>
-                            <p>Typowanie: <br /> Przewiduj wyniki nadchodzących meczów LIGI POLSKIEJ.</p>
+                            <p>Typowanie: <br /> Przewiduj wyniki nadchodzących meczów WORLD CUP 2026.</p>
                             <p>Punktacja: <br /> Zdobywaj punkty za trafne prognozy.</p>
                             <p>Ranking: <br /> Sprawdzaj swoje miejsce w tabeli.</p>
                         </div>
 
-                        <div className="section">
-                            <p>Dołącz do zabawy i sprawdź, jak dobrze znasz naszą ligę!</p>
-                        </div>
 
                         <hr />
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import '../styles/card.css'; 
 import Pagination from './Pagination';
 import { DateTime } from 'luxon';
@@ -10,14 +10,16 @@ const ExpandableCard = ({ user, bets, results }) => {
   const [expanded, setExpanded] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Group bets into kolejkas
-  const groupedBets = Object.keys(bets).reduce((acc, key) => {
-    const betID = parseInt(key, 10);
-    const kolejkaIndex = Math.floor((betID - 1) / gamesPerKolejka);
-    if (!acc[kolejkaIndex]) acc[kolejkaIndex] = [];
-    acc[kolejkaIndex].push({ id: key, ...bets[key] });
-    return acc;
-  }, []);
+  // Group bets into kolejkas safely using useMemo
+  const groupedBets = useMemo(() => {
+    return Object.keys(bets).reduce((acc, key) => {
+      const betID = parseInt(key, 10);
+      const kolejkaIndex = Math.floor((betID - 1) / gamesPerKolejka);
+      if (!acc[kolejkaIndex]) acc[kolejkaIndex] = [];
+      acc[kolejkaIndex].push({ id: key, ...bets[key] });
+      return acc;
+    }, []);
+  }, [bets]);
 
   const totalKolejkas = groupedBets.length;
 
@@ -48,7 +50,7 @@ const ExpandableCard = ({ user, bets, results }) => {
     });
 
     return () => timers.forEach(clearTimeout);
-  }, [expanded, currentKolejka, bets]); 
+  }, [expanded, currentKolejka, groupedBets, refreshTrigger]); 
 
   const hasGameStarted = (betId) => {
     const game = gameData.find(g => g.id === parseInt(betId));
