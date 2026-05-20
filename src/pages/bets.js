@@ -32,33 +32,40 @@ if (getApps().length === 0) {
 const auth = getAuth();
 const database = getDatabase();
 
-// ZMIANA: Grupowanie meczów dynamicznie według unikalnych dat turniejowych
-const groupGamesIntoDays = (games) => {
-  // Pobieramy unikalne i posortowane chronologicznie daty z pliku JSON
-  const uniqueDates = [...new Set(games.map(game => game.date))].sort(
-    (a, b) => DateTime.fromISO(a).milliseconds - DateTime.fromISO(b).milliseconds
-  );
+// ZMIANA: Sztywny podział chronologiczny po ID meczów na 3 równe tygodnie (po 24 mecze)
+const groupGamesIntoWeeks = (games) => {
+  const weeks = [
+    { id: 1, label: "Tydzień 1", games: [] },
+    { id: 2, label: "Tydzień 2", games: [] },
+    { id: 3, label: "Tydzień 3", games: [] }
+  ];
 
-  return uniqueDates.map((date, index) => {
-    const dayId = index + 1;
-    // Filtrujemy mecze przypisane do danej daty i nadajemy im kolejkaId (odpowiednik unikalnego dnia)
-    const dayGames = games
-      .filter(game => game.date === date)
-      .map(game => ({ ...game, kolejkaId: dayId }));
-
-    return {
-      id: dayId,
-      date: date,
-      games: dayGames
-    };
+  games.forEach((game) => {
+    // Tydzień 1: Mecze od 1 do 24
+    if (game.id <= 24) {
+      game.kolejkaId = 1;
+      weeks[0].games.push(game);
+    } 
+    // Tydzień 2: Mecze od 25 do 48
+    else if (game.id <= 48) {
+      game.kolejkaId = 2;
+      weeks[1].games.push(game);
+    } 
+    // Tydzień 3: Mecze od 49 do 72
+    else {
+      game.kolejkaId = 3;
+      weeks[2].games.push(game);
+    }
   });
+
+  return weeks;
 };
 
 const isFrozenGame = (gameId) => gameId >= 12 && gameId <= 18;
 
 const Bets = () => {
-  // ZMIANA: Stan przechowuje teraz zgrupowane dni zamiast sztywnych kolejek
-  const [kolejki, setKolejki] = useState(groupGamesIntoDays(gameData));
+  // ZMIANA: Inicjalizacja stanu nową funkcją grupującą na tygodnie
+  const [kolejki, setKolejki] = useState(groupGamesIntoWeeks(gameData));
   const [selectedUser, setSelectedUser] = useState('');
   const [submittedData, setSubmittedData] = useState({});
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
@@ -88,12 +95,15 @@ const Bets = () => {
       if (data) setResults(data);
     });
     
-    // ZMIANA: Wykrywanie i ustawianie aktualnego dnia na podstawie najbliższego meczu w czasie rzeczywistym
+    // ZMIANA: Inteligentne ustawianie aktualnego tygodnia (index 0, 1 lub 2) na podstawie czasu systemowego
     const now = new Date();
-    const nextGame = gameData.find(game => new Date(`${game.date}T${game.kickoff}:00+02:00`) > now);
-    if (nextGame) {
-      const targetIndex = groupGamesIntoDays(gameData).findIndex(day => day.date === nextGame.date);
-      setCurrentKolejkaIndex(targetIndex !== -1 ? targetIndex : 0);
+    const nextGameIndex = gameData.findIndex(game => new Date(`${game.date}T${game.kickoff}:00+02:00`) > now);
+    
+    if (nextGameIndex !== -1) {
+      const nextGameId = gameData[nextGameIndex].id;
+      if (nextGameId <= 24) setCurrentKolejkaIndex(0);      // Tydzień 1
+      else if (nextGameId <= 48) setCurrentKolejkaIndex(1); // Tydzień 2
+      else setCurrentKolejkaIndex(2);                       // Tydzień 3
     } else {
       setCurrentKolejkaIndex(0);
     }
@@ -211,8 +221,8 @@ const Bets = () => {
       
 
       <div style={{ backgroundColor: '#212529ab', color: 'aliceblue', padding: '20px', textAlign: 'center', marginBottom: '10px', marginTop: '5%' }}>
-        {/* ZMIANA: Etykieta zmieniona na "Dzień" w komponencie Pagination */}
-        <Pagination currentPage={currentKolejkaIndex} totalPages={kolejki.length} onPageChange={(page) => setCurrentKolejkaIndex(page)} label="Dzień" />
+        {/* ZMIANA: label ustawiony na "Tydzień" */}
+        <Pagination currentPage={currentKolejkaIndex} totalPages={kolejki.length} onPageChange={(page) => setCurrentKolejkaIndex(page)} label="Tydzień" />
         
         <table style={{ width: '100%', border: '0.5px solid #444', borderCollapse: 'collapse', marginTop: '5%' }}>
           <thead>
