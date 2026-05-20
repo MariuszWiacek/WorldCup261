@@ -5,54 +5,52 @@ import { DateTime } from 'luxon';
 import gameData from '../gameData/data.json'; 
 
 const ExpandableCard = ({ user, bets, results }) => {
-  const [currentKolejka, setCurrentKolejka] = useState(0);
+  const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // 1. GRUPOWANIE TYPÓW UŻYTKOWNIKA NA 3 TYGODNIE (Zgodnie z ID meczów)
-  const groupedBets = useMemo(() => {
-    const weeks = [[], [], []]; // 3 puste "koszyki" na 3 tygodnie
-
-    Object.keys(bets).forEach((key) => {
-      const betID = parseInt(key, 10);
-      let weekIndex = 0;
-
-      // Logika identyczna jak w bets.js
-      if (betID <= 24) weekIndex = 0;
-      else if (betID <= 48) weekIndex = 1;
-      else weekIndex = 2;
-
-      weeks[weekIndex].push({ id: key, ...bets[key] });
+  // GRUPOWANIE ZAKŁADÓW WEDŁUG UNIKALNYCH DAT Z GAMEDATA
+  const groupedBetsByDate = useMemo(() => {
+    const betsWithDates = Object.keys(bets).map((key) => {
+      const game = gameData.find(g => g.id === parseInt(key, 10));
+      return {
+        id: key,
+        ...bets[key],
+        date: game ? game.date : 'Unknown'
+      };
     });
-    return weeks;
+
+    const uniqueDates = [...new Set(betsWithDates.map(b => b.date))]
+      .filter(d => d !== 'Unknown')
+      .sort((a, b) => DateTime.fromISO(a).milliseconds - DateTime.fromISO(b).milliseconds);
+
+    return uniqueDates.map((date) => {
+      return betsWithDates.filter(b => b.date === date);
+    });
   }, [bets]);
 
-  const totalKolejkas = groupedBets.length; // Zawsze będzie 3
+  const totalDays = groupedBetsByDate.length;
 
-  // Ustawia kartę na aktualnym tygodniu (domyślnie ostatnim aktywnym)
+  // Automatyczne ustawienie na aktualny dzień turnieju
   useEffect(() => {
-    if (totalKolejkas > 0) {
-      // Wykrywamy aktualny tydzień na podstawie czasu, podobnie jak w bets.js
+    if (totalDays > 0) {
       const now = new Date();
-      const nextGameIndex = gameData.findIndex(game => new Date(`${game.date}T${game.kickoff}:00+02:00`) > now);
-      
-      if (nextGameIndex !== -1) {
-        const nextGameId = gameData[nextGameIndex].id;
-        if (nextGameId <= 24) setCurrentKolejka(0);
-        else if (nextGameId <= 48) setCurrentKolejka(1);
-        else setCurrentKolejka(2);
+      const nextGame = gameData.find(game => new Date(`${game.date}T${game.kickoff}:00+02:00`) > now);
+      if (nextGame) {
+        const targetIndex = groupedBetsByDate.findIndex(day => day[0]?.date === nextGame.date);
+        setCurrentDayIndex(targetIndex !== -1 ? targetIndex : 0);
       } else {
-        setCurrentKolejka(0);
+        setCurrentDayIndex(0);
       }
     }
-  }, [totalKolejkas]);
+  }, [totalDays, groupedBetsByDate]);
 
-  // SMART TIMER: Monitoruje tylko mecze w wybranym Tygodniu
+  // SMART TIMER: Śledzi odliczanie kłódek dla wybranego Dnia
   useEffect(() => {
-    if (!expanded || !groupedBets[currentKolejka]) return;
+    if (!expanded || !groupedBetsByDate[currentDayIndex]) return;
 
     const timers = [];
-    groupedBets[currentKolejka].forEach((bet) => {
+    groupedBetsByDate[currentDayIndex].forEach((bet) => {
       const game = gameData.find(g => g.id === parseInt(bet.id));
       if (game) {
         const now = DateTime.now().setZone('Europe/Warsaw');
@@ -69,7 +67,7 @@ const ExpandableCard = ({ user, bets, results }) => {
     });
 
     return () => timers.forEach(clearTimeout);
-  }, [expanded, currentKolejka, groupedBets, refreshTrigger]); 
+  }, [expanded, currentDayIndex, groupedBetsByDate, refreshTrigger]); 
 
   const hasGameStarted = (betId) => {
     const game = gameData.find(g => g.id === parseInt(betId));
@@ -86,6 +84,13 @@ const ExpandableCard = ({ user, bets, results }) => {
     return homeScore > awayScore ? '1' : '2';
   };
 
+  // Ładny polski nagłówek daty pod paginacją
+  const currentFormattedDate = useMemo(() => {
+    const currentDayMatches = groupedBetsByDate[currentDayIndex];
+    if (!currentDayMatches || currentDayMatches.length === 0) return '';
+    return DateTime.fromISO(currentDayMatches[0].date).setLocale('pl').toFormat('cccc, dd.MM');
+  }, [groupedBetsByDate, currentDayIndex]);
+
   return (
     <div className="paper-card" style={{ backgroundColor: 'white', padding: '10px', borderRadius: '8px', marginBottom: '10px' }}>
       <h4 className="header-style" onClick={() => setExpanded(!expanded)} style={{ cursor: 'pointer' }}>
@@ -95,13 +100,17 @@ const ExpandableCard = ({ user, bets, results }) => {
       {expanded && (
         <div className="card-content">
           <Pagination
-            currentPage={currentKolejka}
-            totalPages={totalKolejkas}
-            onPageChange={(page) => setCurrentKolejka(page)}
-            label="Tydzień"
+            currentPage={currentDayIndex}
+            totalPages={totalDays}
+            onPageChange={(page) => setCurrentDayIndex(page)}
+            label="Dzień"
           />
 
-          {groupedBets[currentKolejka]?.map((bet) => {
+          <div style={{ textAlign: 'center', fontWeight: 'bold', margin: '5px 0', fontSize: '11px', color: '#555' }}>
+            {currentFormattedDate}
+          </div>
+
+          {groupedBetsByDate[currentDayIndex]?.map((bet) => {
             const isCurrentlyHidden = bet.isHidden && !hasGameStarted(bet.id);
 
             return (
@@ -131,13 +140,6 @@ const ExpandableCard = ({ user, bets, results }) => {
               </div>
             );
           })}
-          
-          {/* Informacja, jeśli użytkownik nie ma typów w danym tygodniu */}
-          {groupedBets[currentKolejka].length === 0 && (
-            <div style={{ fontSize: '10px', color: 'grey', textAlign: 'center', padding: '10px' }}>
-              Brak typów na ten tydzień.
-            </div>
-          )}
           <hr />
         </div>
       )}
