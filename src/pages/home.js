@@ -10,7 +10,7 @@ const Home = () => {
     return (
         <div className="fade-in">
             <h1 style={welcomeMessageStyle}>
-                Typer LIGI POLSKIEJ - Wiosna 2026
+                Typer Mistrzostw Świata 2026
             </h1>
 
             {/* 🔥 Install Button (top placement) */}
@@ -25,7 +25,7 @@ const Home = () => {
                     <Col md={6} className="spde-in">
                         <div className="section">
                             <p>
-                                Typer WORLD CUP 2026.<br />
+                                Typer Mistrzostw Świata 2026.<br />
                                 To idealne miejsce dla pasjonatów piłki nożnej, którzy chcą sprawdzić swoje umiejętności przewidywania wyników meczów.
                             </p>
                         </div>
