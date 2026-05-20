@@ -1,6 +1,6 @@
 {
-  "name": "WorldCup26",
-  "short_name": "WC2026",
+  "name": "WorldCup",
+  "short_name": "WC",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
