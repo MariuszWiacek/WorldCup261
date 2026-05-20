@@ -80,13 +80,13 @@ const Bets = () => {
     }
 
     // Budowanie ostatecznej listy zakładek w paginacji
-    const pages = [
-      { label: "Archiwum", games: archiveGames },
-      ...activePages.map((games, idx) => ({
-        label: `Bieżące (cz. ${idx + 1})`,
-        games: games
-      }))
-    ];
+    const pages = const pages = [
+  { label: "Archiwum", games: archiveGames },
+  ...activePages.map((games, idx) => ({
+    label: idx === 0 ? "Najbliższe mecze" : `Dalsze mecze (cz. ${idx})`,
+    games: games
+  }))
+];
 
     return pages;
   }, [allGames]);
