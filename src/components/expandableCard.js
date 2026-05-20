@@ -5,52 +5,63 @@ import { DateTime } from 'luxon';
 import gameData from '../gameData/data.json'; 
 
 const ExpandableCard = ({ user, bets, results }) => {
-  const gamesPerKolejka = 9;
-  const [currentKolejka, setCurrentKolejka] = useState(0);
+  const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Group bets into kolejkas safely using useMemo
-  const groupedBets = useMemo(() => {
-    return Object.keys(bets).reduce((acc, key) => {
-      const betID = parseInt(key, 10);
-      const kolejkaIndex = Math.floor((betID - 1) / gamesPerKolejka);
-      if (!acc[kolejkaIndex]) acc[kolejkaIndex] = [];
-      acc[kolejkaIndex].push({ id: key, ...bets[key] });
-      return acc;
-    }, []);
+  // 1. DYNAMICZNE GRUPOWANIE WEDŁUG DAT Z GAMEDATA
+  const groupedBetsByDate = useMemo(() => {
+    // Najpierw mapujemy zakłady użytkownika i dołączamy do nich pełne dane meczu (w tym datę)
+    const betsWithDates = Object.keys(bets).map((key) => {
+      const game = gameData.find(g => g.id === parseInt(key, 10));
+      return {
+        id: key,
+        ...bets[key],
+        date: game ? game.date : 'Unknown' // pobieramy datę z bazy meczów
+      };
+    });
+
+    // Sortujemy unikalne daty chronologicznie
+    const uniqueDates = [...new Set(betsWithDates.map(b => b.date))]
+      .filter(d => d !== 'Unknown')
+      .sort((a, b) => DateTime.fromISO(a).milliseconds - DateTime.fromISO(b).milliseconds);
+
+    // Tworzymy tablicę tablic (każdy indeks to jeden dzień turnieju)
+    return uniqueDates.map((date) => {
+      return betsWithDates.filter(b => b.date === date);
+    });
   }, [bets]);
 
-  const totalKolejkas = groupedBets.length;
+  const totalDays = groupedBetsByDate.length;
 
+  // Ustawia domyślnie ostatni dostępny dzień po załadowaniu danych
   useEffect(() => {
-    if (totalKolejkas > 0) setCurrentKolejka(totalKolejkas - 1);
-  }, [totalKolejkas]);
+    if (totalDays > 0) setCurrentDayIndex(totalDays - 1);
+  }, [totalDays]);
 
-  // SMART TIMER: Only watches games in the CURRENTLY viewed Kolejka
+  // SMART TIMER: Monitoruje mecze tylko z AKTUALNIE przeglądanego dnia
   useEffect(() => {
-    if (!expanded || !groupedBets[currentKolejka]) return;
+    if (!expanded || !groupedBetsByDate[currentDayIndex]) return;
 
     const timers = [];
-    groupedBets[currentKolejka].forEach((bet) => {
+    groupedBetsByDate[currentDayIndex].forEach((bet) => {
       const game = gameData.find(g => g.id === parseInt(bet.id));
       if (game) {
         const now = DateTime.now().setZone('Europe/Warsaw');
         const kickoff = DateTime.fromISO(`${game.date}T${game.kickoff}:00`, { zone: 'Europe/Warsaw' });
         const msUntilKickoff = kickoff.diff(now).milliseconds;
 
-        // Set timer only if kickoff is in the future
         if (msUntilKickoff > 0) {
           const timer = setTimeout(() => {
             setRefreshTrigger(prev => prev + 1);
-          }, msUntilKickoff + 500); // +500ms buffer to ensure time has definitely passed
+          }, msUntilKickoff + 500);
           timers.push(timer);
         }
       }
     });
 
     return () => timers.forEach(clearTimeout);
-  }, [expanded, currentKolejka, groupedBets, refreshTrigger]); 
+  }, [expanded, currentDayIndex, groupedBetsByDate, refreshTrigger]); 
 
   const hasGameStarted = (betId) => {
     const game = gameData.find(g => g.id === parseInt(betId));
@@ -67,6 +78,14 @@ const ExpandableCard = ({ user, bets, results }) => {
     return homeScore > awayScore ? '1' : '2';
   };
 
+  // Formatowanie daty na ładny nagłówek dnia (np. "Piątek, 12.06")
+  const currentFormattedDate = useMemo(() => {
+    const currentDayMatches = groupedBetsByDate[currentDayIndex];
+    if (!currentDayMatches || currentDayMatches.length === 0) return '';
+    const rawDate = currentDayMatches[0].date;
+    return DateTime.fromISO(rawDate).setLocale('pl').toFormat('cccc, dd.MM');
+  }, [groupedBetsByDate, currentDayIndex]);
+
   return (
     <div className="paper-card" style={{ backgroundColor: 'white', padding: '10px', borderRadius: '8px', marginBottom: '10px' }}>
       <h4 className="header-style" onClick={() => setExpanded(!expanded)} style={{ cursor: 'pointer' }}>
@@ -76,13 +95,18 @@ const ExpandableCard = ({ user, bets, results }) => {
       {expanded && (
         <div className="card-content">
           <Pagination
-            currentPage={currentKolejka}
-            totalPages={totalKolejkas}
-            onPageChange={(page) => setCurrentKolejka(page)}
-            label="Kolejka"
+            currentPage={currentDayIndex}
+            totalPages={totalDays}
+            onPageChange={(page) => setCurrentDayIndex(page)}
+            label="Dzień" 
           />
 
-          {groupedBets[currentKolejka]?.map((bet) => {
+          {/* Wyświetlamy ładną datę aktualnego etapu */}
+          <div style={{ textAlign: 'center', fontWeight: 'bold', margin: '5px 0', fontSize: '12px', color: '#555' }}>
+            {currentFormattedDate}
+          </div>
+
+          {groupedBetsByDate[currentDayIndex]?.map((bet) => {
             const isCurrentlyHidden = bet.isHidden && !hasGameStarted(bet.id);
 
             return (
