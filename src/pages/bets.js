@@ -26,30 +26,39 @@ const firebaseConfig = {
   measurementId: "G-KLLLNCET00"
 };
 
-// Fixed the "assigned but never used" warning here
 if (getApps().length === 0) {
   initializeApp(firebaseConfig);
 }
 const auth = getAuth();
 const database = getDatabase();
 
-const groupGamesIntoKolejki = (games) => {
-  const kolejki = [];
-  games.forEach((game, index) => {
-    const currentKolejkaId = Math.floor(index / 9) + 1;
-    game.kolejkaId = currentKolejkaId;
-    if (!kolejki[currentKolejkaId - 1]) {
-      kolejki[currentKolejkaId - 1] = { id: currentKolejkaId, games: [] };
-    }
-    kolejki[currentKolejkaId - 1].games.push(game);
+// ZMIANA: Grupowanie meczów dynamicznie według unikalnych dat turniejowych
+const groupGamesIntoDays = (games) => {
+  // Pobieramy unikalne i posortowane chronologicznie daty z pliku JSON
+  const uniqueDates = [...new Set(games.map(game => game.date))].sort(
+    (a, b) => DateTime.fromISO(a).milliseconds - DateTime.fromISO(b).milliseconds
+  );
+
+  return uniqueDates.map((date, index) => {
+    const dayId = index + 1;
+    // Filtrujemy mecze przypisane do danej daty i nadajemy im kolejkaId (odpowiednik unikalnego dnia)
+    const dayGames = games
+      .filter(game => game.date === date)
+      .map(game => ({ ...game, kolejkaId: dayId }));
+
+    return {
+      id: dayId,
+      date: date,
+      games: dayGames
+    };
   });
-  return kolejki;
 };
 
 const isFrozenGame = (gameId) => gameId >= 12 && gameId <= 18;
 
 const Bets = () => {
-  const [kolejki, setKolejki] = useState(groupGamesIntoKolejki(gameData));
+  // ZMIANA: Stan przechowuje teraz zgrupowane dni zamiast sztywnych kolejek
+  const [kolejki, setKolejki] = useState(groupGamesIntoDays(gameData));
   const [selectedUser, setSelectedUser] = useState('');
   const [submittedData, setSubmittedData] = useState({});
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
@@ -78,9 +87,16 @@ const Bets = () => {
       const data = snapshot.val();
       if (data) setResults(data);
     });
+    
+    // ZMIANA: Wykrywanie i ustawianie aktualnego dnia na podstawie najbliższego meczu w czasie rzeczywistym
     const now = new Date();
-    const nextGameIndex = gameData.findIndex(game => new Date(`${game.date}T${game.kickoff}:00+02:00`) > now);
-    setCurrentKolejkaIndex(nextGameIndex !== -1 ? Math.floor(nextGameIndex / 9) : 0);
+    const nextGame = gameData.find(game => new Date(`${game.date}T${game.kickoff}:00+02:00`) > now);
+    if (nextGame) {
+      const targetIndex = groupGamesIntoDays(gameData).findIndex(day => day.date === nextGame.date);
+      setCurrentKolejkaIndex(targetIndex !== -1 ? targetIndex : 0);
+    } else {
+      setCurrentKolejkaIndex(0);
+    }
   }, []);
 
   const isReadOnly = (user, gameId) => submittedData[user] && submittedData[user][gameId];
@@ -159,7 +175,6 @@ const Bets = () => {
     backgroundColor: "#DC3545", color: "white", border: "none", padding: "10px 30px", borderRadius: "15px", fontWeight: "bold", marginTop: "15px", cursor: "pointer"
   };
 
-  // Inline CSS to mimic your old logo styling structure cleanly
   const flagStyle = {
     width: '32px',
     height: '22px',
@@ -196,7 +211,8 @@ const Bets = () => {
       
 
       <div style={{ backgroundColor: '#212529ab', color: 'aliceblue', padding: '20px', textAlign: 'center', marginBottom: '10px', marginTop: '5%' }}>
-        <Pagination currentPage={currentKolejkaIndex} totalPages={kolejki.length} onPageChange={(page) => setCurrentKolejkaIndex(page)} label="Kolejka" />
+        {/* ZMIANA: Etykieta zmieniona na "Dzień" w komponencie Pagination */}
+        <Pagination currentPage={currentKolejkaIndex} totalPages={kolejki.length} onPageChange={(page) => setCurrentKolejkaIndex(page)} label="Dzień" />
         
         <table style={{ width: '100%', border: '0.5px solid #444', borderCollapse: 'collapse', marginTop: '5%' }}>
           <thead>
