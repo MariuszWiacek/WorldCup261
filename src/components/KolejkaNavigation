@@ -18,7 +18,7 @@ const KolejkaNavigation = ({ currentKolejkaIndex, setCurrentKolejkaIndex, totalK
             transition: 'background-color 0.3s',
           }}
         >
-          Kolejka {index + 1}
+          Dzień {index + 1}
         </button>
       ))}
     </div>
