@@ -79,14 +79,14 @@ const Bets = () => {
       activePages.push([]);
     }
 
-    // Budowanie ostatecznej listy zakładek w paginacji
-    const pages = const pages = [
-  { label: "Archiwum", games: archiveGames },
-  ...activePages.map((games, idx) => ({
-    label: idx === 0 ? "Najbliższe mecze" : `Dalsze mecze (cz. ${idx})`,
-    games: games
-  }))
-];
+    // Budowanie ostatecznej listy zakładek w paginacji - NAPRAWIONE const pages
+    const pages = [
+      { label: "Archiwum", games: archiveGames },
+      ...activePages.map((games, idx) => ({
+        label: idx === 0 ? "Najbliższe mecze" : `Dalsze mecze (cz. ${idx})`,
+        games: games
+      }))
+    ];
 
     return pages;
   }, [allGames]);
