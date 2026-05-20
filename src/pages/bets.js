@@ -51,7 +51,7 @@ const Bets = () => {
     type: "info"
   });
 
-  // DYNAMICZNE STRONICOWANIE: ARCHIWANIE DOPIERO DZIEŃ PO ROZEGRANIU
+  // DYNAMICZNE STRONICOWANIE: PACZKI PO MAX 8 MECZÓW
   const paginatedTabs = useMemo(() => {
     const now = DateTime.now().setZone('Europe/Warsaw');
 
@@ -68,8 +68,8 @@ const Bets = () => {
     const firstActiveId = activeCandidates[0]?.id || 999;
     const archiveGames = allGames.filter(g => g.id < firstActiveId).sort((a, b) => a.id - b.id);
 
-    // 3. Podział pozostałych meczów (bieżących/przyszłych) na paczki po maksymalnie 10 sztuk
-    const chunkSize = 10;
+    // 3. Podział pozostałych meczów (bieżących/przyszłych) na paczki po maksymalnie 8 sztuk
+    const chunkSize = 8;
     const activePages = [];
     for (let i = 0; i < activeCandidates.length; i += chunkSize) {
       activePages.push(activeCandidates.slice(i, i + chunkSize));
