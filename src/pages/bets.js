@@ -36,7 +36,7 @@ const isFrozenGame = (gameId) => gameId >= 12 && gameId <= 18;
 
 const Bets = () => {
   const [allGames, setAllGames] = useState(gameData);
-  const [currentTab, setCurrentTab] = useState(1); // 0: Archiwum, 1: Bieżące
+  const [currentTab, setCurrentTab] = useState(1); // Domyślnie otwiera na 1 (Bieżące)
   const [selectedUser, setSelectedUser] = useState('');
   const [submittedData, setSubmittedData] = useState({});
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
@@ -51,27 +51,24 @@ const Bets = () => {
     type: "info"
   });
 
-  // PODZIAŁ DYNAMICZNY: MAX 10 NA BIEŻĄCE, RESZTA DO ARCHIWUM
+  // DYNAMICZNY PODZIAŁ: ZAKOŃCZONE DO ARCHIWUM, MAX 10 NASTĘPNYCH NA BIEŻĄCE
   const tabsData = useMemo(() => {
     const now = DateTime.now().setZone('Europe/Warsaw');
 
-    // 1. Filtrujemy mecze, które kwalifikują się jako "aktywne/nadchodzące" (okno 72h)
+    // 1. Szukamy meczów, które jeszcze się nie zaczęły LUB trwają (mniej niż 2.5h od startu)
     const activeCandidates = allGames.filter((game) => {
       const kickoff = DateTime.fromISO(`${game.date}T${game.kickoff}:00`, { zone: 'Europe/Warsaw' });
-      const hoursUntilKickoff = kickoff.diff(now, 'hours').hours;
+      const hoursSinceKickoff = now.diff(kickoff, 'hours').hours;
 
-      const isUpcoming = hoursUntilKickoff > 0 && hoursUntilKickoff <= 72;
-      const isRecentOrLive = hoursUntilKickoff <= 0 && Math.abs(hoursUntilKickoff) <= 20;
-
-      return isUpcoming || isRecentOrLive || game.id <= 10; // Pierwsze 10 jako gwarantowany start turnieju
+      return hoursSinceKickoff < 2.5; 
     }).sort((a, b) => a.id - b.id);
 
-    // 2. Ścisły limit: bierzemy pod uwagę tylko 10 najwcześniejszych z aktywnych kandydatów
+    // 2. Ścisły limit na stronie głównej: dokładnie 10 najbliższych meczów
     const currentActiveGames = activeCandidates.slice(0, 10);
-    const activeIds = new Set(currentActiveGames.map(g => g.id));
 
-    // 3. Wszystkie mecze o ID mniejszym niż najstarszy aktywny mecz wędrują do archiwum
-    const archiveGames = allGames.filter(g => g.id < currentActiveGames[0]?.id).sort((a, b) => a.id - b.id);
+    // 3. ARCHIWUM: Wszystko co ma mniejsze ID niż najwcześniejszy mecz z zakładki "Bieżące"
+    const firstActiveId = currentActiveGames[0]?.id || 999;
+    const archiveGames = allGames.filter(g => g.id < firstActiveId).sort((a, b) => a.id - b.id);
 
     return [
       { id: 0, label: "Archiwum", games: archiveGames },
@@ -79,7 +76,7 @@ const Bets = () => {
     ];
   }, [allGames]);
 
-  // Cykliczne sprawdzanie czasu, aby mecze automatycznie przeskakiwały między zakładkami
+  // Cykliczny sprawdzacz czasu – co minutę odświeża i przesuwa mecze z "Bieżące" do "Archiwum"
   useEffect(() => {
     const timer = setInterval(() => {
       setAllGames([...gameData]); 
@@ -201,7 +198,7 @@ const Bets = () => {
 
       <div style={{ backgroundColor: '#212529ab', color: 'aliceblue', padding: '20px', textAlign: 'center', marginBottom: '10px', marginTop: '5%' }}>
         
-        {/* Niestandardowy przełącznik zakładek oparty na Pagination */}
+        {/* Kontrola zakładek przez istniejący komponent Pagination */}
         <Pagination 
           currentPage={currentTab} 
           totalPages={2} 
