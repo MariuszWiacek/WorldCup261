@@ -36,7 +36,7 @@ const isFrozenGame = (gameId) => gameId >= 12 && gameId <= 18;
 
 const Bets = () => {
   const [allGames, setAllGames] = useState(gameData);
-  const [currentTab, setCurrentTab] = useState(1); // Domyślnie otwiera na 1 (Bieżące)
+  const [currentPage, setCurrentPage] = useState(1); // Start na pierwszej stronie aktywnych meczów
   const [selectedUser, setSelectedUser] = useState('');
   const [submittedData, setSubmittedData] = useState({});
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
@@ -51,32 +51,47 @@ const Bets = () => {
     type: "info"
   });
 
-  // DYNAMICZNY PODZIAŁ: ZAKOŃCZONE DO ARCHIWUM, MAX 10 NASTĘPNYCH NA BIEŻĄCE
-  const tabsData = useMemo(() => {
+  // DYNAMICZNE STRONICOWANIE: ARCHIWANIE DOPIERO DZIEŃ PO ROZEGRANIU
+  const paginatedTabs = useMemo(() => {
     const now = DateTime.now().setZone('Europe/Warsaw');
 
-    // 1. Szukamy meczów, które jeszcze się nie zaczęły LUB trwają (mniej niż 2.5h od startu)
+    // 1. Mecze aktywne na tablicy głównej: przyszłe, trwające ORAZ zakończone w ciągu ostatnich 24 godzin
     const activeCandidates = allGames.filter((game) => {
       const kickoff = DateTime.fromISO(`${game.date}T${game.kickoff}:00`, { zone: 'Europe/Warsaw' });
       const hoursSinceKickoff = now.diff(kickoff, 'hours').hours;
 
-      return hoursSinceKickoff < 2.5; 
+      // 2.5h czasu trwania spotkania + 24h jako widoczny "świeży" wynik = 26.5 godziny bufora
+      return hoursSinceKickoff < 26.5; 
     }).sort((a, b) => a.id - b.id);
 
-    // 2. Ścisły limit na stronie głównej: dokładnie 10 najbliższych meczów
-    const currentActiveGames = activeCandidates.slice(0, 10);
-
-    // 3. ARCHIWUM: Wszystko co ma mniejsze ID niż najwcześniejszy mecz z zakładki "Bieżące"
-    const firstActiveId = currentActiveGames[0]?.id || 999;
+    // 2. ARCHIWUM: Wszystko, co wypadło z bufora aktywności (ma mniejsze ID niż pierwszy aktywny)
+    const firstActiveId = activeCandidates[0]?.id || 999;
     const archiveGames = allGames.filter(g => g.id < firstActiveId).sort((a, b) => a.id - b.id);
 
-    return [
-      { id: 0, label: "Archiwum", games: archiveGames },
-      { id: 1, label: "Bieżące", games: currentActiveGames }
+    // 3. Podział pozostałych meczów (bieżących/przyszłych) na paczki po maksymalnie 10 sztuk
+    const chunkSize = 10;
+    const activePages = [];
+    for (let i = 0; i < activeCandidates.length; i += chunkSize) {
+      activePages.push(activeCandidates.slice(i, i + chunkSize));
+    }
+
+    if (activePages.length === 0) {
+      activePages.push([]);
+    }
+
+    // Budowanie ostatecznej listy zakładek w paginacji
+    const pages = [
+      { label: "Archiwum", games: archiveGames },
+      ...activePages.map((games, idx) => ({
+        label: `Bieżące (cz. ${idx + 1})`,
+        games: games
+      }))
     ];
+
+    return pages;
   }, [allGames]);
 
-  // Cykliczny sprawdzacz czasu – co minutę odświeża i przesuwa mecze z "Bieżące" do "Archiwum"
+  // Interwał sprawdzający czas co minutę w tle
   useEffect(() => {
     const timer = setInterval(() => {
       setAllGames([...gameData]); 
@@ -127,7 +142,7 @@ const Bets = () => {
     }
 
     const userSubmittedBets = submittedData[selectedUser] || {};
-    const currentGames = tabsData[currentTab].games;
+    const currentGames = paginatedTabs[currentPage]?.games || [];
     
     const newBetsToSubmit = currentGames.reduce((acc, game) => {
       if (game.score && !userSubmittedBets[game.id] && !isFrozenGame(game.id)) {
@@ -174,6 +189,8 @@ const Bets = () => {
     width: '32px', height: '22px', verticalAlign: 'middle', marginRight: '8px', marginLeft: '8px', display: 'inline-block', borderRadius: '3px', boxShadow: '0px 1px 3px rgba(0,0,0,0.3)', objectFit: 'cover'
   };
 
+  const activeTabInfo = paginatedTabs[currentPage] || paginatedTabs[0];
+
   return (
     <div className="fade-in" style={{ textAlign: 'center', color: 'yellow' }}>
       {modalConfig.show && (
@@ -198,16 +215,15 @@ const Bets = () => {
 
       <div style={{ backgroundColor: '#212529ab', color: 'aliceblue', padding: '20px', textAlign: 'center', marginBottom: '10px', marginTop: '5%' }}>
         
-        {/* Kontrola zakładek przez istniejący komponent Pagination */}
         <Pagination 
-          currentPage={currentTab} 
-          totalPages={2} 
-          onPageChange={(page) => setCurrentTab(page)} 
-          label={currentTab === 1 ? "Widok: Bieżące" : "Widok: Archiwum"} 
+          currentPage={currentPage} 
+          totalPages={paginatedTabs.length} 
+          onPageChange={(page) => setCurrentPage(page)} 
+          label={`Widok: ${activeTabInfo.label}`} 
         />
         
-        {tabsData[currentTab].games.length === 0 ? (
-          <div style={{ padding: '20px', color: 'gold' }}>Brak meczów w tej sekcji.</div>
+        {activeTabInfo.games.length === 0 ? (
+          <div style={{ padding: '20px', color: 'gold' }}>Brak meczów na tej podstronie.</div>
         ) : (
           <table style={{ width: '100%', border: '0.5px solid #444', borderCollapse: 'collapse', marginTop: '5%' }}>
             <thead>
@@ -222,7 +238,7 @@ const Bets = () => {
               </tr>
             </thead>
             <tbody>
-              {tabsData[currentTab].games.map((game, index) => (
+              {activeTabInfo.games.map((game, index) => (
                 <React.Fragment key={index}>
                   <tr style={{ opacity: game.disabled || isFrozenGame(game.id) ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}>
                     <td colSpan="12" className="date" style={{ textAlign: 'left', color: 'gold', fontSize: '10px', paddingLeft: '10%' }}>
@@ -273,7 +289,8 @@ const Bets = () => {
           </table>
         )}
 
-        {currentTab === 1 && (
+        {/* Formularz zapisu i wysyłki typów wyświetlamy tylko dla stron bieżących */}
+        {currentPage > 0 && activeTabInfo.games.length > 0 && (
           <>
             <div style={{ marginTop: '15px' }}>
               <label style={{ color: 'white', fontSize: '12px', cursor: 'pointer' }}>
