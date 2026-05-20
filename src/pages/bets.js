@@ -49,29 +49,34 @@ const Bets = () => {
     type: "info"
   });
 
-  // DYNAMICZNE FILTROWANIE MECZÓW – OKNO 72 GODZINY
+  // LOGIKA: BAZA (MECZE 1-10) + DYNAMICZNE DOPINANIE RESZTY W OKNIE 72H
   useEffect(() => {
     const updateVisibleGames = () => {
       const now = DateTime.now().setZone('Europe/Warsaw');
 
       const filtered = gameData.filter((game) => {
+        // WARUNEK 1: Mecze od 1 do 10 pokazujemy zawsze na stałe
+        if (game.id <= 10) return true;
+
         const kickoff = DateTime.fromISO(`${game.date}T${game.kickoff}:00`, { zone: 'Europe/Warsaw' });
         const hoursUntilKickoff = kickoff.diff(now, 'hours').hours;
 
-        // Warunek 1: Do meczu zostało mniej niż 72 godziny
+        // WARUNEK 2: Kolejne mecze pokazują się na 72h przed rozpoczęciem
         const isUpcoming = hoursUntilKickoff > 0 && hoursUntilKickoff <= 72;
         
-        // Warunek 2: Mecz już trwa lub skończył się niedawno (pokazuj do 20h od startu)
+        // WARUNEK 3: Mecz już trwa lub skończył się niedawno (pokazuj do 20h od startu)
         const isRecentOrLive = hoursUntilKickoff <= 0 && Math.abs(hoursUntilKickoff) <= 20; 
 
         return isUpcoming || isRecentOrLive;
       });
 
-      setVisibleGames(filtered);
+      // Usuwamy ewentualne duplikaty i sortujemy listę rosnąco po ID meczu
+      const sortedUniqueGames = filtered.sort((a, b) => a.id - b.id);
+      setVisibleGames(sortedUniqueGames);
     };
 
     updateVisibleGames();
-    const interval = setInterval(updateVisibleGames, 60000); // Odświeżaj listę co minutę
+    const interval = setInterval(updateVisibleGames, 60000); // Odświeżanie co minutę
     return () => clearInterval(interval);
   }, []);
 
@@ -188,72 +193,68 @@ const Bets = () => {
 
       <div style={{ backgroundColor: '#212529ab', color: 'aliceblue', padding: '20px', textAlign: 'center', marginBottom: '10px', marginTop: '5%' }}>
         
-        {visibleGames.length === 0 ? (
-          <div style={{ padding: '20px', color: 'gold' }}>Brak nadchodzących meczów (okno 72h).</div>
-        ) : (
-          <table style={{ width: '100%', border: '0.5px solid #444', borderCollapse: 'collapse', marginTop: '5%' }}>
-            <thead>
-              <tr>
-                <th style={{ borderBottom: '0.5px solid #444' }}></th>
-                <th style={{ borderBottom: '0.5px solid #444' }}>Gospodarz</th>
-                <th style={{ borderBottom: '0.5px solid #444' }}></th>
-                <th style={{ borderBottom: '0.5px solid #444' }}>Gość</th>
-                <th style={{ borderBottom: '0.5px solid #444' }}>Wynik</th>
-                <th style={{ borderBottom: '0.5px solid #444' }}>1X2</th>
-                <th style={{ borderBottom: '0.5px solid #444' }}>Typ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleGames.map((game, index) => (
-                <React.Fragment key={index}>
-                  <tr style={{ opacity: game.disabled || isFrozenGame(game.id) ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}>
-                    <td colSpan="12" className="date" style={{ textAlign: 'left', color: 'gold', fontSize: '10px', paddingLeft: '10%' }}>
-                      &nbsp;&nbsp;&nbsp; {game.date} &nbsp;&nbsp;&nbsp; {game.kickoff} &nbsp;&nbsp;&nbsp; {game.message} {isFrozenGame(game.id) ? '🔒 ZAMROŻONE' : ''}
-                    </td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #444', opacity: game.disabled || isFrozenGame(game.id) ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}>
-                    <td><p style={{ color: 'grey' }}>{game.id}.</p></td>
-                    
-                    <td style={{ textAlign: 'center', paddingRight: '10px', fontSize: '20px' }}>
-                      <Flag code={getTeamLogo(game.home)} style={flagStyle} fallback={<span>🏳️ </span>} />
-                      {game.home}
-                    </td>
-                    
-                    <td style={{ textAlign: 'center', fontSize: '20px' }}>-</td>
-                    
-                    <td style={{ textAlign: 'left', paddingLeft: '10px', fontSize: '20px' }}>
-                      <Flag code={getTeamLogo(game.away)} style={flagStyle} fallback={<span>🏳️ </span>} />
-                      {game.away}
-                    </td>
-                    
-                    <td style={{ textAlign: 'center', fontSize: '20px' }}>{results[game.id]}</td>
-                    <td style={{ textAlign: 'center' }}>
-                      <select value={game.bet || ''} disabled>
-                        <option value="1">1</option><option value="X">X</option><option value="2">2</option>
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        style={{ 
-                          width: '50px', 
-                          backgroundColor: isFrozenGame(game.id) ? '#ddd' : game.score ? isReadOnly(selectedUser, game.id) ? 'transparent' : 'white' : 'white', 
-                          color: 'red' 
-                        }}
-                        type="text"
-                        placeholder={isReadOnly(selectedUser, game.id) ? '✔️' : 'x:x'}
-                        value={game.score || ''}
-                        onChange={(e) => handleScoreChange(game.id, e.target.value)}
-                        maxLength="3"
-                        readOnly={areInputsEditable && isReadOnly(selectedUser, game.id)}
-                        disabled={areInputsEditable && (gameStarted(game.date, game.kickoff) || isFrozenGame(game.id))}
-                      />
-                    </td>
-                  </tr>
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <table style={{ width: '100%', border: '0.5px solid #444', borderCollapse: 'collapse', marginTop: '5%' }}>
+          <thead>
+            <tr>
+              <th style={{ borderBottom: '0.5px solid #444' }}></th>
+              <th style={{ borderBottom: '0.5px solid #444' }}>Gospodarz</th>
+              <th style={{ borderBottom: '0.5px solid #444' }}></th>
+              <th style={{ borderBottom: '0.5px solid #444' }}>Gość</th>
+              <th style={{ borderBottom: '0.5px solid #444' }}>Wynik</th>
+              <th style={{ borderBottom: '0.5px solid #444' }}>1X2</th>
+              <th style={{ borderBottom: '0.5px solid #444' }}>Typ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visibleGames.map((game, index) => (
+              <React.Fragment key={index}>
+                <tr style={{ opacity: game.disabled || isFrozenGame(game.id) ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}>
+                  <td colSpan="12" className="date" style={{ textAlign: 'left', color: 'gold', fontSize: '10px', paddingLeft: '10%' }}>
+                    &nbsp;&nbsp;&nbsp; {game.date} &nbsp;&nbsp;&nbsp; {game.kickoff} &nbsp;&nbsp;&nbsp; {game.message} {isFrozenGame(game.id) ? '🔒 ZAMROŻONE' : ''}
+                  </td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #444', opacity: game.disabled || isFrozenGame(game.id) ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}>
+                  <td><p style={{ color: 'grey' }}>{game.id}.</p></td>
+                  
+                  <td style={{ textAlign: 'center', paddingRight: '10px', fontSize: '20px' }}>
+                    <Flag code={getTeamLogo(game.home)} style={flagStyle} fallback={<span>🏳️ </span>} />
+                    {game.home}
+                  </td>
+                  
+                  <td style={{ textAlign: 'center', fontSize: '20px' }}>-</td>
+                  
+                  <td style={{ textAlign: 'left', paddingLeft: '10px', fontSize: '20px' }}>
+                    <Flag code={getTeamLogo(game.away)} style={flagStyle} fallback={<span>🏳️ </span>} />
+                    {game.away}
+                  </td>
+                  
+                  <td style={{ textAlign: 'center', fontSize: '20px' }}>{results[game.id]}</td>
+                  <td style={{ textAlign: 'center' }}>
+                    <select value={game.bet || ''} disabled>
+                      <option value="1">1</option><option value="X">X</option><option value="2">2</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input
+                      style={{ 
+                        width: '50px', 
+                        backgroundColor: isFrozenGame(game.id) ? '#ddd' : game.score ? isReadOnly(selectedUser, game.id) ? 'transparent' : 'white' : 'white', 
+                        color: 'red' 
+                      }}
+                      type="text"
+                      placeholder={isReadOnly(selectedUser, game.id) ? '✔️' : 'x:x'}
+                      value={game.score || ''}
+                      onChange={(e) => handleScoreChange(game.id, e.target.value)}
+                      maxLength="3"
+                      readOnly={areInputsEditable && isReadOnly(selectedUser, game.id)}
+                      disabled={areInputsEditable && (gameStarted(game.date, game.kickoff) || isFrozenGame(game.id))}
+                    />
+                  </td>
+                </tr>
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
 
         <div style={{ marginTop: '15px' }}>
           <label style={{ color: 'white', fontSize: '12px', cursor: 'pointer' }}>
@@ -270,7 +271,6 @@ const Bets = () => {
         <button 
           style={{ backgroundColor: '#DC3545', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '10px', cursor: 'pointer', display: 'inline-block', margin: '10px', fontSize: '14px', width: '60%' }} 
           onClick={handleSubmit}
-          disabled={visibleGames.length === 0}
         >
           Prześlij {isHiddenActive ? '🔒' : ''}
         </button>
