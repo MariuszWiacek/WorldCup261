@@ -1,650 +1,74 @@
 [
-  {
-    "id": 1,
-    "kolejkaId": "A",
-    "home": "Meksyk",
-    "away": "RPA",
-    "kickoff": "02:00",
-    "date": "2026-06-12",
-    "disabled": false
-  },
-  {
-    "id": 2,
-    "kolejkaId": "A",
-    "home": "Korea Południowa",
-    "away": "Czechy",
-    "kickoff": "09:00",
-    "date": "2026-06-12",
-    "disabled": false
-  },
-  {
-    "id": 3,
-    "kolejkaId": "B",
-    "home": "Kanada",
-    "away": "Bośnia i Hercegowina",
-    "kickoff": "01:00",
-    "date": "2026-06-13",
-    "disabled": false
-  },
-  {
-    "id": 4,
-    "kolejkaId": "D",
-    "home": "USA",
-    "away": "Paragwaj",
-    "kickoff": "03:00",
-    "date": "2026-06-13",
-    "disabled": false
-  },
-  {
-    "id": 5,
-    "kolejkaId": "C",
-    "home": "Haiti",
-    "away": "Szkocja",
-    "kickoff": "19:00",
-    "date": "2026-06-13",
-    "disabled": false
-  },
-  {
-    "id": 6,
-    "kolejkaId": "D",
-    "home": "Australia",
-    "away": "Turcja",
-    "kickoff": "22:00",
-    "date": "2026-06-13",
-    "disabled": false
-  },
-  {
-    "id": 7,
-    "kolejkaId": "C",
-    "home": "Brazylia",
-    "away": "Maroko",
-    "kickoff": "01:00",
-    "date": "2026-06-14",
-    "disabled": false
-  },
-  {
-    "id": 8,
-    "kolejkaId": "B",
-    "home": "Katar",
-    "away": "Szwajcaria",
-    "kickoff": "04:00",
-    "date": "2026-06-14",
-    "disabled": false
-  },
-  {
-    "id": 9,
-    "kolejkaId": "E",
-    "home": "Wybrzeże Kości Słoniowej",
-    "away": "Ekwador",
-    "kickoff": "19:00",
-    "date": "2026-06-14",
-    "disabled": false
-  },
-  {
-    "id": 10,
-    "kolejkaId": "E",
-    "home": "Niemcy",
-    "away": "Curaçao",
-    "kickoff": "22:00",
-    "date": "2026-06-14",
-    "disabled": false
-  },
-  {
-    "id": 11,
-    "kolejkaId": "F",
-    "home": "Holandia",
-    "away": "Japonia",
-    "kickoff": "01:00",
-    "date": "2026-06-15",
-    "disabled": false
-  },
-  {
-    "id": 12,
-    "kolejkaId": "F",
-    "home": "Szwecja",
-    "away": "Tunezja",
-    "kickoff": "04:00",
-    "date": "2026-06-15",
-    "disabled": false
-  },
-  {
-    "id": 13,
-    "kolejkaId": "G",
-    "home": "Belgia",
-    "away": "Iran",
-    "kickoff": "19:00",
-    "date": "2026-06-15",
-    "disabled": false
-  },
-  {
-    "id": 14,
-    "kolejkaId": "G",
-    "home": "Egipt",
-    "away": "Nowa Zelandia",
-    "kickoff": "22:00",
-    "date": "2026-06-15",
-    "disabled": false
-  },
-  {
-    "id": 15,
-    "kolejkaId": "H",
-    "home": "Hiszpania",
-    "away": "Urugwaj",
-    "kickoff": "01:00",
-    "date": "2026-06-16",
-    "disabled": false
-  },
-  {
-    "id": 16,
-    "kolejkaId": "H",
-    "home": "Arabia Saudyjska",
-    "away": "Republika Zielonego Przylądka",
-    "kickoff": "04:00",
-    "date": "2026-06-16",
-    "disabled": false
-  },
-  {
-    "id": 17,
-    "kolejkaId": "I",
-    "home": "Francja",
-    "away": "Senegal",
-    "kickoff": "19:00",
-    "date": "2026-06-16",
-    "disabled": false
-  },
-  {
-    "id": 18,
-    "kolejkaId": "I",
-    "home": "Norwegia",
-    "away": "Irak",
-    "kickoff": "22:00",
-    "date": "2026-06-16",
-    "disabled": false
-  },
-  {
-    "id": 19,
-    "kolejkaId": "J",
-    "home": "Argentyna",
-    "away": "Austria",
-    "kickoff": "01:00",
-    "date": "2026-06-17",
-    "disabled": false
-  },
-  {
-    "id": 20,
-    "kolejkaId": "J",
-    "home": "Algieria",
-    "away": "Ukraina",
-    "kickoff": "04:00",
-    "date": "2026-06-17",
-    "disabled": false
-  },
-  {
-    "id": 21,
-    "kolejkaId": "K",
-    "home": "Anglia",
-    "away": "Chile",
-    "kickoff": "19:00",
-    "date": "2026-06-17",
-    "disabled": false
-  },
-  {
-    "id": 22,
-    "kolejkaId": "K",
-    "home": "Nigeria",
-    "away": "Grecja",
-    "kickoff": "22:00",
-    "date": "2026-06-17",
-    "disabled": false
-  },
-  {
-    "id": 23,
-    "kolejkaId": "L",
-    "home": "Portugalia",
-    "away": "USA",
-    "kickoff": "01:00",
-    "date": "2026-06-18",
-    "disabled": false
-  },
-  {
-    "id": 24,
-    "kolejkaId": "L",
-    "home": "Kolumbia",
-    "away": "Ghana",
-    "kickoff": "04:00",
-    "date": "2026-06-18",
-    "disabled": false
-  },
-  {
-    "id": 25,
-    "kolejkaId": "A",
-    "home": "RPA",
-    "away": "Czechy",
-    "kickoff": "23:00",
-    "date": "2026-06-18",
-    "disabled": false
-  },
-  {
-    "id": 26,
-    "kolejkaId": "A",
-    "home": "Meksyk",
-    "away": "Korea Południowa",
-    "kickoff": "08:00",
-    "date": "2026-06-19",
-    "disabled": false
-  },
-  {
-    "id": 27,
-    "kolejkaId": "B",
-    "home": "Szwajcaria",
-    "away": "Bośnia i Hercegowina",
-    "kickoff": "22:00",
-    "date": "2026-06-19",
-    "disabled": false
-  },
-  {
-    "id": 28,
-    "kolejkaId": "C",
-    "home": "Szkocja",
-    "away": "Maroko",
-    "kickoff": "22:00",
-    "date": "2026-06-19",
-    "disabled": false
-  },
-  {
-    "id": 29,
-    "kolejkaId": "D",
-    "home": "USA",
-    "away": "Turcja",
-    "kickoff": "01:00",
-    "date": "2026-06-20",
-    "disabled": false
-  },
-  {
-    "id": 30,
-    "kolejkaId": "C",
-    "home": "Brazylia",
-    "away": "Haiti",
-    "kickoff": "04:00",
-    "date": "2026-06-20",
-    "disabled": false
-  },
-  {
-    "id": 31,
-    "kolejkaId": "B",
-    "home": "Kanada",
-    "away": "Katar",
-    "kickoff": "03:00",
-    "date": "2026-06-20",
-    "disabled": false
-  },
-  {
-    "id": 32,
-    "kolejkaId": "D",
-    "home": "Paragwaj",
-    "away": "Australia",
-    "kickoff": "22:00",
-    "date": "2026-06-20",
-    "disabled": false
-  },
-  {
-    "id": 33,
-    "kolejkaId": "E",
-    "home": "Niemcy",
-    "away": "Ekwador",
-    "kickoff": "01:00",
-    "date": "2026-06-21",
-    "disabled": false
-  },
-  {
-    "id": 34,
-    "kolejkaId": "E",
-    "home": "Wybrzeże Kości Słoniowej",
-    "away": "Curaçao",
-    "kickoff": "04:00",
-    "date": "2026-06-21",
-    "disabled": false
-  },
-  {
-    "id": 35,
-    "kolejkaId": "F",
-    "home": "Japonia",
-    "away": "Tunezja",
-    "kickoff": "19:00",
-    "date": "2026-06-21",
-    "disabled": false
-  },
-  {
-    "id": 36,
-    "kolejkaId": "F",
-    "home": "Holandia",
-    "away": "Szwecja",
-    "kickoff": "22:00",
-    "date": "2026-06-21",
-    "disabled": false
-  },
-  {
-    "id": 37,
-    "kolejkaId": "A",
-    "home": "Meksyk",
-    "away": "Korea Południowa",
-    "kickoff": "01:00",
-    "date": "2026-06-22",
-    "disabled": false
-  },
-  {
-    "id": 38,
-    "kolejkaId": "A",
-    "home": "RPA",
-    "away": "Czechy",
-    "kickoff": "04:00",
-    "date": "2026-06-22",
-    "disabled": false
-  },
-  {
-    "id": 39,
-    "kolejkaId": "B",
-    "home": "Kanada",
-    "away": "Katar",
-    "kickoff": "19:00",
-    "date": "2026-06-22",
-    "disabled": false
-  },
-  {
-    "id": 40,
-    "kolejkaId": "B",
-    "home": "Bośnia i Hercegowina",
-    "away": "Szwajcaria",
-    "kickoff": "22:00",
-    "date": "2026-06-22",
-    "disabled": false
-  },
-  {
-    "id": 41,
-    "kolejkaId": "C",
-    "home": "Haiti",
-    "away": "Maroko",
-    "kickoff": "01:00",
-    "date": "2026-06-23",
-    "disabled": false
-  },
-  {
-    "id": 42,
-    "kolejkaId": "C",
-    "home": "Szkocja",
-    "away": "Brazylia",
-    "kickoff": "04:00",
-    "date": "2026-06-23",
-    "disabled": false
-  },
-  {
-    "id": 43,
-    "kolejkaId": "D",
-    "home": "USA",
-    "away": "Turcja",
-    "kickoff": "19:00",
-    "date": "2026-06-23",
-    "disabled": false
-  },
-  {
-    "id": 44,
-    "kolejkaId": "D",
-    "home": "Paragwaj",
-    "away": "Australia",
-    "kickoff": "22:00",
-    "date": "2026-06-23",
-    "disabled": false
-  },
-  {
-    "id": 45,
-    "kolejkaId": "E",
-    "home": "Wybrzeże Kości Słoniowej",
-    "away": "Curaçao",
-    "kickoff": "01:00",
-    "date": "2026-06-24",
-    "disabled": false
-  },
-  {
-    "id": 46,
-    "kolejkaId": "E",
-    "home": "Ekwador",
-    "away": "Niemcy",
-    "kickoff": "04:00",
-    "date": "2026-06-24",
-    "disabled": false
-  },
-  {
-    "id": 47,
-    "kolejkaId": "F",
-    "home": "Holandia",
-    "away": "Szwecja",
-    "kickoff": "19:00",
-    "date": "2026-06-24",
-    "disabled": false
-  },
-  {
-    "id": 48,
-    "kolejkaId": "F",
-    "home": "Japonia",
-    "away": "Tunezja",
-    "kickoff": "22:00",
-    "date": "2026-06-24",
-    "disabled": false
-  },
-  {
-    "id": 49,
-    "kolejkaId": "G",
-    "home": "Belgia",
-    "away": "Nowa Zelandia",
-    "kickoff": "01:00",
-    "date": "2026-06-25",
-    "disabled": false
-  },
-  {
-    "id": 50,
-    "kolejkaId": "G",
-    "home": "Iran",
-    "away": "Egipt",
-    "kickoff": "04:00",
-    "date": "2026-06-25",
-    "disabled": false
-  },
-  {
-    "id": 51,
-    "kolejkaId": "H",
-    "home": "Hiszpania",
-    "away": "Republika Zielonego Przylądka",
-    "kickoff": "19:00",
-    "date": "2026-06-25",
-    "disabled": false
-  },
-  {
-    "id": 52,
-    "kolejkaId": "H",
-    "home": "Urugwaj",
-    "away": "Arabia Saudyjska",
-    "kickoff": "22:00",
-    "date": "2026-06-25",
-    "disabled": false
-  },
-  {
-    "id": 53,
-    "kolejkaId": "I",
-    "home": "Francja",
-    "away": "Irak",
-    "kickoff": "01:00",
-    "date": "2026-06-26",
-    "disabled": false
-  },
-  {
-    "id": 54,
-    "kolejkaId": "I",
-    "home": "Senegal",
-    "away": "Norwegia",
-    "kickoff": "04:00",
-    "date": "2026-06-26",
-    "disabled": false
-  },
-  {
-    "id": 55,
-    "kolejkaId": "J",
-    "home": "Argentyna",
-    "away": "Ukraina",
-    "kickoff": "19:00",
-    "date": "2026-06-26",
-    "disabled": false
-  },
-  {
-    "id": 56,
-    "kolejkaId": "J",
-    "home": "Austria",
-    "away": "Algieria",
-    "kickoff": "22:00",
-    "date": "2026-06-26",
-    "disabled": false
-  },
-  {
-    "id": 57,
-    "kolejkaId": "K",
-    "home": "Anglia",
-    "away": "Grecja",
-    "kickoff": "01:00",
-    "date": "2026-06-27",
-    "disabled": false
-  },
-  {
-    "id": 58,
-    "kolejkaId": "K",
-    "home": "Chile",
-    "away": "Nigeria",
-    "kickoff": "04:00",
-    "date": "2026-06-27",
-    "disabled": false
-  },
-  {
-    "id": 59,
-    "kolejkaId": "L",
-    "home": "Portugalia",
-    "away": "Ghana",
-    "kickoff": "19:00",
-    "date": "2026-06-27",
-    "disabled": false
-  },
-  {
-    "id": 60,
-    "kolejkaId": "L",
-    "home": "USA",
-    "away": "Kolumbia",
-    "kickoff": "22:00",
-    "date": "2026-06-27",
-    "disabled": false
-  },
-  {
-    "id": 61,
-    "kolejkaId": "A",
-    "home": "Korea Południowa",
-    "away": "Czechy",
-    "kickoff": "08:00",
-    "date": "2026-06-28",
-    "disabled": false
-  },
-  {
-    "id": 62,
-    "kolejkaId": "B",
-    "home": "Szwajcaria",
-    "away": "Kanada",
-    "kickoff": "01:00",
-    "date": "2026-06-28",
-    "disabled": false
-  },
-  {
-    "id": 63,
-    "kolejkaId": "C",
-    "home": "Brazylia",
-    "away": "Szkocja",
-    "kickoff": "04:00",
-    "date": "2026-06-28",
-    "disabled": false
-  },
-  {
-    "id": 64,
-    "kolejkaId": "D",
-    "home": "Turcja",
-    "away": "USA",
-    "kickoff": "19:00",
-    "date": "2026-06-28",
-    "disabled": false
-  },
-  {
-    "id": 65,
-    "kolejkaId": "E",
-    "home": "Niemcy",
-    "away": "Wybrzeże Kości Słoniowej",
-    "kickoff": "22:00",
-    "date": "2026-06-28",
-    "disabled": false
-  },
-  {
-    "id": 66,
-    "kolejkaId": "F",
-    "home": "Japonia",
-    "away": "Holandia",
-    "kickoff": "01:00",
-    "date": "2026-06-29",
-    "disabled": false
-  },
-  {
-    "id": 67,
-    "kolejkaId": "G",
-    "home": "Belgia",
-    "away": "Egipt",
-    "kickoff": "04:00",
-    "date": "2026-06-29",
-    "disabled": false
-  },
-  {
-    "id": 68,
-    "kolejkaId": "H",
-    "home": "Hiszpania",
-    "away": "Urugwaj",
-    "kickoff": "19:00",
-    "date": "2026-06-29",
-    "disabled": false
-  },
-  {
-    "id": 69,
-    "kolejkaId": "I",
-    "home": "Francja",
-    "away": "Senegal",
-    "kickoff": "22:00",
-    "date": "2026-06-29",
-    "disabled": false
-  },
-  {
-    "id": 70,
-    "kolejkaId": "J",
-    "home": "Argentyna",
-    "away": "Austria",
-    "kickoff": "01:00",
-    "date": "2026-06-30",
-    "disabled": false
-  },
-  {
-    "id": 71,
-    "kolejkaId": "K",
-    "home": "Anglia",
-    "away": "Nigeria",
-    "kickoff": "04:00",
-    "date": "2026-06-30",
-    "disabled": false
-  },
-  {
-    "id": 72,
-    "kolejkaId": "L",
-    "home": "Portugalia",
-    "away": "Kolumbia",
-    "kickoff": "19:00",
-    "date": "2026-06-30",
-    "disabled": false
-  }
+  { "id": 1, "kolejkaId": "A", "home": "Meksyk", "away": "RPA", "kickoff": "21:00", "date": "2026-06-11", "disabled": false },
+  { "id": 2, "kolejkaId": "A", "home": "Korea Południowa", "away": "Czechy", "kickoff": "04:00", "date": "2026-06-12", "disabled": false },
+  { "id": 3, "kolejkaId": "B", "home": "Kanada", "away": "Bośnia i Hercegowina", "kickoff": "21:00", "date": "2026-06-12", "disabled": false },
+  { "id": 4, "kolejkaId": "D", "home": "USA", "away": "Paragwaj", "kickoff": "03:00", "date": "2026-06-13", "disabled": false },
+  { "id": 5, "kolejkaId": "B", "home": "Katar", "away": "Szwajcaria", "kickoff": "21:00", "date": "2026-06-13", "disabled": false },
+  { "id": 6, "kolejkaId": "C", "home": "Brazylia", "away": "Maroko", "kickoff": "00:00", "date": "2026-06-14", "disabled": false },
+  { "id": 7, "kolejkaId": "C", "home": "Haiti", "away": "Szkocja", "kickoff": "03:00", "date": "2026-06-14", "disabled": false },
+  { "id": 8, "kolejkaId": "D", "home": "Australia", "away": "Turcja", "kickoff": "06:00", "date": "2026-06-14", "disabled": false },
+  { "id": 9, "kolejkaId": "E", "home": "Niemcy", "away": "Curaçao", "kickoff": "19:00", "date": "2026-06-14", "disabled": false },
+  { "id": 10, "kolejkaId": "F", "home": "Holandia", "away": "Japonia", "kickoff": "22:00", "date": "2026-06-14", "disabled": false },
+  { "id": 11, "kolejkaId": "E", "home": "Wybrzeże Kości Słoniowej", "away": "Ekwador", "kickoff": "01:00", "date": "2026-06-15", "disabled": false },
+  { "id": 12, "kolejkaId": "F", "home": "Szwecja", "away": "Tunezja", "kickoff": "04:00", "date": "2026-06-15", "disabled": false },
+  { "id": 13, "kolejkaId": "H", "home": "Hiszpania", "away": "Republika Zielonego Przylądka", "kickoff": "18:00", "date": "2026-06-15", "disabled": false },
+  { "id": 14, "kolejkaId": "G", "home": "Belgia", "away": "Egipt", "kickoff": "21:00", "date": "2026-06-15", "disabled": false },
+  { "id": 15, "kolejkaId": "H", "home": "Arabia Saudyjska", "away": "Urugwaj", "kickoff": "00:00", "date": "2026-06-16", "disabled": false },
+  { "id": 16, "kolejkaId": "G", "home": "Iran", "away": "Nowa Zelandia", "kickoff": "03:00", "date": "2026-06-16", "disabled": false },
+  { "id": 17, "kolejkaId": "I", "home": "Francja", "away": "Senegal", "kickoff": "21:00", "date": "2026-06-16", "disabled": false },
+  { "id": 18, "kolejkaId": "I", "home": "Irak", "away": "Norwegia", "kickoff": "00:00", "date": "2026-06-17", "disabled": false },
+  { "id": 19, "kolejkaId": "J", "home": "Argentyna", "away": "Algieria", "kickoff": "03:00", "date": "2026-06-17", "disabled": false },
+  { "id": 20, "kolejkaId": "J", "home": "Austria", "away": "Jordania", "kickoff": "06:00", "date": "2026-06-17", "disabled": false },
+  { "id": 21, "kolejkaId": "K", "home": "Portugalia", "away": "Demokratyczna Republika Konga", "kickoff": "19:00", "date": "2026-06-17", "disabled": false },
+  { "id": 22, "kolejkaId": "L", "home": "Anglia", "away": "Chorwacja", "kickoff": "22:00", "date": "2026-06-17", "disabled": false },
+  { "id": 23, "kolejkaId": "L", "home": "Ghana", "away": "Panama", "kickoff": "01:00", "date": "2026-06-18", "disabled": false },
+  { "id": 24, "kolejkaId": "K", "home": "Uzbekistan", "away": "Kolumbia", "kickoff": "04:00", "date": "2026-06-18", "disabled": false },
+  { "id": 25, "kolejkaId": "A", "home": "Czechy", "away": "RPA", "kickoff": "18:00", "date": "2026-06-18", "disabled": false },
+  { "id": 26, "kolejkaId": "B", "home": "Szwajcaria", "away": "Bośnia i Hercegowina", "kickoff": "21:00", "date": "2026-06-18", "disabled": false },
+  { "id": 27, "kolejkaId": "B", "home": "Kanada", "away": "Katar", "kickoff": "00:00", "date": "2026-06-19", "disabled": false },
+  { "id": 28, "kolejkaId": "A", "home": "Meksyk", "away": "Korea Południowa", "kickoff": "03:00", "date": "2026-06-19", "disabled": false },
+  { "id": 29, "kolejkaId": "D", "home": "USA", "away": "Australia", "kickoff": "21:00", "date": "2026-06-19", "disabled": false },
+  { "id": 30, "kolejkaId": "C", "home": "Szkocja", "away": "Maroko", "kickoff": "00:00", "date": "2026-06-20", "disabled": false },
+  { "id": 31, "kolejkaId": "C", "home": "Brazylia", "away": "Haiti", "kickoff": "02:30", "date": "2026-06-20", "disabled": false },
+  { "id": 32, "kolejkaId": "D", "home": "Turcja", "away": "Paragwaj", "kickoff": "05:00", "date": "2026-06-20", "disabled": false },
+  { "id": 33, "kolejkaId": "F", "home": "Holandia", "away": "Szwecja", "kickoff": "19:00", "date": "2026-06-20", "disabled": false },
+  { "id": 34, "kolejkaId": "E", "home": "Niemcy", "away": "Wybrzeże Kości Słoniowej", "kickoff": "22:00", "date": "2026-06-20", "disabled": false },
+  { "id": 35, "kolejkaId": "E", "home": "Ekwador", "away": "Curaçao", "kickoff": "02:00", "date": "2026-06-21", "disabled": false },
+  { "id": 36, "kolejkaId": "F", "home": "Tunezja", "away": "Japonia", "kickoff": "06:00", "date": "2026-06-21", "disabled": false },
+  { "id": 37, "kolejkaId": "H", "home": "Hiszpania", "away": "Arabia Saudyjska", "kickoff": "18:00", "date": "2026-06-21", "disabled": false },
+  { "id": 38, "kolejkaId": "G", "home": "Belgia", "away": "Iran", "kickoff": "21:00", "date": "2026-06-21", "disabled": false },
+  { "id": 39, "kolejkaId": "H", "home": "Urugwaj", "away": "Republika Zielonego Przylądka", "kickoff": "00:00", "date": "2026-06-22", "disabled": false },
+  { "id": 40, "kolejkaId": "G", "home": "Nowa Zelandia", "away": "Egipt", "kickoff": "03:00", "date": "2026-06-22", "disabled": false },
+  { "id": 41, "kolejkaId": "J", "home": "Argentyna", "away": "Austria", "kickoff": "19:00", "date": "2026-06-22", "disabled": false },
+  { "id": 42, "kolejkaId": "I", "home": "Francja", "away": "Irak", "kickoff": "23:00", "date": "2026-06-22", "disabled": false },
+  { "id": 43, "kolejkaId": "I", "home": "Norwegia", "away": "Senegal", "kickoff": "02:00", "date": "2026-06-23", "disabled": false },
+  { "id": 44, "kolejkaId": "J", "home": "Jordania", "away": "Algieria", "kickoff": "05:00", "date": "2026-06-23", "disabled": false },
+  { "id": 45, "kolejkaId": "K", "home": "Portugalia", "away": "Uzbekistan", "kickoff": "19:00", "date": "2026-06-23", "disabled": false },
+  { "id": 46, "kolejkaId": "L", "home": "Anglia", "away": "Ghana", "kickoff": "22:00", "date": "2026-06-23", "disabled": false },
+  { "id": 47, "kolejkaId": "L", "home": "Panama", "away": "Chorwacja", "kickoff": "01:00", "date": "2026-06-24", "disabled": false },
+  { "id": 48, "kolejkaId": "K", "home": "Kolumbia", "away": "Demokratyczna Republika Konga", "kickoff": "04:00", "date": "2026-06-24", "disabled": false },
+  { "id": 49, "kolejkaId": "A", "home": "RPA", "away": "Korea Południowa", "kickoff": "02:00", "date": "2026-06-25", "disabled": false },
+  { "id": 50, "kolejkaId": "A", "home": "Czechy", "away": "Meksyk", "kickoff": "02:00", "date": "2026-06-25", "disabled": false },
+  { "id": 51, "kolejkaId": "B", "home": "Szwajcaria", "away": "Kanada", "kickoff": "21:00", "date": "2026-06-25", "disabled": false },
+  { "id": 52, "kolejkaId": "B", "home": "Bośnia i Hercegowina", "away": "Katar", "kickoff": "21:00", "date": "2026-06-25", "disabled": false },
+  { "id": 53, "kolejkaId": "C", "home": "Maroko", "away": "Haiti", "kickoff": "00:00", "date": "2026-06-26", "disabled": false },
+  { "id": 54, "kolejkaId": "C", "home": "Szkocja", "away": "Brazylia", "kickoff": "00:00", "date": "2026-06-26", "disabled": false },
+  { "id": 55, "kolejkaId": "D", "home": "Paragwaj", "away": "Australia", "kickoff": "03:00", "date": "2026-06-26", "disabled": false },
+  { "id": 56, "kolejkaId": "D", "home": "Turcja", "away": "USA", "kickoff": "03:00", "date": "2026-06-26", "disabled": false },
+  { "id": 57, "kolejkaId": "E", "home": "Curaçao", "away": "Wybrzeże Kości Słoniowej", "kickoff": "21:00", "date": "2026-06-26", "disabled": false },
+  { "id": 58, "kolejkaId": "E", "home": "Ekwador", "away": "Niemcy", "kickoff": "21:00", "date": "2026-06-26", "disabled": false },
+  { "id": 59, "kolejkaId": "F", "home": "Tunezja", "away": "Holandia", "kickoff": "00:00", "date": "2026-06-27", "disabled": false },
+  { "id": 60, "kolejkaId": "F", "home": "Japonia", "away": "Szwecja", "kickoff": "00:00", "date": "2026-06-27", "disabled": false },
+  { "id": 61, "kolejkaId": "G", "home": "Egipt", "away": "Iran", "kickoff": "04:00", "date": "2026-06-27", "disabled": false },
+  { "id": 62, "kolejkaId": "G", "home": "Nowa Zelandia", "away": "Belgia", "kickoff": "04:00", "date": "2026-06-27", "disabled": false },
+  { "id": 63, "kolejkaId": "H", "home": "Republika Zielonego Przylądka", "away": "Arabia Saudyjska", "kickoff": "21:00", "date": "2026-06-27", "disabled": false },
+  { "id": 64, "kolejkaId": "H", "home": "Urugwaj", "away": "Hiszpania", "kickoff": "21:00", "date": "2026-06-27", "disabled": false },
+  { "id": 65, "kolejkaId": "I", "home": "Norwegia", "away": "Francja", "kickoff": "21:00", "date": "2026-06-28", "disabled": false },
+  { "id": 66, "kolejkaId": "I", "home": "Senegal", "away": "Irak", "kickoff": "21:00", "date": "2026-06-28", "disabled": false },
+  { "id": 67, "kolejkaId": "J", "home": "Algieria", "away": "Austria", "kickoff": "00:00", "date": "2026-06-29", "disabled": false },
+  { "id": 68, "kolejkaId": "J", "home": "Jordania", "away": "Argentyna", "kickoff": "00:00", "date": "2026-06-29", "disabled": false },
+  { "id": 69, "kolejkaId": "K", "home": "Demokratyczna Republika Konga", "away": "Uzbekistan", "kickoff": "21:00", "date": "2026-06-29", "disabled": false },
+  { "id": 70, "kolejkaId": "K", "home": "Kolumbia", "away": "Portugalia", "kickoff": "21:00", "date": "2026-06-29", "disabled": false },
+  { "id": 71, "kolejkaId": "L", "home": "Chorwacja", "away": "Ghana", "kickoff": "00:00", "date": "2026-06-30", "disabled": false },
+  { "id": 72, "kolejkaId": "L", "home": "Panama", "away": "Anglia", "kickoff": "00:00", "date": "2026-06-30", "disabled": false }
 ]
