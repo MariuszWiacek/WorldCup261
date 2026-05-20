@@ -49,7 +49,7 @@ const Navbar = () => {
     position: 'fixed',
     top: 0,
     width: '100%',
-    background: scrollPosition > 0 ? '#111111' : 'black',
+    background: scrollPosition > 0 ? '#0A0F2C' : 'black',
     zIndex: 1000,
     transition: 'background-color 0.3s ease',
   };
