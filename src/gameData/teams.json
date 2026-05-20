@@ -7,40 +7,39 @@
     "logo": "ZA",
     "group": "A"
   },
-"USA": {
+  "USA": {
     "logo": "US",
     "group": ""
   },
-
-  "South Korea": {
+  "Korea Południowa": {
     "logo": "KR",
     "group": "A"
   },
-  "Czech Republic": {
+  "Czechy": {
     "logo": "CZ",
     "group": "A"
   },
-  "Canada": {
+  "Kanada": {
     "logo": "CA",
     "group": "B"
   },
-  "Bosnia and Herzegovina": {
+  "Bośnia i Hercegowina": {
     "logo": "BA",
     "group": "B"
   },
-  "Qatar": {
+  "Katar": {
     "logo": "QA",
     "group": "B"
   },
-  "Switzerland": {
+  "Szwajcaria": {
     "logo": "CH",
     "group": "B"
   },
-  "Brazil": {
+  "Brazylia": {
     "logo": "BR",
     "group": "C"
   },
-  "Morocco": {
+  "Maroko": {
     "logo": "MA",
     "group": "C"
   },
@@ -48,15 +47,15 @@
     "logo": "HT",
     "group": "C"
   },
-  "Scotland": {
+  "Szkocja": {
     "logo": "GB-SCT",
     "group": "C"
   },
-  "United States": {
+  "Stany Zjednoczone": {
     "logo": "US",
     "group": "D"
   },
-  "Paraguay": {
+  "Paragwaj": {
     "logo": "PY",
     "group": "D"
   },
@@ -64,11 +63,11 @@
     "logo": "AU",
     "group": "D"
   },
-  "Turkey": {
+  "Turcja": {
     "logo": "TR",
     "group": "D"
   },
-  "Germany": {
+  "Niemcy": {
     "logo": "DE",
     "group": "E"
   },
@@ -76,35 +75,35 @@
     "logo": "CW",
     "group": "E"
   },
-  "Ivory Coast": {
+  "Wybrzeże Kości Słoniowej": {
     "logo": "CI",
     "group": "E"
   },
-  "Ecuador": {
+  "Ekwador": {
     "logo": "EC",
     "group": "E"
   },
-  "Netherlands": {
+  "Holandia": {
     "logo": "NL",
     "group": "F"
   },
-  "Japan": {
+  "Japonia": {
     "logo": "JP",
     "group": "F"
   },
-  "Tunisia": {
+  "Tunezja": {
     "logo": "TN",
     "group": "F"
   },
-  "Sweden": {
+  "Szwecja": {
     "logo": "SE",
     "group": "F"
   },
-  "Belgium": {
+  "Belgia": {
     "logo": "BE",
     "group": "G"
   },
-  "Egypt": {
+  "Egipt": {
     "logo": "EG",
     "group": "G"
   },
@@ -112,27 +111,27 @@
     "logo": "IR",
     "group": "G"
   },
-  "New Zealand": {
+  "Nowa Zelandia": {
     "logo": "NZ",
     "group": "G"
   },
-  "Spain": {
+  "Hiszpania": {
     "logo": "ES",
     "group": "H"
   },
-  "Cape Verde": {
+  "Republika Zielonego Przylądka": {
     "logo": "CV",
     "group": "H"
   },
-  "Saudi Arabia": {
+  "Arabia Saudyjska": {
     "logo": "SA",
     "group": "H"
   },
-  "Uruguay": {
+  "Urugwaj": {
     "logo": "UY",
     "group": "H"
   },
-  "France": {
+  "Francja": {
     "logo": "FR",
     "group": "I"
   },
@@ -140,19 +139,19 @@
     "logo": "SN",
     "group": "I"
   },
-  "Iraq": {
+  "Irak": {
     "logo": "IQ",
     "group": "I"
   },
-  "Norway": {
+  "Norwegia": {
     "logo": "NO",
     "group": "I"
   },
-  "Argentina": {
+  "Argentyna": {
     "logo": "AR",
     "group": "J"
   },
-  "Algeria": {
+  "Algieria": {
     "logo": "DZ",
     "group": "J"
   },
@@ -160,15 +159,15 @@
     "logo": "AT",
     "group": "J"
   },
-  "Jordan": {
+  "Jordania": {
     "logo": "JO",
     "group": "J"
   },
-  "Portugal": {
+  "Portugalia": {
     "logo": "PT",
     "group": "K"
   },
-  "DR Congo": {
+  "Demokratyczna Republika Konga": {
     "logo": "CD",
     "group": "K"
   },
@@ -176,15 +175,15 @@
     "logo": "UZ",
     "group": "K"
   },
-  "Colombia": {
+  "Kolumbia": {
     "logo": "CO",
     "group": "K"
   },
-  "England": {
+  "Anglia": {
     "logo": "GB-ENG",
     "group": "L"
   },
-  "Croatia": {
+  "Chorwacja": {
     "logo": "HR",
     "group": "L"
   },
