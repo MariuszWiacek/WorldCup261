@@ -1,12 +1,17 @@
 {
-  "Mexico": {
+  "Meksyk": {
     "logo": "MX",
     "group": "A"
   },
-  "South Africa": {
+  "RPA": {
     "logo": "ZA",
     "group": "A"
   },
+"USA": {
+    "logo": "US",
+    "group": ""
+  },
+
   "South Korea": {
     "logo": "KR",
     "group": "A"
