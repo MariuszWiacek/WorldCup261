@@ -99,7 +99,18 @@ const Table = () => {
       // Group by kolejka
       bets.forEach((bet) => {
         const gameNumber = parseInt(bet.id, 10);
-        const kolejkaID = Math.ceil(gameNumber / 9); // Determine kolejka
+
+let kolejkaID;
+
+if (gameNumber <= 24) {
+  kolejkaID = 'Kolejka 1';
+} else if (gameNumber <= 48) {
+  kolejkaID = 'Kolejka 2';
+} else if (gameNumber <= 72) {
+  kolejkaID = 'Kolejka 3';
+} else {
+  kolejkaID = 'Faza pucharowa';
+}
         if (!kolejkaPoints[kolejkaID]) kolejkaPoints[kolejkaID] = {};
         if (!kolejkaPoints[kolejkaID][user]) {
           kolejkaPoints[kolejkaID][user] = { user, points: 0, correctTypes: 0, correctResults: 0 };
@@ -110,6 +121,7 @@ const Table = () => {
         kolejkaPoints[kolejkaID][user].correctTypes += correctTypes;
         kolejkaPoints[kolejkaID][user].correctResults += correctResults;
       });
+
 
       return { user, points, correctTypes, correctResults };
     });
@@ -187,6 +199,13 @@ const Table = () => {
     setVisibleKolejka((prev) => (prev === kolejkaID ? null : kolejkaID));
   };
 
+
+const tableOrder = [
+  'Kolejka 1',
+  'Kolejka 2',
+  'Kolejka 3',
+  'Faza pucharowa',
+];
   return (
     <Container fluid style={linkContainerStyle}>
       <Row>
@@ -224,8 +243,11 @@ const Table = () => {
 
           <hr />
           
-          {Object.keys(kolejkaTables).map((kolejkaID) => {
+         {tableOrder.map((kolejkaID) => {
+
   const kolejkaData = kolejkaTables[kolejkaID];
+
+  if (!kolejkaData) return null; 
 
   // Check if all users have 0 points for this kolejka
   const allZeroPoints = kolejkaData.every((entry) => entry.points === 0);
