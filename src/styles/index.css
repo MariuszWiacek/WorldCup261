@@ -255,9 +255,7 @@ code {
   margin-right: 10px;
 }
 
-.td-mobile {
-  font-size: 15px !important;
-}
+
 
 
 
@@ -283,8 +281,12 @@ code {
   }
 
   td {
-    font-size: 15px !important;
-  }
+  /* This prevents the text from ever wrapping to a new line */
+  white-space: nowrap; 
+  
+  /* Sets base font to 10px, but shrinks it if the container gets too tight */
+  font-size: clamp(8px, 12ch, 10px) !important; 
+}
 
   .td-mobile {
     font-size: 10px !important;
