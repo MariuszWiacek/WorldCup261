@@ -281,11 +281,10 @@ code {
   }
 
   td {
-  /* This prevents the text from ever wrapping to a new line */
-  white-space: nowrap; 
+
   
-  /* Sets base font to 10px, but shrinks it if the container gets too tight */
-  font-size: clamp(8px, 12ch, 10px) !important; 
+  
+  font-size: 10px !important; 
 }
 
   .td-mobile {
