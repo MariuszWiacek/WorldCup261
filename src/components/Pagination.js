@@ -34,7 +34,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, label }) => {
         &lt;&lt;
       </button>
       <span style={{ margin: '0 0px', fontSize: '16px', fontWeight: 'bold' }}>
-        {label} {currentPage + 1} / {totalPages}
+        {label} 
       </span>
       <button
         onClick={handleNext}

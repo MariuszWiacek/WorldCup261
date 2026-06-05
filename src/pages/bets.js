@@ -71,7 +71,37 @@ const Bets = () => {
 
   const activeTabInfo = paginatedTabs[currentPage] || paginatedTabs[0];
 
-  // AUTOMATYCZNE SCROLLOWANIE DO NAJBLIŻSZEGO MECZU
+  // AUTOMATYCZNY WYBÓR STRONY (AKTYWNEJ KOLEJKI) PRZY URUCHOMIENIU
+  // AUTOMATYCZNY WYBÓR STRONY (AKTYWNEJ KOLEJKI) PRZY URUCHOMIENIU
+  useEffect(() => {
+    const now = DateTime.now().setZone('Europe/Warsaw');
+    let dynamicTargetPage = 0;
+
+    // Przechodzimy wstecz od ostatniej grupy, sprawdzając gdzie są jeszcze niezakonczone mecze
+    for (let i = 0; i < paginatedTabs.length; i++) {
+      const tabGames = paginatedTabs[i].games;
+      
+      // Sprawdzamy czy w danej kolejce jest chociaż jeden mecz przyszły lub trwający (bufor 150 min)
+      const hasActiveMatches = tabGames.some(game => {
+        const kickoff = DateTime.fromISO(`${game.date}T${game.kickoff}:00`, { zone: 'Europe/Warsaw' });
+        const minutesSinceKickoff = now.diff(kickoff, 'minutes').minutes;
+        return minutesSinceKickoff < 150; // Mecz się jeszcze nie skończył lub nie zaczął
+      });
+
+      if (hasActiveMatches) {
+        dynamicTargetPage = i;
+        break;
+      }
+      
+      // Jeśli cała kolejka minęła, domyślnie przejdzie krok dalej do kolejnej zakładki
+      if (i === paginatedTabs.length - 1) {
+        dynamicTargetPage = i; 
+      }
+    }
+
+    setCurrentPage(dynamicTargetPage);
+  }, [allGames, paginatedTabs]); // <-- Added 'paginatedTabs' and removed the redundant '.length'
+  // AUTOMATYCZNE SCROLLOWANIE DO NAJBLIŻSZEGO MECZU - FIXED FOR NULL POINTERS
   useEffect(() => {
     if (!activeTabInfo.games || activeTabInfo.games.length === 0) return;
 
@@ -83,31 +113,36 @@ const Bets = () => {
       const kickoff = DateTime.fromISO(`${game.date}T${game.kickoff}:00`, { zone: 'Europe/Warsaw' });
       const difference = kickoff.diff(now, 'minutes').minutes;
 
-      // 1. If a game is live right now (started within the last 150 minutes), prioritize it immediately
+      // 1. Priorytet dla trwających meczów
       if (difference <= 0 && difference > -150) {
         nearestGameId = game.id;
-        minDifference = 0; // Absolute priority
+        minDifference = 0; 
       } 
-      // 2. Otherwise, find the game closest to starting in the future
+      // 2. Najbliższy mecz w przyszłości
       else if (difference > 0 && difference < minDifference) {
         minDifference = difference;
         nearestGameId = game.id;
       }
     });
 
-    // If no live or future match is found on this page, default to the first game of the tab
+    // Jeśli brak meczów live/przyszłych, weź pierwszy z listy
     if (!nearestGameId && activeTabInfo.games.length > 0) {
       nearestGameId = activeTabInfo.games[0].id;
     }
 
-    // Perform the smooth scroll operation
-    if (nearestGameId && gameRefs.current[nearestGameId]) {
-      setTimeout(() => {
-        gameRefs.current[nearestGameId].scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-        });
-      }, 300); // Small timeout allows the DOM table elements to finish rendering first
+    // Bezpieczne przewijanie z opcjonalnym łańcuchem (Optional Chaining) i sprawdzeniem istnienia elementu
+    if (nearestGameId) {
+      const scrollTimer = setTimeout(() => {
+        const elementToScroll = gameRefs.current[nearestGameId];
+        if (elementToScroll && typeof elementToScroll.scrollIntoView === 'function') {
+          elementToScroll.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          });
+        }
+      }, 300);
+
+      return () => clearTimeout(scrollTimer); // Czyszczenie timera przy zmianie zakładki
     }
   }, [currentPage, activeTabInfo]);
 
@@ -262,13 +297,12 @@ const Bets = () => {
             <tbody>
               {activeTabInfo.games.map((game, index) => (
                 <React.Fragment key={index}>
-                  {/* Attached ref hook below directly to the main row of each fixture */}
                   <tr 
                     ref={el => gameRefs.current[game.id] = el}
                     style={{ opacity: game.disabled ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}
                   >
                     <td colSpan="12" className="date" style={{ textAlign: 'left', color: 'gold', fontSize: '10px', paddingLeft: '10%' }}>
-                      &nbsp;&nbsp;&nbsp; {game.date} &nbsp;&nbsp;&nbsp; {game.kickoff} &nbsp;&nbsp;&nbsp; {game.message}
+                      &nbsp;&nbsp;&nbsp; {game.date} &nbsp;&nbsp;&nbsp; {game.kickoff} &nbsp;&nbsp;&nbsp; Grupa - {game.kolejkaId}
                     </td>
                   </tr>
                   <tr style={{ borderBottom: '1px solid #444', opacity: game.disabled ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}>
