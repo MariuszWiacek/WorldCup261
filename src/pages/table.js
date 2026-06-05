@@ -328,15 +328,15 @@ const Table = () => {
             <hr />
             <p style={{ fontSize: '15px' }}>
               16x60 = 960 🥮 <br />
-              16 kolejek x 10 🥮 = 160 🥮 <br />
-              960 - 160 = 800 🥮 w głównej puli
+              3 kolejek + 1 faza pucharowa x 75 🥮 = 300 🥮 <br />
+              1200 - 300 = 900 🥮 w głównej puli
             </p>
             <hr />
             <div style={{ marginTop: '10px', color: '#FFD700' }}>
               <b>Aktualne Nagrody Główne:</b>
               <hr />
-              {mainTableData[0] && <p>🥇 1 miejsce – <b>{mainTableData[0].user} - 450 🥮</b></p>}
-              {mainTableData[1] && <p>🥈 2 miejsce – <b>{mainTableData[1].user} – 200 🥮</b></p>}
+              {mainTableData[0] && <p>🥇 1 miejsce – <b>{mainTableData[0].user} - 500 🥮</b></p>}
+              {mainTableData[1] && <p>🥈 2 miejsce – <b>{mainTableData[1].user} – 250 🥮</b></p>}
               {mainTableData[2] && <p>🥉 3 miejsce – <b>{mainTableData[2].user} – 150 🥮</b></p>}
             </div>
             <hr />

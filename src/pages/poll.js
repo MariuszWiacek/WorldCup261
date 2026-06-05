@@ -48,62 +48,65 @@ const SignupPage = ({ onClose }) => {
           <FontAwesomeIcon icon={faTimes} />
         </button>
 
-        {/* Header */}
-        <div style={headerContainerStyle}>
-          <FontAwesomeIcon icon={faTrophy} style={trophyIconStyle} />
-          <h2 style={headingStyle}>
-            Zapisy! Typer WORLD CUP 2026
-          </h2>
-          <p style={subHeadingStyle}>Udowodnij, że znasz się na piłce!</p>
-        </div>
-
-        <hr style={dividerStyle} />
-
-        {/* Info Box */}
-        <div style={infoBoxStyle}>
-          <p style={descriptionStyle}>
-            <FontAwesomeIcon icon={faCoins} style={{ color: "#ffca28", marginRight: "6px" }} />
-            Zrzutka po ok. <strong>60</strong> monet, w zależności od ilości graczy.
-          </p>
-          <span style={deadlineBadgeStyle}>Zapisy do 10.06</span>
-        </div>
-
-        {/* Form */}
-        <div style={formStyle}>
-          <input
-            type="text"
-            placeholder="Twoje imię / nick"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={inputStyle}
-          />
-          <button onClick={handleSignup} style={buttonStyle}>
-            Zapisz się
-          </button>
-        </div>
-
-        <hr style={dividerStyle} />
-
-        {/* Stats */}
-        <div style={statsContainerStyle}>
-          <h3 style={sectionTitleStyle}>
-            Ilość zapisanych osób: <span style={counterStyle}>{players.length}</span>
-          </h3>
-        </div>
-
-        {/* Player List */}
-        {players.length > 0 && (
-          <div style={listContainerStyle}>
-            <ul style={horizontalListStyle}>
-              {players.map((player, index) => (
-                <li key={index} style={playerStyle}>
-                  <FontAwesomeIcon icon={faUser} style={{ fontSize: "12px", marginRight: "6px", opacity: 0.7 }} />
-                  {player}
-                </li>
-              ))}
-            </ul>
+        {/* Scrollable Container Content */}
+        <div style={scrollContentStyle}>
+          {/* Header */}
+          <div style={headerContainerStyle}>
+            <FontAwesomeIcon icon={faTrophy} style={trophyIconStyle} />
+            <h2 style={headingStyle}>
+              Zapisy! Typer WORLD CUP 2026
+            </h2>
+            <p style={subHeadingStyle}>Udowodnij, że znasz się na piłce!</p>
           </div>
-        )}
+
+          <hr style={dividerStyle} />
+
+          {/* Info Box */}
+          <div style={infoBoxStyle}>
+            <p style={descriptionStyle}>
+              <FontAwesomeIcon icon={faCoins} style={{ color: "#ffca28", marginRight: "6px" }} />
+              Zrzutka po <strong>60</strong> PLN.
+            </p>
+            <span style={deadlineBadgeStyle}>Zapisy do 10.06</span>
+          </div>
+
+          {/* Form */}
+          <div style={formStyle}>
+            <input
+              type="text"
+              placeholder="Twoje imię / nick"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={inputStyle}
+            />
+            <button onClick={handleSignup} style={buttonStyle}>
+              Zapisz się
+            </button>
+          </div>
+
+          <hr style={dividerStyle} />
+
+          {/* Stats */}
+          <div style={statsContainerStyle}>
+            <h3 style={sectionTitleStyle}>
+              Ilość zapisanych osób: <span style={counterStyle}>{players.length}</span>
+            </h3>
+          </div>
+
+          {/* Player List */}
+          {players.length > 0 && (
+            <div style={listContainerStyle}>
+              <ul style={horizontalListStyle}>
+                {players.map((player, index) => (
+                  <li key={index} style={playerStyle}>
+                    <FontAwesomeIcon icon={faUser} style={{ fontSize: "12px", marginRight: "6px", opacity: 0.7 }} />
+                    {player}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -116,7 +119,7 @@ const containerStyle = {
   left: 0,
   width: "100%",
   height: "100%",
-  background: "rgba(15, 23, 42, 0.85)", // Modern dark overlay with blur logic
+  background: "rgba(15, 23, 42, 0.85)", 
   backdropFilter: "blur(8px)",
   display: "flex",
   justifyContent: "center",
@@ -124,25 +127,36 @@ const containerStyle = {
   zIndex: 2000,
   padding: "20px",
   fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  boxSizing: "border-box",
 };
 
 const boxStyle = {
-  background: "#ffffff",
+  background: "#01929f5c",
   boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
   borderRadius: "16px",
-  padding: "32px",
+  padding: "32px 24px 24px 24px", // Adjusted padding for better scrolling flow
   maxWidth: "500px",
   width: "100%",
-  textAlign: "center",
+  maxHeight: "calc(100vh - 40px)", // Ensures popup NEVER overflows the viewport height
+  display: "flex",
+  flexDirection: "column",
   position: "relative",
   border: "1px solid #e2e8f0",
+  boxSizing: "border-box",
+};
+
+// New internal scroll layout element
+const scrollContentStyle = {
+  overflowY: "auto", // Allows internal scrolling if items overflow max-height
+  width: "100%",
+  paddingRight: "4px", // Prevents custom scrollbars from overlapping text layout
 };
 
 const closeButtonStyle = {
   position: "absolute",
   top: "16px",
   right: "16px",
-  backgroundColor: "#f1f5f9",
+  backgroundColor: "#ff040c",
   color: "#64748b",
   border: "none",
   borderRadius: "50%",
@@ -154,6 +168,7 @@ const closeButtonStyle = {
   justifyContent: "center",
   transition: "all 0.2s ease",
   outline: "none",
+  zIndex: 10, // Keeps close button fixed on top of scroll content
 };
 
 const headerContainerStyle = {
@@ -162,7 +177,7 @@ const headerContainerStyle = {
 
 const trophyIconStyle = {
   fontSize: "32px",
-  color: "#10b981", // Emerald green theme
+  color: "#10b981", 
   marginBottom: "12px",
 };
 
@@ -172,6 +187,7 @@ const headingStyle = {
   margin: "0 0 4px 0",
   fontSize: "22px",
   letterSpacing: "-0.5px",
+  textAlign: "center",
 };
 
 const subHeadingStyle = {
@@ -179,6 +195,7 @@ const subHeadingStyle = {
   color: "#64748b",
   fontSize: "14px",
   fontWeight: "500",
+  textAlign: "center",
 };
 
 const dividerStyle = {
@@ -200,6 +217,7 @@ const descriptionStyle = {
   color: "#334155",
   margin: "0 0 10px 0",
   lineHeight: "1.5",
+  textAlign: "center",
 };
 
 const deadlineBadgeStyle = {
@@ -266,7 +284,6 @@ const counterStyle = {
 
 const listContainerStyle = {
   marginTop: "14px",
-  maxHeight: "60px",
   position: "relative",
 };
 
@@ -276,10 +293,9 @@ const horizontalListStyle = {
   margin: 0,
   display: "flex",
   flexDirection: "row",
-  overflowX: "auto",
-  whiteSpace: "nowrap",
+  flexWrap: "wrap",         
+  justifyContent: "center", 
   gap: "8px",
-  scrollbarWidth: "none", /* Hides default scrollbar standard */
 };
 
 const playerStyle = {
