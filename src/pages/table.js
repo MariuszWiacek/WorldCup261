@@ -327,7 +327,7 @@ const Table = () => {
           <div style={earningsStyle}>
             <hr />
             <p style={{ fontSize: '15px' }}>
-              16x60 = 960 🥮 <br />
+              20 x 60 = 1200 🥮 <br />
               3 kolejek + 1 faza pucharowa x 75 🥮 = 300 🥮 <br />
               1200 - 300 = 900 🥮 w głównej puli
             </p>
