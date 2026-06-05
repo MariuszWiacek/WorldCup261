@@ -32,32 +32,25 @@ const InstallPWAButton = () => {
 
   const handleClick = async () => {
     if (deferredPrompt) {
-      // Dla Androida/PC
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === "accepted") setDeferredPrompt(null);
     } else if (isIOS) {
-      // Dla iPhone - pokazujemy instrukcję
       setShowInstructions(true);
     }
   };
 
-  if (isInstalled) return null;
+  // --- KLUCZOWA ZMIANA TUTAJ ---
+  // Przycisk ma rację bytu TYLKO wtedy, gdy aplikacja NIE jest zainstalowana 
+  // ORAZ (mamy gotowy prompt dla Androida/PC LUB jesteśmy na iOS)
+  const isAvailable = !isInstalled && (deferredPrompt || isIOS);
 
-  // Przycisk powinien być aktywny jeśli:
-  // a) Mamy prompt (Android) LUB b) To jest iOS
-  const isAvailable = deferredPrompt || isIOS;
+  // Jeśli warunki nie są spełnione, ukrywamy przycisk całkowicie zamiast go zamrażać
+  if (!isAvailable) return null;
 
   return (
     <>
-      <button
-        onClick={handleClick}
-        style={{
-          ...buttonStyle,
-          opacity: isAvailable ? 1 : 0.5,
-          cursor: isAvailable ? "pointer" : "not-allowed",
-        }}
-      >
+      <button onClick={handleClick} style={buttonStyle}>
         📲 Zainstaluj aplikację
       </button>
 
@@ -91,6 +84,7 @@ const buttonStyle = {
   borderRadius: "30px",
   fontWeight: "bold",
   fontSize: "16px",
+  cursor: "pointer", // Zawsze pointer, bo nieaktywny przycisk się nie wyrenderuje
 };
 
 const modalOverlayStyle = {
@@ -117,7 +111,7 @@ const modalStyle = {
 const closeButtonStyle = {
   marginTop: "15px",
   padding: "10px 20px",
-  backgroundColor: "#007AFF", // Niebieski kolor Apple
+  backgroundColor: "#007AFF",
   color: "white",
   border: "none",
   borderRadius: "10px",
