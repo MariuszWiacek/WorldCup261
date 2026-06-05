@@ -11,7 +11,7 @@
     "logo": "US",
     "group": ""
   },
-  "Korea Południowa": {
+  "Korea Płd": {
     "logo": "KR",
     "group": "A"
   },
@@ -51,7 +51,7 @@
     "logo": "GB-SCT",
     "group": "C"
   },
-  "Stany Zjednoczone": {
+  "USA": {
     "logo": "US",
     "group": "D"
   },
@@ -75,7 +75,7 @@
     "logo": "CW",
     "group": "E"
   },
-  "Wybrzeże Kości Słoniowej": {
+  "WKS": {
     "logo": "CI",
     "group": "E"
   },
@@ -119,7 +119,7 @@
     "logo": "ES",
     "group": "H"
   },
-  "Republika Zielonego Przylądka": {
+  "Wyspy Zielonego Przylądka": {
     "logo": "CV",
     "group": "H"
   },
@@ -167,7 +167,7 @@
     "logo": "PT",
     "group": "K"
   },
-  "Demokratyczna Republika Konga": {
+  "DR Kongo": {
     "logo": "CD",
     "group": "K"
   },
