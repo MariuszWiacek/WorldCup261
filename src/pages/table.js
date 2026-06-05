@@ -284,8 +284,8 @@ const Table = () => {
                   onClick={() => toggleKolejkaVisibility(kolejkaID)}
                 >
                   {visibleKolejka === kolejkaID
-                    ? `Ukryj Sekcję: ${kolejkaID}`
-                    : `Pokaż Sekcję: ${kolejkaID}`}
+                    ? `Ukryj: ${kolejkaID}`
+                    : `Pokaż: ${kolejkaID}`}
                 </div>
                 
                 {visibleKolejka === kolejkaID && !allZeroPoints && (
