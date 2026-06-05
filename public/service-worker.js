@@ -8,6 +8,13 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim();
 });
 
+// FIX: Pass the network request through so Chrome sees a valid fetch handler
 self.addEventListener('fetch', (event) => {
-  // no caching yet
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      // This catches network failures (offline mode)
+      // For now, it just lets the failure happen, but the handler is active!
+      return null;
+    })
+  );
 });
