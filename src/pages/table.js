@@ -19,6 +19,7 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const database = getDatabase(firebaseApp);
 
+// --- Styles ---
 const linkContainerStyle = {
   textAlign: 'left',
   backgroundColor: '#212529ab',
@@ -73,7 +74,6 @@ const Table = () => {
   const [prizes, setPrizes] = useState({});
   const [userEarnings, setUserEarnings] = useState({});
   const previousTableData = useRef([]);
-  const rolloverPrize = useRef(0);  // Use ref to track the rollover prize across renders
 
   useEffect(() => {
     const resultsRef = ref(database, 'results');
@@ -89,39 +89,42 @@ const Table = () => {
 
   useEffect(() => {
     const kolejkaPoints = {};
+
+    // 1. Compile overall points data alongside itemized structures
     const overallTableData = Object.keys(submittedData).map((user) => {
       const bets = Object.entries(submittedData[user]).map(([id, bet]) => ({
         ...bet,
         id,
       }));
+
+      // Calculate total stats for the main table
       const { points, correctTypes, correctResults } = calculatePoints(bets, results);
 
-      // Group by kolejka
+      // Distribute specific match points to independent rounds
       bets.forEach((bet) => {
         const gameNumber = parseInt(bet.id, 10);
+        let kolejkaID;
 
-let kolejkaID;
+        if (gameNumber <= 24) {
+          kolejkaID = 'Kolejka 1';
+        } else if (gameNumber <= 48) {
+          kolejkaID = 'Kolejka 2';
+        } else if (gameNumber <= 72) {
+          kolejkaID = 'Kolejka 3';
+        } else {
+          kolejkaID = 'Faza pucharowa';
+        }
 
-if (gameNumber <= 24) {
-  kolejkaID = 'Kolejka 1';
-} else if (gameNumber <= 48) {
-  kolejkaID = 'Kolejka 2';
-} else if (gameNumber <= 72) {
-  kolejkaID = 'Kolejka 3';
-} else {
-  kolejkaID = 'Faza pucharowa';
-}
         if (!kolejkaPoints[kolejkaID]) kolejkaPoints[kolejkaID] = {};
         if (!kolejkaPoints[kolejkaID][user]) {
           kolejkaPoints[kolejkaID][user] = { user, points: 0, correctTypes: 0, correctResults: 0 };
         }
 
-        const { points, correctTypes, correctResults } = calculatePoints([bet], results);
-        kolejkaPoints[kolejkaID][user].points += points;
-        kolejkaPoints[kolejkaID][user].correctTypes += correctTypes;
-        kolejkaPoints[kolejkaID][user].correctResults += correctResults;
+        const singleBetCalc = calculatePoints([bet], results);
+        kolejkaPoints[kolejkaID][user].points += singleBetCalc.points;
+        kolejkaPoints[kolejkaID][user].correctTypes += singleBetCalc.correctTypes;
+        kolejkaPoints[kolejkaID][user].correctResults += singleBetCalc.correctResults;
       });
-
 
       return { user, points, correctTypes, correctResults };
     });
@@ -132,7 +135,7 @@ if (gameNumber <= 24) {
       return b.correctResults - a.correctResults;
     });
 
-    // Assign place and trends for overall table
+    // Assign placement standings trends
     overallTableData.forEach((entry, index) => {
       entry.place = index + 1;
       const previousEntry = previousTableData.current.find((e) => e.user === entry.user);
@@ -148,44 +151,54 @@ if (gameNumber <= 24) {
     previousTableData.current = overallTableData;
     setMainTableData(overallTableData);
 
-    // Process kolejka tables and prizes
+    // 2. Process separate tables, handle rollovers and reward bonuses
     const sortedKolejkaTables = {};
     const prizePool = {};
     let earnings = {};
+    let runningRollover = 0;
 
-    Object.keys(kolejkaPoints).forEach((kolejkaID) => {
-      const sortedKolejka = Object.values(kolejkaPoints[kolejkaID]).sort((a, b) => {
+    const tableOrder = ['Kolejka 1', 'Kolejka 2', 'Kolejka 3', 'Faza pucharowa'];
+
+    tableOrder.forEach((kolejkaID) => {
+      // Fallback fallback arrays if round entries don't exist yet
+      const roundUsersData = kolejkaPoints[kolejkaID] ? Object.values(kolejkaPoints[kolejkaID]) : [];
+      
+      const sortedKolejka = roundUsersData.sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points;
         return b.correctResults - a.correctResults;
       });
 
-      // Assign place
       sortedKolejka.forEach((entry, index) => {
         entry.place = index + 1;
       });
 
-      // Find winners
+      // Find top scores for bonuses
       const maxPoints = sortedKolejka[0]?.points || 0;
-      const winners = sortedKolejka.filter((entry) => entry.points === maxPoints).map((entry) => entry.user);
-
-      // Handle prize allocation for remis (tie)
-      const currentPrize = 10 + rolloverPrize.current;  // Use the rollover value for prize calculation
-
-      if (winners.length === 1) {
-        prizePool[kolejkaID] = { winners, prize: currentPrize };
-        rolloverPrize.current = 0; // Reset rollover for next round
-      } else {
-        prizePool[kolejkaID] = { winners, prize: 0, rollover: true }; // No prize for remis
-        rolloverPrize.current += 10; // Increase the rollover prize by 10 zł for next round
+      const roundHasPoints = sortedKolejka.some(entry => entry.points > 0);
+      
+      let winners = [];
+      if (roundHasPoints) {
+        winners = sortedKolejka.filter((entry) => entry.points === maxPoints).map((entry) => entry.user);
       }
 
-      // Update earnings for winners (no earnings for remis)
-      winners.forEach((winner) => {
-        if (!earnings[winner]) earnings[winner] = 0;
-        if (prizePool[kolejkaID].prize > 0) {
-          earnings[winner] += currentPrize;
-        }
-      });
+      const currentPrize = 10 + runningRollover;
+
+      if (winners.length === 0) {
+        prizePool[kolejkaID] = { winners: [], prize: 0 };
+      } else if (winners.length === 1) {
+        prizePool[kolejkaID] = { winners, prize: currentPrize };
+        
+        // Apply single winner bonus
+        const individualWinner = winners[0];
+        if (!earnings[individualWinner]) earnings[individualWinner] = 0;
+        earnings[individualWinner] += currentPrize;
+        
+        runningRollover = 0; // Reset rollover pool
+      } else {
+        // Multi-user tie scenario
+        prizePool[kolejkaID] = { winners, prize: 0, rollover: true };
+        runningRollover += 10;
+      }
 
       sortedKolejkaTables[kolejkaID] = sortedKolejka;
     });
@@ -199,18 +212,13 @@ if (gameNumber <= 24) {
     setVisibleKolejka((prev) => (prev === kolejkaID ? null : kolejkaID));
   };
 
+  const tableOrder = ['Kolejka 1', 'Kolejka 2', 'Kolejka 3', 'Faza pucharowa'];
 
-const tableOrder = [
-  'Kolejka 1',
-  'Kolejka 2',
-  'Kolejka 3',
-  'Faza pucharowa',
-];
   return (
     <Container fluid style={linkContainerStyle}>
       <Row>
         <Col md={12}>
-          <h3 style={{ textAlign: 'center' }}>Tabela</h3>
+          <h3 style={{ textAlign: 'center' }}>Tabela Główna</h3>
           <div className="fade-in" style={{ overflowX: 'auto', marginTop: '10px' }}>
             <table style={{ borderCollapse: 'collapse', width: '100%' }}>
               <thead>
@@ -243,126 +251,113 @@ const tableOrder = [
 
           <hr />
           
-         {tableOrder.map((kolejkaID) => {
+          {tableOrder.map((kolejkaID) => {
+            const kolejkaData = kolejkaTables[kolejkaID] || [];
+            const allZeroPoints = kolejkaData.length === 0 || kolejkaData.every((entry) => entry.points === 0);
+            const roundPrizeInfo = prizes[kolejkaID];
 
-  const kolejkaData = kolejkaTables[kolejkaID];
-
-  if (!kolejkaData) return null; 
-
-  // Check if all users have 0 points for this kolejka
-  const allZeroPoints = kolejkaData.every((entry) => entry.points === 0);
-
-  return (
-    <div key={kolejkaID}>
-      <hr style={{color: 'white'}} />
-      <div style={prizeInfoStyle}>
-        <h3><b>Kolejka {kolejkaID}</b><br /></h3>
-        {allZeroPoints ? (
-          <p>Nikt jeszcze nie zdobył punktów.</p> // Message for no points
-        ) : (
-          <p>
-            {prizes[kolejkaID]?.winners.length === 1 ? (
-              <>
-                <b>Zwycięzca:</b> {prizes[kolejkaID].winners.join(', ')} (
-                <b>{prizes[kolejkaID].prize} 🥮</b>)
-              </>
-            ) : (
-              <>
-                <b>Remis:</b> {prizes[kolejkaID].winners.join(', ')}. <br />
-                Nagroda kumuluje się na następną kolejkę
-              </>
-            )}
-          </p>
-        )}
-      </div>
-      
-      <div
-        style={textToggleStyle}
-        onClick={() => toggleKolejkaVisibility(kolejkaID)}
-      >
-        {visibleKolejka === kolejkaID
-          ? `Ukryj Tabelę: Kolejka ${kolejkaID}`
-          : `Pokaż Tabelę: Kolejka ${kolejkaID}`}
-      </div>
-      <hr />
-      
-      {visibleKolejka === kolejkaID && !allZeroPoints && ( // Only show table if not all users have 0 points
-        <div className="fade-in" style={{ overflowX: 'auto', marginTop: '10px' }}>
-          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#212529', color: 'white' }}>
-                <th style={tableHeaderStyle}>Miejsce</th>
-                <th style={tableHeaderStyle}>Użytkownik</th>
-                <th style={tableHeaderStyle}>Pkt</th>
-                <th style={tableHeaderStyle}>☑️ <br />typ</th>
-                <th style={tableHeaderStyle}>✅☑️ <br />typ+wynik</th>
-              </tr>
-            </thead>
-            <tbody>
-              {kolejkaData.map((entry, index) => (
-                <tr
-                  key={index}
-                  style={{
-                    backgroundColor:
-                      index < 3 ? '#ffea007d' : 'rgba(0, 0, 0, 0.336)',
-                  }}
+            return (
+              <div key={kolejkaID}>
+                <hr style={{ color: 'white' }} />
+                <div style={prizeInfoStyle}>
+                  <h3><b>{kolejkaID}</b><br /></h3>
+                  {allZeroPoints ? (
+                    <p>Nikt jeszcze nie zdobył punktów w tej rundzie.</p>
+                  ) : (
+                    <p>
+                      {roundPrizeInfo?.winners.length === 1 ? (
+                        <>
+                          <b>Zwycięzca:</b> {roundPrizeInfo.winners.join(', ')} (<b>{roundPrizeInfo.prize} 🥮 bonusu</b>)
+                        </>
+                      ) : (
+                        <>
+                          <b>Remis między:</b> {roundPrizeInfo?.winners.join(', ')}. <br />
+                          Nagroda kumuluje się na następną kolejke!
+                        </>
+                      )}
+                    </p>
+                  )}
+                </div>
+                
+                <div
+                  style={textToggleStyle}
+                  onClick={() => toggleKolejkaVisibility(kolejkaID)}
                 >
-                  <td style={tableCellStyle}>{entry.place}</td>
-                  <td style={tableCellStyle}>{entry.user}</td>
-                  <td style={tableCellStyle}>{entry.points}</td>
-                  <td style={tableCellStyle}>{entry.correctTypes}</td>
-                  <td style={tableCellStyle}>{entry.correctResults}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-})}
+                  {visibleKolejka === kolejkaID
+                    ? `Ukryj Sekcję: ${kolejkaID}`
+                    : `Pokaż Sekcję: ${kolejkaID}`}
+                </div>
+                
+                {visibleKolejka === kolejkaID && !allZeroPoints && (
+                  <div className="fade-in" style={{ overflowX: 'auto', marginTop: '10px' }}>
+                    <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#212529', color: 'white' }}>
+                          <th style={tableHeaderStyle}>Miejsce</th>
+                          <th style={tableHeaderStyle}>Użytkownik</th>
+                          <th style={tableHeaderStyle}>Pkt</th>
+                          <th style={tableHeaderStyle}>☑️ <br />typ</th>
+                          <th style={tableHeaderStyle}>✅☑️ <br />typ+wynik</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {kolejkaData.map((entry, index) => (
+                          <tr
+                            key={index}
+                            style={{
+                              backgroundColor: index < 3 ? '#ffea007d' : 'rgba(0, 0, 0, 0.336)',
+                            }}
+                          >
+                            <td style={tableCellStyle}>{entry.place}</td>
+                            <td style={tableCellStyle}>{entry.user}</td>
+                            <td style={tableCellStyle}>{entry.points}</td>
+                            <td style={tableCellStyle}>{entry.correctTypes}</td>
+                            <td style={tableCellStyle}>{entry.correctResults}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
-
-
-<div style={earningsStyle}><hr></hr>
-  <p style={{fontSize: '15px', }}>16x60=960 🥮
-          16 kolejek x 10 🥮 = 160 🥮
-          960 - 160=   800 🥮 w puli
-          <hr/></p>
-  <div style={{ marginTop: '10px', color: '#FFD700' }}>
-          
-          <b>Aktualne Nagrody :</b><hr />
-          {mainTableData[0] && (
-    <p>🥇 1 miejsce – <b>{mainTableData[0].user} - 450 🥮</b></p>
-  )}
-
-  {mainTableData[1] && (
-    <p>🥈 2 miejsce – <b>{mainTableData[1].user} – 200 🥮</b></p>
-  )}
-
-  {mainTableData[2] && (
-    <p>🥉 3 miejsce – <b>{mainTableData[2].user} – 150 🥮</b></p>
-  )}
-         
-        </div>
-  <hr />
- <div style={{ marginTop: '10px', color: '#FFD700' }}>
-          
-          <b>Bonusy kolejkowe :<hr></hr></b>
-  {Object.entries(userEarnings)
-    .filter(([, earningsAmount]) => earningsAmount > 0) // Filter out users with 0 earnings
-    .sort(([, earningsA], [, earningsB]) => earningsB - earningsA) // Sort by earnings in descending order
-    .map(([user, earningsAmount]) => (
-      <p key={user}>
-        {user}: {earningsAmount} 🥮
-      </p>
-              ))}</div>
+          {/* Earnings & Bonuses overview distribution */}
+          <div style={earningsStyle}>
+            <hr />
+            <p style={{ fontSize: '15px' }}>
+              16x60 = 960 🥮 <br />
+              16 kolejek x 10 🥮 = 160 🥮 <br />
+              960 - 160 = 800 🥮 w głównej puli
+            </p>
+            <hr />
+            <div style={{ marginTop: '10px', color: '#FFD700' }}>
+              <b>Aktualne Nagrody Główne:</b>
+              <hr />
+              {mainTableData[0] && <p>🥇 1 miejsce – <b>{mainTableData[0].user} - 450 🥮</b></p>}
+              {mainTableData[1] && <p>🥈 2 miejsce – <b>{mainTableData[1].user} – 200 🥮</b></p>}
+              {mainTableData[2] && <p>🥉 3 miejsce – <b>{mainTableData[2].user} – 150 🥮</b></p>}
+            </div>
+            <hr />
+            <div style={{ marginTop: '10px', color: '#FFD700' }}>
+              <b>Aktywne Bonusy Kolejkowe:</b>
+              <hr />
+              {Object.entries(userEarnings)
+                .filter(([, earningsAmount]) => earningsAmount > 0)
+                .sort(([, earningsA], [, earningsB]) => earningsB - earningsA)
+                .map(([user, earningsAmount]) => (
+                  <p key={user}>
+                    {user}: {earningsAmount} 🥮
+                  </p>
+                ))}
+            </div>
           </div>
         </Col>
-      </Row><hr style={{color: 'white'}}></hr>
+      </Row>
+      <hr style={{ color: 'white' }} />
       <Stats />
     </Container>
-    
   );
 };
 

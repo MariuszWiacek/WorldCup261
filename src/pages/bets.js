@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { getDatabase, ref, onValue, update } from 'firebase/database';
 import 'firebase/compat/auth';
 import 'firebase/compat/database';
@@ -32,17 +32,18 @@ if (getApps().length === 0) {
 const auth = getAuth();
 const database = getDatabase();
 
-const isFrozenGame = (gameId) => gameId >= 12 && gameId <= 18;
-
 const Bets = () => {
   const [allGames, setAllGames] = useState(gameData);
-  const [currentPage, setCurrentPage] = useState(1); // Start na pierwszej stronie aktywnych meczów
+  const [currentPage, setCurrentPage] = useState(0); 
   const [selectedUser, setSelectedUser] = useState('');
   const [submittedData, setSubmittedData] = useState({});
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
   const [results, setResults] = useState({});
   const [areInputsEditable, setAreInputsEditable] = useState(true);
   const [isHiddenActive, setIsHiddenActive] = useState(false);
+
+  // Array to hold references to the row elements for scrolling
+  const gameRefs = useRef({});
 
   const [modalConfig, setModalConfig] = useState({
     show: false,
@@ -51,45 +52,64 @@ const Bets = () => {
     type: "info"
   });
 
-  // DYNAMICZNE STRONICOWANIE: PACZKI PO MAX 8 MECZÓW
+  // STRONICOWANIE: PODZIAŁ WEDŁUG KOLEJEK (PO 24 MECZE NA STRONĘ)
   const paginatedTabs = useMemo(() => {
-    const now = DateTime.now().setZone('Europe/Warsaw');
+    const sortedGames = [...allGames].sort((a, b) => a.id - b.id);
 
-    // 1. Mecze aktywne na tablicy głównej: przyszłe, trwające ORAZ zakończone w ciągu ostatnich 24 godzin
-    const activeCandidates = allGames.filter((game) => {
-      const kickoff = DateTime.fromISO(`${game.date}T${game.kickoff}:00`, { zone: 'Europe/Warsaw' });
-      const hoursSinceKickoff = now.diff(kickoff, 'hours').hours;
+    const kolejka1 = sortedGames.filter(game => game.id <= 24);
+    const kolejka2 = sortedGames.filter(game => game.id > 24 && game.id <= 48);
+    const kolejka3 = sortedGames.filter(game => game.id > 48 && game.id <= 72);
+    const fazaPucharowa = sortedGames.filter(game => game.id > 72);
 
-      // 2.5h czasu trwania spotkania + 24h jako widoczny "świeży" wynik = 26.5 godziny bufora
-      return hoursSinceKickoff < 26.5; 
-    }).sort((a, b) => a.id - b.id);
-
-    // 2. ARCHIWUM: Wszystko, co wypadło z bufora aktywności (ma mniejsze ID niż pierwszy aktywny)
-    const firstActiveId = activeCandidates[0]?.id || 999;
-    const archiveGames = allGames.filter(g => g.id < firstActiveId).sort((a, b) => a.id - b.id);
-
-    // 3. Podział pozostałych meczów (bieżących/przyszłych) na paczki po maksymalnie 8 sztuk
-    const chunkSize = 8;
-    const activePages = [];
-    for (let i = 0; i < activeCandidates.length; i += chunkSize) {
-      activePages.push(activeCandidates.slice(i, i + chunkSize));
-    }
-
-    if (activePages.length === 0) {
-      activePages.push([]);
-    }
-
-    // Budowanie ostatecznej listy zakładek w paginacji - NAPRAWIONE const pages
-    const pages = [
-      { label: "Archiwum", games: archiveGames },
-      ...activePages.map((games, idx) => ({
-        label: idx === 0 ? "Najbliższe mecze" : `Dalsze mecze (cz. ${idx})`,
-        games: games
-      }))
+    return [
+      { label: "Kolejka 1", games: kolejka1 },
+      { label: "Kolejka 2", games: kolejka2 },
+      { label: "Kolejka 3", games: kolejka3 },
+      { label: "Faza pucharowa", games: fazaPucharowa }
     ];
-
-    return pages;
   }, [allGames]);
+
+  const activeTabInfo = paginatedTabs[currentPage] || paginatedTabs[0];
+
+  // AUTOMATYCZNE SCROLLOWANIE DO NAJBLIŻSZEGO MECZU
+  useEffect(() => {
+    if (!activeTabInfo.games || activeTabInfo.games.length === 0) return;
+
+    const now = DateTime.now().setZone('Europe/Warsaw');
+    let nearestGameId = null;
+    let minDifference = Infinity;
+
+    activeTabInfo.games.forEach((game) => {
+      const kickoff = DateTime.fromISO(`${game.date}T${game.kickoff}:00`, { zone: 'Europe/Warsaw' });
+      const difference = kickoff.diff(now, 'minutes').minutes;
+
+      // 1. If a game is live right now (started within the last 150 minutes), prioritize it immediately
+      if (difference <= 0 && difference > -150) {
+        nearestGameId = game.id;
+        minDifference = 0; // Absolute priority
+      } 
+      // 2. Otherwise, find the game closest to starting in the future
+      else if (difference > 0 && difference < minDifference) {
+        minDifference = difference;
+        nearestGameId = game.id;
+      }
+    });
+
+    // If no live or future match is found on this page, default to the first game of the tab
+    if (!nearestGameId && activeTabInfo.games.length > 0) {
+      nearestGameId = activeTabInfo.games[0].id;
+    }
+
+    // Perform the smooth scroll operation
+    if (nearestGameId && gameRefs.current[nearestGameId]) {
+      setTimeout(() => {
+        gameRefs.current[nearestGameId].scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }, 300); // Small timeout allows the DOM table elements to finish rendering first
+    }
+  }, [currentPage, activeTabInfo]);
 
   // Interwał sprawdzający czas co minutę w tle
   useEffect(() => {
@@ -128,7 +148,6 @@ const Bets = () => {
   };
 
   const handleScoreChange = (gameId, scoreInput) => {
-    if (isFrozenGame(gameId)) return;
     const cleaned = scoreInput.replace(/[^0-9:]/g, '');
     const formatted = cleaned.replace(/^(?:(\d))([^:]*$)/, '$1:$2');
     
@@ -145,10 +164,15 @@ const Bets = () => {
     const currentGames = paginatedTabs[currentPage]?.games || [];
     
     const newBetsToSubmit = currentGames.reduce((acc, game) => {
-      if (game.score && !userSubmittedBets[game.id] && !isFrozenGame(game.id)) {
+      if (game.score && !userSubmittedBets[game.id]) {
+        let targetKolejkaId = 4;
+        if (game.id <= 24) targetKolejkaId = 1;
+        else if (game.id <= 48) targetKolejkaId = 2;
+        else if (game.id <= 72) targetKolejkaId = 3;
+
         acc[game.id] = {
           home: game.home, away: game.away, score: game.score,
-          bet: autoDetectBetType(game.score), kolejkaId: Math.floor(game.id / 9) + 1,
+          bet: autoDetectBetType(game.score), kolejkaId: targetKolejkaId,
           isHidden: isHiddenActive 
         };
       }
@@ -189,8 +213,6 @@ const Bets = () => {
     width: '32px', height: '22px', verticalAlign: 'middle', marginRight: '8px', marginLeft: '8px', display: 'inline-block', borderRadius: '3px', boxShadow: '0px 1px 3px rgba(0,0,0,0.3)', objectFit: 'cover'
   };
 
-  const activeTabInfo = paginatedTabs[currentPage] || paginatedTabs[0];
-
   return (
     <div className="fade-in" style={{ textAlign: 'center', color: 'yellow' }}>
       {modalConfig.show && (
@@ -219,11 +241,11 @@ const Bets = () => {
           currentPage={currentPage} 
           totalPages={paginatedTabs.length} 
           onPageChange={(page) => setCurrentPage(page)} 
-          label={`Widok: ${activeTabInfo.label}`} 
+          label={`${activeTabInfo.label}`} 
         />
         
         {activeTabInfo.games.length === 0 ? (
-          <div style={{ padding: '20px', color: 'gold' }}>Brak meczów na tej podstronie.</div>
+          <div style={{ padding: '20px', color: 'gold' }}>Brak meczów w tej sekcji.</div>
         ) : (
           <table style={{ width: '100%', border: '0.5px solid #444', borderCollapse: 'collapse', marginTop: '5%' }}>
             <thead>
@@ -240,12 +262,16 @@ const Bets = () => {
             <tbody>
               {activeTabInfo.games.map((game, index) => (
                 <React.Fragment key={index}>
-                  <tr style={{ opacity: game.disabled || isFrozenGame(game.id) ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}>
+                  {/* Attached ref hook below directly to the main row of each fixture */}
+                  <tr 
+                    ref={el => gameRefs.current[game.id] = el}
+                    style={{ opacity: game.disabled ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}
+                  >
                     <td colSpan="12" className="date" style={{ textAlign: 'left', color: 'gold', fontSize: '10px', paddingLeft: '10%' }}>
-                      &nbsp;&nbsp;&nbsp; {game.date} &nbsp;&nbsp;&nbsp; {game.kickoff} &nbsp;&nbsp;&nbsp; {game.message} {isFrozenGame(game.id) ? '🔒 ZAMROŻONE' : ''}
+                      &nbsp;&nbsp;&nbsp; {game.date} &nbsp;&nbsp;&nbsp; {game.kickoff} &nbsp;&nbsp;&nbsp; {game.message}
                     </td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid #444', opacity: game.disabled || isFrozenGame(game.id) ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}>
+                  <tr style={{ borderBottom: '1px solid #444', opacity: game.disabled ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}>
                     <td><p style={{ color: 'grey' }}>{game.id}.</p></td>
                     
                     <td style={{ textAlign: 'center', paddingRight: '10px', fontSize: '20px' }}>
@@ -270,7 +296,7 @@ const Bets = () => {
                       <input
                         style={{ 
                           width: '50px', 
-                          backgroundColor: isFrozenGame(game.id) ? '#ddd' : game.score ? isReadOnly(selectedUser, game.id) ? 'transparent' : 'white' : 'white', 
+                          backgroundColor: game.score ? isReadOnly(selectedUser, game.id) ? 'transparent' : 'white' : 'white', 
                           color: 'red' 
                         }}
                         type="text"
@@ -279,7 +305,7 @@ const Bets = () => {
                         onChange={(e) => handleScoreChange(game.id, e.target.value)}
                         maxLength="3"
                         readOnly={areInputsEditable && isReadOnly(selectedUser, game.id)}
-                        disabled={areInputsEditable && (gameStarted(game.date, game.kickoff) || isFrozenGame(game.id))}
+                        disabled={areInputsEditable && gameStarted(game.date, game.kickoff)}
                       />
                     </td>
                   </tr>
@@ -289,8 +315,7 @@ const Bets = () => {
           </table>
         )}
 
-        {/* Formularz zapisu i wysyłki typów wyświetlamy tylko dla stron bieżących */}
-        {currentPage > 0 && activeTabInfo.games.length > 0 && (
+        {activeTabInfo.games.length > 0 && (
           <>
             <div style={{ marginTop: '15px' }}>
               <label style={{ color: 'white', fontSize: '12px', cursor: 'pointer' }}>
