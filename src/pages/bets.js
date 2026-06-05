@@ -308,17 +308,32 @@ const Bets = () => {
                   <tr style={{ borderBottom: '1px solid #444', opacity: game.disabled ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}>
                     <td><p style={{ color: 'grey' }}>{game.id}.</p></td>
                     
-                    <td style={{ textAlign: 'center', paddingRight: '10px', fontSize: '20px' }}>
-                      <Flag code={getTeamLogo(game.home)} style={flagStyle} fallback={<span>🏳️ </span>} /><br>
-                      {game.home}
-                    </td>
-                    
-                    <td style={{ textAlign: 'center', fontSize: '20px' }}>-</td>
-                    
-                    <td style={{ textAlign: 'left', paddingLeft: '10px', fontSize: '20px' }}>
-                      <Flag code={getTeamLogo(game.away)} style={flagStyle} fallback={<span>🏳️ </span>} /><br>
-                      {game.away}
-                    </td>
+                    <td style={{ 
+  display: 'flex', 
+  flexDirection: 'column', 
+  alignItems: 'center', 
+  gap: '4px',
+  paddingRight: '10px', 
+  fontSize: '20px' 
+}}>
+  <Flag code={getTeamLogo(game.home)} style={flagStyle} fallback={<span>🏳️ </span>} />
+  <span>{game.home}</span>
+</td>
+
+<td style={{ textAlign: 'center', fontSize: '20px', verticalAlign: 'middle' }}>-</td>
+
+<td style={{ 
+  display: 'flex', 
+  flexDirection: 'column', 
+  alignItems: 'center', 
+  gap: '4px',
+  paddingLeft: '10px', 
+  fontSize: '20px' 
+}}>
+  <Flag code={getTeamLogo(game.away)} style={flagStyle} fallback={<span>🏳️ </span>} />
+  <span>{game.away}</span>
+</td>
+
                     
                     <td style={{ textAlign: 'center', fontSize: '20px' }}>{results[game.id]}</td>
                     <td style={{ textAlign: 'center' }}>
