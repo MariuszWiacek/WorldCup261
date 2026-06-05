@@ -309,14 +309,14 @@ const Bets = () => {
                     <td><p style={{ color: 'grey' }}>{game.id}.</p></td>
                     
                     <td style={{ textAlign: 'center', paddingRight: '10px', fontSize: '20px' }}>
-                      <Flag code={getTeamLogo(game.home)} style={flagStyle} fallback={<span>🏳️ </span>} />
+                      <Flag code={getTeamLogo(game.home)} style={flagStyle} fallback={<span>🏳️ </span>} /><br>
                       {game.home}
                     </td>
                     
                     <td style={{ textAlign: 'center', fontSize: '20px' }}>-</td>
                     
                     <td style={{ textAlign: 'left', paddingLeft: '10px', fontSize: '20px' }}>
-                      <Flag code={getTeamLogo(game.away)} style={flagStyle} fallback={<span>🏳️ </span>} />
+                      <Flag code={getTeamLogo(game.away)} style={flagStyle} fallback={<span>🏳️ </span>} /><br>
                       {game.away}
                     </td>
                     
