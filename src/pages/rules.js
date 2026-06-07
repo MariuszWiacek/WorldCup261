@@ -17,7 +17,7 @@ const Rules = () => {
           <ul>
             <li>Aby zakłady zostały uwzględnione, należy je zatwierdzić przed rozpoczęciem meczu.</li>
             <li>Zakłady można zatwierdzić tylko raz. Po zatwierdzeniu zakładów, nie można ich zmieniać samodzielnie.</li>
-            <li>W razie konieczności edycji zatwierdzonego wyniku, prośbę należy zgłosić na czacie lub na <a https://chat.whatsapp.com/JkBUAtxlDbA9EoKyU15MLG?s=cl&p=a&mlu=0" target="_blank" rel="noreferrer">grupie WhatsApp <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style={{ width: '20px', height: '20px', verticalAlign: 'middle', marginLeft: '5px' }} /></a>.</li>
+            <li>W razie konieczności edycji zatwierdzonego wyniku, prośbę należy zgłosić na czacie lub na <a href= https://chat.whatsapp.com/JkBUAtxlDbA9EoKyU15MLG?s=cl&p=a&mlu=0" target="_blank" rel="noreferrer">grupie WhatsApp <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style={{ width: '20px', height: '20px', verticalAlign: 'middle', marginLeft: '5px' }} /></a>.</li>
           </ul>
         </li>
         <li>
