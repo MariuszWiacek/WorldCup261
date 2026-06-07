@@ -151,16 +151,14 @@ const Table = () => {
     previousTableData.current = overallTableData;
     setMainTableData(overallTableData);
 
-    // 2. Process separate tables, handle rollovers and reward bonuses
+    // 2. Process separate tables, handle split rules instead of rollovers
     const sortedKolejkaTables = {};
     const prizePool = {};
     let earnings = {};
-    let runningRollover = 0;
 
     const tableOrder = ['Kolejka 1', 'Kolejka 2', 'Kolejka 3', 'Faza pucharowa'];
 
     tableOrder.forEach((kolejkaID) => {
-      // Fallback fallback arrays if round entries don't exist yet
       const roundUsersData = kolejkaPoints[kolejkaID] ? Object.values(kolejkaPoints[kolejkaID]) : [];
       
       const sortedKolejka = roundUsersData.sort((a, b) => {
@@ -172,32 +170,36 @@ const Table = () => {
         entry.place = index + 1;
       });
 
-      // Find top scores for bonuses
+      // Find top scorers based on points AND exact scores
       const maxPoints = sortedKolejka[0]?.points || 0;
+      const maxCorrectResults = sortedKolejka[0]?.correctResults || 0;
       const roundHasPoints = sortedKolejka.some(entry => entry.points > 0);
       
       let winners = [];
       if (roundHasPoints) {
-        winners = sortedKolejka.filter((entry) => entry.points === maxPoints).map((entry) => entry.user);
+        // Tied if they have both the top points and same number of exact scores
+        winners = sortedKolejka
+          .filter((entry) => entry.points === maxPoints && entry.correctResults === maxCorrectResults)
+          .map((entry) => entry.user);
       }
 
-      const currentPrize = 100 + runningRollover;
+      const flatPrize = 100;
 
       if (winners.length === 0) {
-        prizePool[kolejkaID] = { winners: [], prize: 0 };
-      } else if (winners.length === 1) {
-        prizePool[kolejkaID] = { winners, prize: currentPrize };
-        
-        // Apply single winner bonus
-        const individualWinner = winners[0];
-        if (!earnings[individualWinner]) earnings[individualWinner] = 0;
-        earnings[individualWinner] += currentPrize;
-        
-        runningRollover = 0; // Reset rollover pool
+        prizePool[kolejkaID] = { winners: [], prize: 0, isSplit: false };
       } else {
-        // Multi-user tie scenario
-        prizePool[kolejkaID] = { winners, prize: 0, rollover: true };
-        runningRollover += 10;
+        // Calculates dynamic split shares (e.g., 100 flat / 2 winners = 50 each)
+        const splitPrize = flatPrize / winners.length;
+        prizePool[kolejkaID] = { 
+          winners, 
+          prize: splitPrize, 
+          isSplit: winners.length > 1 
+        };
+        
+        winners.forEach((winner) => {
+          if (!earnings[winner]) earnings[winner] = 0;
+          earnings[winner] += splitPrize;
+        });
       }
 
       sortedKolejkaTables[kolejkaID] = sortedKolejka;
@@ -265,14 +267,14 @@ const Table = () => {
                     <p>Nikt jeszcze nie zdobył punktów w tej rundzie.</p>
                   ) : (
                     <p>
-                      {roundPrizeInfo?.winners.length === 1 ? (
+                      {!roundPrizeInfo?.isSplit ? (
                         <>
-                          <b>Zwycięzca:</b> {roundPrizeInfo.winners.join(', ')} (<b>{roundPrizeInfo.prize} 🥮 bonusu</b>)
+                          <b>Zwycięzca:</b> {roundPrizeInfo?.winners.join(', ')} (<b>{roundPrizeInfo?.prize} 🥮 bonusu</b>)
                         </>
                       ) : (
                         <>
                           <b>Remis między:</b> {roundPrizeInfo?.winners.join(', ')}. <br />
-                          Nagroda kumuluje się na następną kolejke!
+                          Nagroda została podzielona! Każdy otrzymuje: <b>{roundPrizeInfo?.prize} 🥮 bonusu</b>
                         </>
                       )}
                     </p>
