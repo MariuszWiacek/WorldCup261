@@ -10,7 +10,7 @@ const Rules = () => {
           <ul>
             <li>Każdy uczestnik powinien <b>wybrać swojego uzytkownika</b> i obstawić wynik oraz typ dla każdego meczu w danej kolejce.</li>
             <li>Zakłady można składać do rozpoczęcia meczu. Po rozpoczęciu meczu zakłady na ten mecz są zablokowane.</li>
-            <li>Zakłady na kolejną kolejkę będą odblokowane po zakończeniu aktualnej kolejki przez daną grupę.</li>
+            
           </ul>
         </li>
         <li>
@@ -66,8 +66,12 @@ const Rules = () => {
           <strong style={{ color: 'red' }}>Bonusowa Kolejka:</strong>
           <ul>
             <li>Zwycięzca każdej kolejki otrzymuje ustaloną nagrodę bonusową.</li>
-            <li>W przypadku remisu (więcej niż jeden zwycięzca), nagroda przechodzi na kolejną kolejkę i sumuje się aż do momentu wyłonienia jednego zwycięzcy.</li>
-            <li>Jeśli w ostatniej kolejce nadal będzie remis, cała pula bonusowa zostaje przyznana zwycięzcy całej ligi.</li>
+
+<li>W przypadku, gdy dwóch lub więcej uczestników uzyska tę samą liczbę punktów, rozstrzygające będą dodatkowe kryteria, takie jak:
+              <ul>
+                <li>Liczba poprawnych wyników,</li>
+
+           <li> W przypadku tej samej liczby punktów i liczby poprawnych wyników, nagroda jest sumowana i dzielona równo między tych uczestników</li>
           </ul>
         </li>
       </ol>
