@@ -8,26 +8,16 @@ const Rules = () => {
         <li>
           <strong style={{ color: 'red' }}>Zakłady:</strong>
           <ul>
-            <li>Każdy uczestnik powinien <b>wybrać swojego uzytkownika</b> i obstawić wynik oraz typ dla każdego meczu w danej kolejce.</li>
+            <li>Każdy uczestnik powinien <b>wybrać swojego użytkownika</b> i obstawić wynik oraz typ dla każdego meczu w danej kolejce.</li>
             <li>Zakłady można składać do rozpoczęcia meczu. Po rozpoczęciu meczu zakłady na ten mecz są zablokowane.</li>
-            
           </ul>
         </li>
         <li>
           <strong style={{ color: 'red' }}>Zatwierdzanie Zakładów:</strong>
           <ul>
-           
             <li>Aby zakłady zostały uwzględnione, należy je zatwierdzić przed rozpoczęciem meczu.</li>
-<li>Zakłady można zatwierdzić tylko raz. Po zatwierdzeniu zakładów, nie można ich zmieniać samodzielnie.</li>
-<li>W razie konieczności edycji zatwierdzonego wyniku, prośbę należy zgłosić na czacie lub na
-
-
-<a href="TUTAJ_WKLEJ_LINK_DO_WHATSAPPA" target="_blank">grupie WhatsApp <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style="width: 20px; height: 20px; vertical-align: middle; margin-left: 5px;"></a>.
-
-
-</li>
- </li>
-
+            <li>Zakłady można zatwierdzić tylko raz. Po zatwierdzeniu zakładów, nie można ich zmieniać samodzielnie.</li>
+            <li>W razie konieczności edycji zatwierdzonego wyniku, prośbę należy zgłosić na czacie lub na <a href="TUTAJ_WKLEJ_LINK_DO_WHATSAPPA" target="_blank" rel="noreferrer">grupie WhatsApp <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style={{ width: '20px', height: '20px', verticalAlign: 'middle', marginLeft: '5px' }} /></a>.</li>
           </ul>
         </li>
         <li>
@@ -76,12 +66,12 @@ const Rules = () => {
           <strong style={{ color: 'red' }}>Bonusowa Kolejka:</strong>
           <ul>
             <li>Zwycięzca każdej kolejki otrzymuje ustaloną nagrodę bonusową.</li>
-
-<li>W przypadku, gdy dwóch lub więcej uczestników uzyska tę samą liczbę punktów, rozstrzygające będą dodatkowe kryteria, takie jak:
+            <li>W przypadku, gdy dwóch lub więcej uczestników uzyska tę samą liczbę punktów, rozstrzygające będą dodatkowe kryteria, takie jak:
               <ul>
-                <li>Liczba poprawnych wyników,</li>
-
-           <li> W przypadku tej samej liczby punktów i liczby poprawnych wyników, nagroda jest sumowana i dzielona równo między tych uczestników</li>
+                <li>Liczba poprawnych wyników.</li>
+                <li>W przypadku tej samej liczby punktów i liczby poprawnych wyników, nagroda jest sumowana i dzielona równo między tych uczestników.</li>
+              </ul>
+            </li>
           </ul>
         </li>
       </ol>
