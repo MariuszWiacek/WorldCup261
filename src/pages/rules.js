@@ -16,8 +16,18 @@ const Rules = () => {
         <li>
           <strong style={{ color: 'red' }}>Zatwierdzanie Zakładów:</strong>
           <ul>
+           
             <li>Aby zakłady zostały uwzględnione, należy je zatwierdzić przed rozpoczęciem meczu.</li>
-            <li>Zakłady można zatwierdzić tylko raz. Po zatwierdzeniu zakładów, nie można ich zmieniać.</li>
+<li>Zakłady można zatwierdzić tylko raz. Po zatwierdzeniu zakładów, nie można ich zmieniać samodzielnie.</li>
+<li>W razie konieczności edycji zatwierdzonego wyniku, prośbę należy zgłosić na czacie lub na
+
+
+<a href="TUTAJ_WKLEJ_LINK_DO_WHATSAPPA" target="_blank">grupie WhatsApp <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style="width: 20px; height: 20px; vertical-align: middle; margin-left: 5px;"></a>.
+
+
+</li>
+ </li>
+
           </ul>
         </li>
         <li>
