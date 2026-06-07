@@ -17,7 +17,7 @@ const Rules = () => {
           <ul>
             <li>Aby zakłady zostały uwzględnione, należy je zatwierdzić przed rozpoczęciem meczu.</li>
             <li>Zakłady można zatwierdzić tylko raz. Po zatwierdzeniu zakładów, nie można ich zmieniać samodzielnie.</li>
-            <li>W razie konieczności edycji zatwierdzonego wyniku, prośbę należy zgłosić na czacie lub na <a href= https://chat.whatsapp.com/JkBUAtxlDbA9EoKyU15MLG?s=cl&p=a&mlu=0" target="_blank" rel="noreferrer">grupie WhatsApp <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style={{ width: '20px', height: '20px', verticalAlign: 'middle', marginLeft: '5px' }} /></a>.</li>
+            <li>W razie konieczności edycji zatwierdzonego wyniku, prośbę należy zgłosić na czacie lub na <a href="https://chat.whatsapp.com/JkBUAtxlDbA9EoKyU15MLG?s=cl&p=a&mlu=0" target="_blank" rel="noreferrer">grupie WhatsApp <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style={{ width: '20px', height: '20px', verticalAlign: 'middle', marginLeft: '5px' }} /></a>.</li>
           </ul>
         </li>
         <li>
@@ -51,7 +51,7 @@ const Rules = () => {
                 <li>Jeśli dwie osoby zajmują pierwsze miejsce, a trzy osoby zajmują drugie miejsce, suma nagród za pierwsze i drugie miejsce jest dzielona równo między dwie osoby na pierwszym miejscu, a suma nagród za trzecie miejsce jest dzielona równo między trzy osoby na drugim miejscu.</li>
               </ul>
             </li>
-            <li>W przypadku, gdy pula nagród jest ograniczona, a liczba uczestników zajmujących ex aequo miejsca powoduje, że suma nagród jest niższa niż przydzielona na te miejsca, nagrody są dzielone proporcjonalnie.</li>
+            <li>W przypadku, gdy pula nagród jest ograniczona, a liczba uczestników zajmujących ex aequo miejsca powoduje, że suma nagród jest niższa niż przydzielona na te miejsca, nagrody are dzielone proporcjonalnie.</li>
             <li>Uczestnicy zajmujący kolejne miejsca nie otrzymują nagród przeznaczonych dla miejsc, które zostały rozdysponowane ex aequo.</li>
           </ul>
         </li>
