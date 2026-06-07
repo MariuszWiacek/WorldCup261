@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getDatabase, ref, onValue, update } from 'firebase/database';
 import 'firebase/compat/auth';
 import 'firebase/compat/database';
@@ -42,9 +42,6 @@ const Bets = () => {
   const [areInputsEditable, setAreInputsEditable] = useState(true);
   const [isHiddenActive, setIsHiddenActive] = useState(false);
 
-  // Array to hold references to the row elements for scrolling
-  const gameRefs = useRef({});
-
   const [modalConfig, setModalConfig] = useState({
     show: false,
     title: "",
@@ -71,7 +68,6 @@ const Bets = () => {
 
   const activeTabInfo = paginatedTabs[currentPage] || paginatedTabs[0];
 
-  // AUTOMATYCZNY WYBÓR STRONY (AKTYWNEJ KOLEJKI) PRZY URUCHOMIENIU
   // AUTOMATYCZNY WYBÓR STRONY (AKTYWNEJ KOLEJKI) PRZY URUCHOMIENIU
   useEffect(() => {
     const now = DateTime.now().setZone('Europe/Warsaw');
@@ -100,51 +96,7 @@ const Bets = () => {
     }
 
     setCurrentPage(dynamicTargetPage);
-  }, [allGames, paginatedTabs]); // <-- Added 'paginatedTabs' and removed the redundant '.length'
-  // AUTOMATYCZNE SCROLLOWANIE DO NAJBLIŻSZEGO MECZU - FIXED FOR NULL POINTERS
-  useEffect(() => {
-    if (!activeTabInfo.games || activeTabInfo.games.length === 0) return;
-
-    const now = DateTime.now().setZone('Europe/Warsaw');
-    let nearestGameId = null;
-    let minDifference = Infinity;
-
-    activeTabInfo.games.forEach((game) => {
-      const kickoff = DateTime.fromISO(`${game.date}T${game.kickoff}:00`, { zone: 'Europe/Warsaw' });
-      const difference = kickoff.diff(now, 'minutes').minutes;
-
-      // 1. Priorytet dla trwających meczów
-      if (difference <= 0 && difference > -150) {
-        nearestGameId = game.id;
-        minDifference = 0; 
-      } 
-      // 2. Najbliższy mecz w przyszłości
-      else if (difference > 0 && difference < minDifference) {
-        minDifference = difference;
-        nearestGameId = game.id;
-      }
-    });
-
-    // Jeśli brak meczów live/przyszłych, weź pierwszy z listy
-    if (!nearestGameId && activeTabInfo.games.length > 0) {
-      nearestGameId = activeTabInfo.games[0].id;
-    }
-
-    // Bezpieczne przewijanie z opcjonalnym łańcuchem (Optional Chaining) i sprawdzeniem istnienia elementu
-    if (nearestGameId) {
-      const scrollTimer = setTimeout(() => {
-        const elementToScroll = gameRefs.current[nearestGameId];
-        if (elementToScroll && typeof elementToScroll.scrollIntoView === 'function') {
-          elementToScroll.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-          });
-        }
-      }, 300);
-
-      return () => clearTimeout(scrollTimer); // Czyszczenie timera przy zmianie zakładki
-    }
-  }, [currentPage, activeTabInfo]);
+  }, [allGames, paginatedTabs]);
 
   // Interwał sprawdzający czas co minutę w tle
   useEffect(() => {
@@ -298,7 +250,6 @@ const Bets = () => {
               {activeTabInfo.games.map((game, index) => (
                 <React.Fragment key={index}>
                   <tr 
-                    ref={el => gameRefs.current[game.id] = el}
                     style={{ opacity: game.disabled ? '0.5' : '1', backgroundColor: gameStarted(game.date, game.kickoff) ? '#214029ab' : 'transparent' }}
                   >
                     <td colSpan="12" className="date" style={{ textAlign: 'left', color: 'gold', fontSize: '10px', paddingLeft: '10%' }}>
@@ -309,31 +260,30 @@ const Bets = () => {
                     <td><p style={{ color: 'grey' }}>{game.id}.</p></td>
                     
                     <td style={{ 
-  display: 'flex', 
-  flexDirection: 'column', 
-  alignItems: 'center', 
-  gap: '4px',
-  paddingRight: '10px', 
-  fontSize: '20px' 
-}}>
-  <Flag code={getTeamLogo(game.home)} style={flagStyle} fallback={<span>🏳️ </span>} />
-  <span>{game.home}</span>
-</td>
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      gap: '4px',
+                      paddingRight: '10px', 
+                      fontSize: '20px' 
+                    }}>
+                      <Flag code={getTeamLogo(game.home)} style={flagStyle} fallback={<span>🏳️ </span>} />
+                      <span>{game.home}</span>
+                    </td>
 
-<td style={{ textAlign: 'center', fontSize: '20px', verticalAlign: 'middle' }}>-</td>
+                    <td style={{ textAlign: 'center', fontSize: '20px', verticalAlign: 'middle' }}>-</td>
 
-<td style={{ 
-  display: 'flex', 
-  flexDirection: 'column', 
-  alignItems: 'center', 
-  gap: '4px',
-  paddingLeft: '10px', 
-  fontSize: '20px' 
-}}>
-  <Flag code={getTeamLogo(game.away)} style={flagStyle} fallback={<span>🏳️ </span>} />
-  <span>{game.away}</span>
-</td>
-
+                    <td style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      gap: '4px',
+                      paddingLeft: '10px', 
+                      fontSize: '20px' 
+                    }}>
+                      <Flag code={getTeamLogo(game.away)} style={flagStyle} fallback={<span>🏳️ </span>} />
+                      <span>{game.away}</span>
+                    </td>
                     
                     <td style={{ textAlign: 'center', fontSize: '20px' }}>{results[game.id]}</td>
                     <td style={{ textAlign: 'center' }}>
