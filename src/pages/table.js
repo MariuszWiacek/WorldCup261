@@ -181,7 +181,7 @@ const Table = () => {
         winners = sortedKolejka.filter((entry) => entry.points === maxPoints).map((entry) => entry.user);
       }
 
-      const currentPrize = 10 + runningRollover;
+      const currentPrize = 100 + runningRollover;
 
       if (winners.length === 0) {
         prizePool[kolejkaID] = { winners: [], prize: 0 };
@@ -327,15 +327,15 @@ const Table = () => {
           <div style={earningsStyle}>
             <hr />
             <p style={{ fontSize: '15px' }}>
-              20 x 60 = 1200 🥮 <br />
-              3 kolejek + 1 faza pucharowa x 75 🥮 = 300 🥮 <br />
-              1200 - 300 = 900 🥮 w głównej puli
+              22 x 60 = 1320 🥮 <br />
+              3 kolejek + 1 faza pucharowa x 100 🥮 = 400 🥮 <br />
+              1320 - 400 = 920 🥮 w głównej puli
             </p>
             <hr />
             <div style={{ marginTop: '10px', color: '#FFD700' }}>
               <b>Aktualne Nagrody Główne:</b>
               <hr />
-              {mainTableData[0] && <p>🥇 1 miejsce – <b>{mainTableData[0].user} - 500 🥮</b></p>}
+              {mainTableData[0] && <p>🥇 1 miejsce – <b>{mainTableData[0].user} - 520 🥮</b></p>}
               {mainTableData[1] && <p>🥈 2 miejsce – <b>{mainTableData[1].user} – 250 🥮</b></p>}
               {mainTableData[2] && <p>🥉 3 miejsce – <b>{mainTableData[2].user} – 150 🥮</b></p>}
             </div>
