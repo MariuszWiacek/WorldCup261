@@ -12,7 +12,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler // Added Filler for beautiful background area gradients
+  Filler
 } from 'chart.js';
 
 // Firebase configuration
@@ -27,11 +27,9 @@ const firebaseConfig = {
   measurementId: "G-KLLLNCET00"
 };
 
-// Initialize Firebase
 const firebaseApp = initializeApp(firebaseConfig);
 const database = getDatabase(firebaseApp);
 
-// Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 const Stats = () => {
@@ -64,6 +62,29 @@ const Stats = () => {
   useEffect(() => {
     if (!submittedData || !results) return;
 
+    // 1. Group match IDs by their date string to create a master timeline of days
+    // Assumes bet/match object contains a 'date' property (e.g., "2026-06-11" or "11.06")
+    // If your DB doesn't have dates, it falls back to grouping matches by blocks of 3-4 matches a day.
+    const matchDayMap = {};
+    
+    Object.entries(submittedData).forEach(([user, userBets]) => {
+      Object.entries(userBets || {}).forEach(([matchId, bet]) => {
+        // Fallback: If no date exists in your DB, we create artificial "Day X" blocks out of match IDs
+        const matchDate = bet.date || `Dzień ${Math.ceil(parseInt(matchId.replace(/\D/g, '')) / 3) || 1}`;
+        if (!matchDayMap[matchDate]) {
+          matchDayMap[matchDate] = [];
+        }
+        if (!matchDayMap[matchDate].includes(matchId)) {
+          matchDayMap[matchDate].push(matchId);
+        }
+      });
+    });
+
+    // Sort days chronologically
+    const chronologicalDays = Object.keys(matchDayMap).sort((a, b) => {
+      return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+    });
+
     const userStatsData = [];
     const scoreCount = {};
     const matchedScores = {};
@@ -71,46 +92,31 @@ const Stats = () => {
     const emptyScoreCount = {};
 
     Object.keys(submittedData).forEach((user) => {
-      const bets = Object.entries(submittedData[user] || {});
+      const bets = submittedData[user] || {};
       const userStats = {
         user,
         chosenTeams: {},
         failureTeams: {},
         successTeams: {},
-        kolejki: {}, // Changed to object hash to gracefully handle dynamic dynamic kolejka IDs
       };
 
-      bets.forEach(([id, bet]) => {
-        if (bet.score === ':::') {
+      // Extract general stats metrics
+      Object.entries(bets).forEach(([id, bet]) => {
+        if (bet.score === ':::' || !bet.score) {
           emptyScoreCount[user] = (emptyScoreCount[user] || 0) + 1;
           return;
         }
 
         const result = results[id];
-        if (!result || !bet.home || !bet.away || !bet.bet || !bet.score) return;
+        if (!result || !bet.home || !bet.away || !bet.bet) return;
 
         const { home: homeTeam, away: awayTeam, bet: betOutcome, score: betScore } = bet;
         const [actualHomeScore, actualAwayScore] = result.split(':').map(Number);
-        const [betHomeScore, betAwayScore] = betScore.split(':').map(Number);
         const actualOutcome = actualHomeScore === actualAwayScore ? 'X' : actualHomeScore > actualAwayScore ? '1' : '2';
-
-        let points = 0;
-        if (betHomeScore === actualHomeScore && betAwayScore === actualAwayScore) {
-          points = 3;
-        } else if (betOutcome === actualOutcome) {
-          points = 1;
-        }
-
-        const kolejkaId = bet.kolejkaId || 1;
-        if (!userStats.kolejki[kolejkaId]) {
-          userStats.kolejki[kolejkaId] = 0;
-        }
-        userStats.kolejki[kolejkaId] += points;
 
         if (betOutcome !== 'X') {
           const chosenTeam = betOutcome === '1' ? homeTeam : awayTeam;
           userStats.chosenTeams[chosenTeam] = (userStats.chosenTeams[chosenTeam] || 0) + 1;
-
           if (actualOutcome === betOutcome) {
             userStats.successTeams[chosenTeam] = (userStats.successTeams[chosenTeam] || 0) + 1;
           } else {
@@ -128,35 +134,55 @@ const Stats = () => {
         }
       });
 
-      // Dynamically extract and sort all available Kolejki present in the dataset
-      const uniqueKolejki = Object.keys(userStats.kolejki).map(Number).sort((a, b) => a - b);
-      
-      // Generate standard readable labels
-      const kolejkaLabels = uniqueKolejki.map(k => `Kolejka ${k}`);
+      // 2. Map cumulative points day by day
+      let runningTotalPoints = 0;
+      const dailyPointsTimeline = [];
+      const chartLabels = [];
 
-      // Calculate Cumulative Sum (Better approach for a massive 104 game chart)
-      let runningSum = 0;
-      const cumulativePointsData = uniqueKolejki.map((k) => {
-        runningSum += userStats.kolejki[k] || 0;
-        return runningSum;
+      chronologicalDays.forEach((dayLabel) => {
+        const matchIdsInDay = matchDayMap[dayLabel];
+        
+        // Sum up points earned from all matches played on this single day
+        matchIdsInDay.forEach((matchId) => {
+          const bet = bets[matchId];
+          const result = results[matchId];
+
+          if (bet && result && bet.score !== ':::') {
+            const [actualHomeScore, actualAwayScore] = result.split(':').map(Number);
+            const [betHomeScore, betAwayScore] = bet.score.split(':').map(Number);
+            const actualOutcome = actualHomeScore === actualAwayScore ? 'X' : actualHomeScore > actualAwayScore ? '1' : '2';
+
+            let pointsEarned = 0;
+            if (betHomeScore === actualHomeScore && betAwayScore === actualAwayScore) {
+              pointsEarned = 3;
+            } else if (bet.bet === actualOutcome) {
+              pointsEarned = 1;
+            }
+            runningTotalPoints += pointsEarned;
+          }
+        });
+
+        dailyPointsTimeline.push(runningTotalPoints);
+        
+        // Clean up format for the labels (e.g., stripping year if it's too long for mobile)
+        const simplifiedLabel = dayLabel.replace('2026-', '');
+        chartLabels.push(simplifiedLabel);
       });
 
-      // Premium UI Chart Dataset Configuration
+      // 3. Build optimized Chart dataset
       userStats.chartData = {
-        labels: kolejkaLabels.length ? kolejkaLabels : ['Start'],
+        labels: chartLabels.length ? chartLabels : ['Start'],
         datasets: [
           {
-            label: 'Suma Punktów (Suma skumulowana)',
-            data: cumulativePointsData.length ? cumulativePointsData : [0],
+            label: 'Suma punktów (Dzień po Dniu)',
+            data: dailyPointsTimeline.length ? dailyPointsTimeline : [0],
             fill: true,
-            borderColor: '#FFD700', // Premium Gold Line
-            backgroundColor: 'rgba(255, 215, 0, 0.1)', // Subtle Gold glow area underneath
-            tension: 0.35, // Smooth curves instead of rigid zig-zags
-            pointBackgroundColor: '#FFF',
-            pointBorderColor: '#FFD700',
-            pointHoverRadius: 7,
-            pointRadius: 4,
-            borderWidth: 3
+            borderColor: '#FFD700',
+            backgroundColor: 'rgba(255, 215, 0, 0.06)',
+            tension: 0.2, // Clean crisp look
+            pointRadius: 3, // Small visible dots since 30-40 items fits cleanly
+            pointHoverRadius: 6,
+            borderWidth: 2.5,
           },
         ],
       };
@@ -226,30 +252,39 @@ const Stats = () => {
                 <p style={{ color: '#ccc' }}><strong>👎🏿 Największe rozczarowania: </strong> {stats.mostFailureTeams.join(', ') || '------'}</p>
                 <p style={{ color: '#ccc' }}><strong>👍 Najczęściej trafione zwycięstwa: </strong> {stats.mostSuccessTeams.join(', ') || '------'}</p>
 
-                {/* Upgraded Dark Theme Chart Container */}
-                <div style={{ width: '100%', height: '320px', padding: '10px', backgroundColor: '#181818', borderRadius: '6px', border: '1px solid #333' }}>
+                {/* Highly Responsive Day-by-day Chart View */}
+                <div style={{ width: '100%', height: '300px', padding: '10px', backgroundColor: '#181818', borderRadius: '6px', border: '1px solid #333' }}>
                   <Line 
                     data={stats.chartData} 
                     options={{
                       responsive: true,
                       maintainAspectRatio: false,
+                      interaction: {
+                        mode: 'index',
+                        intersect: false,
+                      },
                       plugins: {
-                        legend: {
-                          labels: { color: '#FFF' }
-                        },
+                        legend: { display: false },
                         tooltip: {
-                          mode: 'index',
-                          intersect: false,
+                          padding: 12,
+                          callbacks: {
+                            title: (context) => `Dzień: ${context[0].label}`,
+                            label: (context) => ` Wynik całkowity: ${context.raw} pkt`
+                          }
                         }
                       },
                       scales: {
                         x: { 
-                          grid: { color: '#2d2d2d' },
-                          ticks: { color: '#aaa' }
+                          grid: { color: '#252525' },
+                          ticks: { 
+                            color: '#888',
+                            maxTicksLimit: 12, // Automatically hides middle labels on mobile to prevent overcrowding
+                            font: { size: 10 }
+                          }
                         },
                         y: {
-                          grid: { color: '#2d2d2d' },
-                          ticks: { color: '#aaa', stepSize: 5 } // Step size 5 works flawlessly with large point margins
+                          grid: { color: '#252525' },
+                          ticks: { color: '#aaa' }
                         },
                       },
                     }} 
