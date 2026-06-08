@@ -62,15 +62,13 @@ const Stats = () => {
   useEffect(() => {
     if (!submittedData || !results) return;
 
-    // 1. Group match IDs by their date string to create a master timeline of days
-    // Assumes bet/match object contains a 'date' property (e.g., "2026-06-11" or "11.06")
-    // If your DB doesn't have dates, it falls back to grouping matches by blocks of 3-4 matches a day.
+    // 1. Group match IDs by day to map chronological progress (Max 104 matches)
     const matchDayMap = {};
     
     Object.entries(submittedData).forEach(([user, userBets]) => {
       Object.entries(userBets || {}).forEach(([matchId, bet]) => {
-        // Fallback: If no date exists in your DB, we create artificial "Day X" blocks out of match IDs
-        const matchDate = bet.date || `Dzień ${Math.ceil(parseInt(matchId.replace(/\D/g, '')) / 3) || 1}`;
+        // Safe mapping strategy: Grouping either via string date or artificial match blocks
+        const matchDate = bet.date || `Dzień ${Math.ceil(parseInt(matchId.replace(/\D/g, '')) / 4) || 1}`;
         if (!matchDayMap[matchDate]) {
           matchDayMap[matchDate] = [];
         }
@@ -80,7 +78,6 @@ const Stats = () => {
       });
     });
 
-    // Sort days chronologically
     const chronologicalDays = Object.keys(matchDayMap).sort((a, b) => {
       return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
     });
@@ -100,7 +97,6 @@ const Stats = () => {
         successTeams: {},
       };
 
-      // Extract general stats metrics
       Object.entries(bets).forEach(([id, bet]) => {
         if (bet.score === ':::' || !bet.score) {
           emptyScoreCount[user] = (emptyScoreCount[user] || 0) + 1;
@@ -134,15 +130,14 @@ const Stats = () => {
         }
       });
 
-      // 2. Map cumulative points day by day
+      // 2. Map running points strictly without minus point conditions
       let runningTotalPoints = 0;
-      const dailyPointsTimeline = [];
-      const chartLabels = [];
+      const dailyPointsTimeline = [0]; // Baseline starts at zero
+      const chartLabels = ['Start'];
 
       chronologicalDays.forEach((dayLabel) => {
         const matchIdsInDay = matchDayMap[dayLabel];
         
-        // Sum up points earned from all matches played on this single day
         matchIdsInDay.forEach((matchId) => {
           const bet = bets[matchId];
           const result = results[matchId];
@@ -153,6 +148,7 @@ const Stats = () => {
             const actualOutcome = actualHomeScore === actualAwayScore ? 'X' : actualHomeScore > actualAwayScore ? '1' : '2';
 
             let pointsEarned = 0;
+            // 3 for exact score, 1 for outcome match
             if (betHomeScore === actualHomeScore && betAwayScore === actualAwayScore) {
               pointsEarned = 3;
             } else if (bet.bet === actualOutcome) {
@@ -163,26 +159,24 @@ const Stats = () => {
         });
 
         dailyPointsTimeline.push(runningTotalPoints);
-        
-        // Clean up format for the labels (e.g., stripping year if it's too long for mobile)
         const simplifiedLabel = dayLabel.replace('2026-', '');
         chartLabels.push(simplifiedLabel);
       });
 
-      // 3. Build optimized Chart dataset
+      // Optimized configuration for small smartphone rendering viewports
       userStats.chartData = {
-        labels: chartLabels.length ? chartLabels : ['Start'],
+        labels: chartLabels,
         datasets: [
           {
-            label: 'Suma punktów (Dzień po Dniu)',
-            data: dailyPointsTimeline.length ? dailyPointsTimeline : [0],
+            label: 'Suma punktów',
+            data: dailyPointsTimeline,
             fill: true,
             borderColor: '#FFD700',
-            backgroundColor: 'rgba(255, 215, 0, 0.06)',
-            tension: 0.2, // Clean crisp look
-            pointRadius: 3, // Small visible dots since 30-40 items fits cleanly
+            backgroundColor: 'rgba(255, 215, 0, 0.04)',
+            tension: 0.2,
+            pointRadius: (context) => (context.chart.width < 500 ? 1 : 3), // Shrinks point dots on smaller screens
             pointHoverRadius: 6,
-            borderWidth: 2.5,
+            borderWidth: 2,
           },
         ],
       };
@@ -204,8 +198,8 @@ const Stats = () => {
 
     setGeneralStats({
       mostChosenCorrectScore: mostChosenCorrectScore.length ? mostChosenCorrectScore[0] : '------',
-      mostMatchedCorrectScore: mostMatchedCorrectScore.length ? mostMatchedCorrectScore[0] : '------',
       mostChosenCorrectScoreCount: mostChosenCorrectScore.length ? scoreCount[mostChosenCorrectScore[0]] : 0,
+      mostMatchedCorrectScore: mostMatchedCorrectScore.length ? mostMatchedCorrectScore[0] : '------',
       mostMatchedCorrectScoreCount: mostMatchedCorrectScore.length ? matchedScores[mostMatchedCorrectScore[0]] : 0,
       mostDraws: maxDraws,
       userWithMostDraws: userWithMostDraws,
@@ -224,36 +218,35 @@ const Stats = () => {
   };
 
   return (
-    <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', padding: '20px', color: '#fff' }}>
+    <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', padding: '12px', color: '#fff' }}>
       <Row>
-        <Col md={12}> 
-          <div style={{ marginTop: '10px', color: '#FFD700' }}>
-            <h2>🏆 Statystyki Ogólne</h2>
+        <Col xs={12}> 
+          <div style={{ marginTop: '10px', color: '#FFD700', padding: '5px' }}>
+            <h2 style={{ fontSize: '1.6rem' }}>🏆 Statystyki Ogólne</h2>
             <hr style={{ borderColor: '#FFD700' }} />
-            <p><strong>💡 Najczęściej wybierany wynik: </strong> {generalStats.mostChosenCorrectScore} ({generalStats.mostChosenCorrectScoreCount} razy)</p>
-            <p><strong>💥 Najczęściej trafiony wynik: </strong> {generalStats.mostMatchedCorrectScore} ({generalStats.mostMatchedCorrectScoreCount} razy)</p>
-            <p><strong>🎯 Najwięcej trafionych remisów: </strong> {generalStats.mostDraws} (Użytkownik: {generalStats.userWithMostDraws})</p>
-            <p><strong>😵 Największy zapominalski: </strong> {generalStats.mostForgetfulUser} ({generalStats.mostForgetfulCount} pustych typów)</p>
+            <p style={{ fontSize: '0.95rem' }}><strong>💡 Najczęściej wybierany wynik: </strong> {generalStats.mostChosenCorrectScore} ({generalStats.mostChosenCorrectScoreCount} razy)</p>
+            <p style={{ fontSize: '0.95rem' }}><strong>💥 Najczęściej trafiony wynik: </strong> {generalStats.mostMatchedCorrectScore} ({generalStats.mostMatchedCorrectScoreCount} razy)</p>
+            <p style={{ fontSize: '0.95rem' }}><strong>🎯 Najwięcej trafionych remisów: </strong> {generalStats.mostDraws} <span style={{color: '#fff'}}>({generalStats.userWithMostDraws})</span></p>
+            <p style={{ fontSize: '0.95rem' }}><strong>😵 Największy zapominalski: </strong> {generalStats.mostForgetfulUser} ({generalStats.mostForgetfulCount} pustych typów)</p>
           </div>
         </Col>
       </Row>
 
       <Row>
-        <Col md={12}> 
-          <div style={{ marginTop: '30px', color: '#FFD700' }}>
-            <h2>👤 Statystyki Użytkowników</h2>
+        <Col xs={12}> 
+          <div style={{ marginTop: '20px', color: '#FFD700' }}>
+            <h2 style={{ fontSize: '1.6rem', paddingLeft: '5px' }}>👤 Statystyki Użytkowników</h2>
             <hr style={{ borderColor: '#FFD700' }} /><br />
             
             {userStats.length > 0 ? userStats.map((stats, idx) => (
-              <div key={idx} style={{ marginBottom: '40px', background: '#1e1e1e', padding: '20px', borderRadius: '8px' }}>
-                <h3 style={{ color: '#FFF' }}>{stats.user}</h3>
-                <hr style={{ borderColor: '#333' }} />
-                <p style={{ color: '#ccc' }}><strong>⚽ Najczęściej obstawiane drużyny: </strong> {stats.mostChosenTeams.join(', ') || '------'}</p>
-                <p style={{ color: '#ccc' }}><strong>👎🏿 Największe rozczarowania: </strong> {stats.mostFailureTeams.join(', ') || '------'}</p>
-                <p style={{ color: '#ccc' }}><strong>👍 Najczęściej trafione zwycięstwa: </strong> {stats.mostSuccessTeams.join(', ') || '------'}</p>
+              <div key={idx} style={{ marginBottom: '25px', background: '#1e1e1e', padding: '14px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
+                <h3 style={{ color: '#FFF', fontSize: '1.3rem', marginBottom: '12px' }}>{stats.user}</h3>
+                <p style={{ color: '#ccc', fontSize: '0.88rem', margin: '4px 0' }}><strong>⚽ Najczęstsze zespoły: </strong> {stats.mostChosenTeams.join(', ') || '------'}</p>
+                <p style={{ color: '#ccc', fontSize: '0.88rem', margin: '4px 0' }}><strong>👎 Rozczarowania: </strong> {stats.mostFailureTeams.join(', ') || '------'}</p>
+                <p style={{ color: '#ccc', fontSize: '0.88rem', margin: '4px 0' }}><strong>👍 Trafione wygrane: </strong> {stats.mostSuccessTeams.join(', ') || '------'}</p>
 
-                {/* Highly Responsive Day-by-day Chart View */}
-                <div style={{ width: '100%', height: '300px', padding: '10px', backgroundColor: '#181818', borderRadius: '6px', border: '1px solid #333' }}>
+                {/* Mobile Responsive Chart Wrapper Container */}
+                <div style={{ width: '100%', height: '240px', marginTop: '15px', padding: '6px', backgroundColor: '#161616', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
                   <Line 
                     data={stats.chartData} 
                     options={{
@@ -266,32 +259,43 @@ const Stats = () => {
                       plugins: {
                         legend: { display: false },
                         tooltip: {
-                          padding: 12,
+                          backgroundColor: '#222',
+                          titleColor: '#FFD700',
+                          bodyColor: '#fff',
+                          borderColor: '#444',
+                          borderWidth: 1,
+                          padding: 10,
                           callbacks: {
                             title: (context) => `Dzień: ${context[0].label}`,
-                            label: (context) => ` Wynik całkowity: ${context.raw} pkt`
+                            label: (context) => ` Punkty: ${context.raw} pkt`
                           }
                         }
                       },
                       scales: {
                         x: { 
-                          grid: { color: '#252525' },
+                          grid: { color: '#222', drawTicks: false },
                           ticks: { 
-                            color: '#888',
-                            maxTicksLimit: 12, // Automatically hides middle labels on mobile to prevent overcrowding
-                            font: { size: 10 }
+                            color: '#777',
+                            maxTicksLimit: 6, // Vital for Mobile: Auto skips labels so 104 matches won't blend into mush
+                            maxRotation: 0,
+                            minRotation: 0,
+                            font: { size: 9 }
                           }
                         },
                         y: {
-                          grid: { color: '#252525' },
-                          ticks: { color: '#aaa' }
+                          grid: { color: '#222' },
+                          ticks: { 
+                            color: '#999',
+                            font: { size: 10 },
+                            beginAtZero: true
+                          }
                         },
                       },
                     }} 
                   />
                 </div>
               </div>
-            )) : <p>Brak danych...</p>}
+            )) : <p style={{ paddingLeft: '5px' }}>Brak danych...</p>}
           </div> 
         </Col>
       </Row>
