@@ -11,7 +11,8 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler // Added Filler for beautiful background area gradients
 } from 'chart.js';
 
 // Firebase configuration
@@ -30,9 +31,8 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const database = getDatabase(firebaseApp);
 
-
 // Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 const Stats = () => {
   const [results, setResults] = useState({});
@@ -68,7 +68,6 @@ const Stats = () => {
     const scoreCount = {};
     const matchedScores = {};
     const drawCount = {};
-    
     const emptyScoreCount = {};
 
     Object.keys(submittedData).forEach((user) => {
@@ -78,8 +77,7 @@ const Stats = () => {
         chosenTeams: {},
         failureTeams: {},
         successTeams: {},
-        maxPointsInOneKolejka: 0,
-        kolejki: [],
+        kolejki: {}, // Changed to object hash to gracefully handle dynamic dynamic kolejka IDs
       };
 
       bets.forEach(([id, bet]) => {
@@ -103,12 +101,11 @@ const Stats = () => {
           points = 1;
         }
 
-        const kolejkaId = bet.kolejkaId;
+        const kolejkaId = bet.kolejkaId || 1;
         if (!userStats.kolejki[kolejkaId]) {
-          userStats.kolejki[kolejkaId] = { points: 0 };
+          userStats.kolejki[kolejkaId] = 0;
         }
-        userStats.kolejki[kolejkaId].points += points;
-        userStats.maxPointsInOneKolejka = Math.max(userStats.maxPointsInOneKolejka, userStats.kolejki[kolejkaId].points);
+        userStats.kolejki[kolejkaId] += points;
 
         if (betOutcome !== 'X') {
           const chosenTeam = betOutcome === '1' ? homeTeam : awayTeam;
@@ -131,30 +128,42 @@ const Stats = () => {
         }
       });
 
-      const kolejkaLabels = Array.from({ length: 16 }, (_, idx) => `Kolejka ${idx + 1}`);
-      const pointsData = userStats.kolejki.slice(1, 16).map(kolejka => Math.min(Math.max(kolejka?.points || 0, 1), 27));
+      // Dynamically extract and sort all available Kolejki present in the dataset
+      const uniqueKolejki = Object.keys(userStats.kolejki).map(Number).sort((a, b) => a - b);
+      
+      // Generate standard readable labels
+      const kolejkaLabels = uniqueKolejki.map(k => `Kolejka ${k}`);
 
+      // Calculate Cumulative Sum (Better approach for a massive 104 game chart)
+      let runningSum = 0;
+      const cumulativePointsData = uniqueKolejki.map((k) => {
+        runningSum += userStats.kolejki[k] || 0;
+        return runningSum;
+      });
+
+      // Premium UI Chart Dataset Configuration
       userStats.chartData = {
-        labels: kolejkaLabels,
+        labels: kolejkaLabels.length ? kolejkaLabels : ['Start'],
         datasets: [
           {
-            label: 'Pkt/kolejke',
-            data: pointsData,
-            fill: false,
-            borderColor: 'rgb(255, 0, 0)',
-            tension: 1,
-            backgroundColor: 'yellow'
+            label: 'Suma Punktów (Suma skumulowana)',
+            data: cumulativePointsData.length ? cumulativePointsData : [0],
+            fill: true,
+            borderColor: '#FFD700', // Premium Gold Line
+            backgroundColor: 'rgba(255, 215, 0, 0.1)', // Subtle Gold glow area underneath
+            tension: 0.35, // Smooth curves instead of rigid zig-zags
+            pointBackgroundColor: '#FFF',
+            pointBorderColor: '#FFD700',
+            pointHoverRadius: 7,
+            pointRadius: 4,
+            borderWidth: 3
           },
         ],
       };
 
-      const mostChosenTeams = findMostFrequent(userStats.chosenTeams);
-      const mostFailureTeams = findMostFrequent(userStats.failureTeams);
-      const mostSuccessTeams = findMostFrequent(userStats.successTeams);
-
-      userStats.mostChosenTeams = mostChosenTeams.length ? mostChosenTeams : ['------'];
-      userStats.mostFailureTeams = mostFailureTeams.length ? mostFailureTeams : ['------'];
-      userStats.mostSuccessTeams = mostSuccessTeams.length ? mostSuccessTeams : ['------'];
+      userStats.mostChosenTeams = findMostFrequent(userStats.chosenTeams);
+      userStats.mostFailureTeams = findMostFrequent(userStats.failureTeams);
+      userStats.mostSuccessTeams = findMostFrequent(userStats.successTeams);
 
       userStatsData.push(userStats);
     });
@@ -182,55 +191,74 @@ const Stats = () => {
   }, [submittedData, results]);
 
   const findMostFrequent = (items) => {
+    if (!items || Object.keys(items).length === 0) return [];
     const maxCount = Math.max(...Object.values(items), 0);
+    if (maxCount === 0) return [];
     return Object.keys(items).filter(item => items[item] === maxCount);
   };
 
   return (
-    <Container fluid>
+    <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', padding: '20px', color: '#fff' }}>
       <Row>
-        <Col md={12}> <div style={{ marginTop: '10px', color: '#FFD700' }}>
-          Statystyki Ogólne
-          <hr />
-          <p><strong>🏆 Najczęściej wybierany wynik: </strong> {generalStats.mostChosenCorrectScore} ({generalStats.mostChosenCorrectScoreCount} razy)</p>
-          <p><strong>💥 Najczęściej trafiony wynik: </strong> {generalStats.mostMatchedCorrectScore} ({generalStats.mostMatchedCorrectScoreCount} razy)</p>
-          <p><strong>🔴 Najwięcej trafionych remisów: </strong> {generalStats.mostDraws} (Użytkownik: {generalStats.userWithMostDraws})</p>
-          <p><strong>😵 Największy zapominalski: </strong> {generalStats.mostForgetfulUser} ({generalStats.mostForgetfulCount} pustych typów)</p>
-        </div></Col>
+        <Col md={12}> 
+          <div style={{ marginTop: '10px', color: '#FFD700' }}>
+            <h2>🏆 Statystyki Ogólne</h2>
+            <hr style={{ borderColor: '#FFD700' }} />
+            <p><strong>💡 Najczęściej wybierany wynik: </strong> {generalStats.mostChosenCorrectScore} ({generalStats.mostChosenCorrectScoreCount} razy)</p>
+            <p><strong>💥 Najczęściej trafiony wynik: </strong> {generalStats.mostMatchedCorrectScore} ({generalStats.mostMatchedCorrectScoreCount} razy)</p>
+            <p><strong>🎯 Najwięcej trafionych remisów: </strong> {generalStats.mostDraws} (Użytkownik: {generalStats.userWithMostDraws})</p>
+            <p><strong>😵 Największy zapominalski: </strong> {generalStats.mostForgetfulUser} ({generalStats.mostForgetfulCount} pustych typów)</p>
+          </div>
+        </Col>
       </Row>
 
       <Row>
-        <Col md={12}> <div style={{ marginTop: '10px', color: '#FFD700' }}><hr></hr>
-       Statystyki Użytkowników
-          <hr /><br></br>
-          {userStats.length > 0 ? userStats.map((stats, idx) => (
-            <div key={idx}>
-              <h3>{stats.user}</h3>
-              <hr />
-              <p><strong>⚽ Najczęściej obstawiane drużyny: </strong> {stats.mostChosenTeams.join(', ')}</p>
-              <p><strong>👎🏿 Największe rozczarowania: </strong> {stats.mostFailureTeams.join(', ')}</p>
-              <p><strong>👍 Najczęściej trafione zwycięstwa: </strong> {stats.mostSuccessTeams.join(', ')}</p>
+        <Col md={12}> 
+          <div style={{ marginTop: '30px', color: '#FFD700' }}>
+            <h2>👤 Statystyki Użytkowników</h2>
+            <hr style={{ borderColor: '#FFD700' }} /><br />
+            
+            {userStats.length > 0 ? userStats.map((stats, idx) => (
+              <div key={idx} style={{ marginBottom: '40px', background: '#1e1e1e', padding: '20px', borderRadius: '8px' }}>
+                <h3 style={{ color: '#FFF' }}>{stats.user}</h3>
+                <hr style={{ borderColor: '#333' }} />
+                <p style={{ color: '#ccc' }}><strong>⚽ Najczęściej obstawiane drużyny: </strong> {stats.mostChosenTeams.join(', ') || '------'}</p>
+                <p style={{ color: '#ccc' }}><strong>👎🏿 Największe rozczarowania: </strong> {stats.mostFailureTeams.join(', ') || '------'}</p>
+                <p style={{ color: '#ccc' }}><strong>👍 Najczęściej trafione zwycięstwa: </strong> {stats.mostSuccessTeams.join(', ') || '------'}</p>
 
-              <div style={{ width: 'max', height: '300px', backgroundColor: '#f0f8ff' }}>
-                <Line data={stats.chartData} options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  scales: {
-                    x: { grid: { color: '#e0e0e0' } },
-                    y: {
-                      min: 1,
-                      max: 27,
-                      grid: { color: '#e0e0e0' },
-                      ticks: { stepSize: 1 }
-                    },
-                  },
-                }} />
+                {/* Upgraded Dark Theme Chart Container */}
+                <div style={{ width: '100%', height: '320px', padding: '10px', backgroundColor: '#181818', borderRadius: '6px', border: '1px solid #333' }}>
+                  <Line 
+                    data={stats.chartData} 
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          labels: { color: '#FFF' }
+                        },
+                        tooltip: {
+                          mode: 'index',
+                          intersect: false,
+                        }
+                      },
+                      scales: {
+                        x: { 
+                          grid: { color: '#2d2d2d' },
+                          ticks: { color: '#aaa' }
+                        },
+                        y: {
+                          grid: { color: '#2d2d2d' },
+                          ticks: { color: '#aaa', stepSize: 5 } // Step size 5 works flawlessly with large point margins
+                        },
+                      },
+                    }} 
+                  />
+                </div>
               </div>
-
-              <hr />
-            </div>
-          )) : <p>------</p>}
-       </div> </Col>
+            )) : <p>Brak danych...</p>}
+          </div> 
+        </Col>
       </Row>
     </Container>
   );
