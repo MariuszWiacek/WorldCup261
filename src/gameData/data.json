@@ -1,5 +1,5 @@
 [
-  { "id": 1, "kolejkaId": "A", "home": "Meksyk", "away": "RPA", "kickoff": "21:00", "date": "2026-06-11", "disabled": false },
+  { "id": 1, "kolejkaId": "A", "home": "Meksyk", "away": "RPA", "kickoff": "02:50", "date": "2026-06-09", "disabled": false },
   { "id": 2, "kolejkaId": "A", "home": "Korea Płd", "away": "Czechy", "kickoff": "04:00", "date": "2026-06-12", "disabled": false },
   { "id": 3, "kolejkaId": "B", "home": "Kanada", "away": "Bośnia i Hercegowina", "kickoff": "21:00", "date": "2026-06-12", "disabled": false },
   { "id": 4, "kolejkaId": "D", "home": "USA", "away": "Paragwaj", "kickoff": "03:00", "date": "2026-06-13", "disabled": false },
