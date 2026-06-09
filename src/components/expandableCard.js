@@ -4,6 +4,19 @@ import Pagination from './Pagination';
 import { DateTime } from 'luxon';
 import gameData from '../gameData/data.json'; 
 
+// Dictionary for long team names to save space in the card UI
+const TEAM_SHORT_NAMES = {
+  "Wyspy Zielonego Przylądka": "Ziel. Przylądek", // or "WZP"
+  "Bośnia i Hercegowina": "Bośnia",             // or "BiH"
+  "Wybrzeże Kości Słoniowej": "WKS",
+  "Arabia Saudyjska": "Ar. Saudyjska",
+  "Stany Zjednoczone": "USA",
+  "Republika Środkowoafrykańska": "RŚA"
+};
+
+// Helper function to get short name, falls back to original if not in dictionary
+const formatTeamName = (name) => TEAM_SHORT_NAMES[name] || name;
+
 const ExpandableCard = ({ user, bets, results }) => {
   const [currentKolejkaIndex, setCurrentKolejkaIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
@@ -128,8 +141,13 @@ const ExpandableCard = ({ user, bets, results }) => {
               return (
                 <div key={bet.id} style={{ marginBottom: '5px' }}>
                   <div style={{ fontSize: '10px' }}>
-                    <span style={{ color: 'black' }}>{bet.home} vs. </span>
-                    <span style={{ color: 'black' }}>{bet.away} |{' '}</span>
+                    {/* Added formatTeamName helper here to cleanly shorten names */}
+                    <span style={{ color: 'black' }} title={bet.home}>
+                      {formatTeamName(bet.home)} vs.{' '}
+                    </span>
+                    <span style={{ color: 'black' }} title={bet.away}>
+                      {formatTeamName(bet.away)} |{' '}
+                    </span>
                     
                     {isCurrentlyHidden ? (
                       <>
