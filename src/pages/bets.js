@@ -73,15 +73,13 @@ const Bets = () => {
     const now = DateTime.now().setZone('Europe/Warsaw');
     let dynamicTargetPage = 0;
 
-    // Przechodzimy wstecz od ostatniej grupy, sprawdzając gdzie są jeszcze niezakonczone mecze
     for (let i = 0; i < paginatedTabs.length; i++) {
       const tabGames = paginatedTabs[i].games;
       
-      // Sprawdzamy czy w danej kolejce jest chociaż jeden mecz przyszły lub trwający (bufor 150 min)
       const hasActiveMatches = tabGames.some(game => {
         const kickoff = DateTime.fromISO(`${game.date}T${game.kickoff}:00`, { zone: 'Europe/Warsaw' });
         const minutesSinceKickoff = now.diff(kickoff, 'minutes').minutes;
-        return minutesSinceKickoff < 150; // Mecz się jeszcze nie skończył lub nie zaczął
+        return minutesSinceKickoff < 150; 
       });
 
       if (hasActiveMatches) {
@@ -89,7 +87,6 @@ const Bets = () => {
         break;
       }
       
-      // Jeśli cała kolejka minęła, domyślnie przejdzie krok dalej do kolejnej zakładki
       if (i === paginatedTabs.length - 1) {
         dynamicTargetPage = i; 
       }
@@ -98,11 +95,26 @@ const Bets = () => {
     setCurrentPage(dynamicTargetPage);
   }, [allGames, paginatedTabs]);
 
-  // Interwał sprawdzający czas co minutę w tle
+  // NAPRAWIONY INTERWAŁ: Aktualizuje czas bez wymazywania wpisywanych typów użytkownika
   useEffect(() => {
     const timer = setInterval(() => {
-      setAllGames([...gameData]); 
+      setAllGames(prevGames => {
+        return gameData.map(staticGame => {
+          const userEditedGame = prevGames.find(g => g.id === staticGame.id);
+          
+          // Jeśli użytkownik zaczął wpisywać wynik, nie nadpisuj go pustym stanem bazowym!
+          if (userEditedGame && userEditedGame.score) {
+            return {
+              ...staticGame,
+              score: userEditedGame.score,
+              bet: userEditedGame.bet
+            };
+          }
+          return staticGame;
+        });
+      });
     }, 60000);
+
     return () => clearInterval(timer);
   }, []);
 
