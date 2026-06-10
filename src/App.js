@@ -21,7 +21,7 @@ import TeamLogos from './components/teamLogos';
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [showSignup, setShowSignup] = useState(true);
+ 
   
 
   useEffect(() => {
