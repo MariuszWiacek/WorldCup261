@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getDatabase, ref, onValue, getApp, getApps, initializeApp } from 'firebase/app';
+// FIX: Separate core app initialization from database functions
+import { getApp, getApps, initializeApp } from 'firebase/app';
+import { getDatabase, ref, onValue } from 'firebase/database'; 
 import { Row, Col, Container } from 'react-bootstrap';
 
 // ------------------------
@@ -25,13 +27,27 @@ const Stats = () => {
   const [submittedData, setSubmittedData] = useState({});
   const [profiles, setProfiles] = useState([]);
 
+  // Fetch real-time data from Firebase
   useEffect(() => {
-    onValue(ref(db, 'results'), snap => setResults(snap.val() || {}));
-    onValue(ref(db, 'submittedData'), snap => setSubmittedData(snap.val() || {}));
+    const resultsRef = ref(db, 'results');
+    const submittedRef = ref(db, 'submittedData');
+
+    const unsubscribeResults = onValue(resultsRef, snap => setResults(snap.val() || {}));
+    const unsubscribeSubmitted = onValue(submittedRef, snap => setSubmittedData(snap.val() || {}));
+
+    // Cleanup listeners on unmount
+    return () => {
+      unsubscribeResults();
+      unsubscribeSubmitted();
+    };
   }, []);
 
+  // Calculate statistics when data changes
   useEffect(() => {
-    if (!submittedData || !results) return;
+    // Check if we have actual data to calculate
+    if (!submittedData || Object.keys(submittedData).length === 0 || !results || Object.keys(results).length === 0) {
+      return;
+    }
 
     const output = [];
 
@@ -155,27 +171,31 @@ const Stats = () => {
 
       <Row>
         <Col>
-          {profiles.map((p, i) => (
-            <div key={i} style={{
-              background: '#1e1e1e',
-              padding: 16,
-              marginBottom: 20,
-              borderRadius: 12,
-              border: '1px solid #2a2a2a'
-            }}>
+          {profiles.length === 0 ? (
+            <p style={{ color: '#aaa', textAlign: 'center', marginTop: '20px' }}>Loading or no stats available...</p>
+          ) : (
+            profiles.map((p, i) => (
+              <div key={i} style={{
+                background: '#1e1e1e',
+                padding: 16,
+                marginBottom: 20,
+                borderRadius: 12,
+                border: '1px solid #2a2a2a'
+              }}>
 
-              <h2 style={{ color: '#FFD700' }}>👤 {p.user || 'Unknown'}</h2>
-              <h3>🏆 {p.OVR} OVR</h3>
-              <h4>{p.style}</h4>
+                <h2 style={{ color: '#FFD700' }}>👤 {p.user || 'Unknown'}</h2>
+                <h3>🏆 {p.OVR} OVR</h3>
+                <h4>{p.style}</h4>
 
-              <p>🧠 Outcome: {pct(p.outcomeRate)}</p>
-              <p>🎯 Score: {pct(p.scoreRate)}</p>
+                <p>🧠 Outcome: {pct(p.outcomeRate)}</p>
+                <p>🎯 Score: {pct(p.scoreRate)}</p>
 
-              <p>⚽ Teams giving points: {p.bestPointTeams.join(', ') || '---'}</p>
-              <p>💔 Teams costing points: {p.worstPointTeams.join(', ') || '---'}</p>
+                <p>⚽ Teams giving points: {p.bestPointTeams.join(', ') || '---'}</p>
+                <p>💔 Teams costing points: {p.worstPointTeams.join(', ') || '---'}</p>
 
-            </div>
-          ))}
+              </div>
+            ))
+          )}
         </Col>
       </Row>
 
