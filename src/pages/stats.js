@@ -51,8 +51,8 @@ const Stats = () => {
       let scoreTotal = 0;
 
       let emptyBets = 0;
-      let drawBetsPredicted = 0; // Wytypowane remisy (X)
-      let drawBetsCorrect = 0;   // Trafione remisy (X)
+      let drawBetsPredicted = 0; 
+      let drawBetsCorrect = 0;   
 
       const teamStats = {};
 
@@ -60,7 +60,7 @@ const Stats = () => {
         const result = results[matchId];
         if (!bet || !result) return;
 
-        // Warunek na pusty typ (zgodnie z Twoją specyfikacją :::)
+        // Warunek na pusty typ
         if (!bet.score || bet.score === ':::' || bet.score === ':') {
           emptyBets++;
           return;
@@ -74,11 +74,9 @@ const Stats = () => {
         outcomeTotal++;
         if (bet.bet === actualOutcome) {
           outcomeCorrect++;
-          // Jeśli trafił i to był remis
           if (bet.bet === 'X') drawBetsCorrect++;
         }
         
-        // Zliczanie po prostu wytypowanych remisów
         if (bet.bet === 'X') drawBetsPredicted++;
 
         scoreTotal++;
@@ -104,9 +102,7 @@ const Stats = () => {
 
       const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
       const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
-      const drawRate = outcomeTotal ? drawBetsPredicted / outcomeTotal : 0;
 
-      // Przypisywanie dynamicznych stylów / werdyktów
       let style = "Zrównoważony analityk";
       let verdict = "Klasyczny styl menedżerski. Potrafisz idealnie wypośrodkować ryzyko między czystym wskazaniem faworyta a dokładnym wynikiem. Solidny gracz turniejowy.";
 
@@ -153,7 +149,7 @@ const Stats = () => {
     setProfiles(output);
 
     // ==========================================
-    // SEKCJA GLOBALNA: REKALKULACJA LIDERÓW
+    // REKALKULACJA LIDERÓW
     // ==========================================
     if (output.length > 0) {
       const mostDrawsPredicted = [...output].sort((a, b) => b.drawBetsPredicted - a.drawBetsPredicted)[0];
@@ -186,9 +182,7 @@ const Stats = () => {
         </Col>
       </Row>
 
-      {/* ==========================================
-          ZMODYFIKOWANA SEKCJA STATYSTYK LIGOWYCH
-          ========================================== */}
+      {/* STATYSTYKI GLOBALNE LIGI */}
       <Row className="justify-content-center" style={{ marginBottom: '30px' }}>
         <Col xs={12} md={8} lg={6}>
           <div style={{ background: '#1c1a12', border: '1px solid #FFD700', borderRadius: '14px', padding: '18px', boxShadow: '0 0 15px rgba(255,215,0,0.1)' }}>
@@ -197,29 +191,32 @@ const Stats = () => {
             </h5>
             
             <Row style={{ fontSize: '0.88rem' }}>
-              <Col xs={6} style={{ marginBottom: '12px' }}>
+              <Col xs={globalStats.mostEmpty.count > 0 ? 6 : 4} style={{ marginBottom: '12px' }}>
                 <div style={{ color: '#aaa', fontSize: '0.72rem', fontWeight: 'bold' }}>🔮 NAJWIĘCEJ WYTYPOWANYCH REMISÓW</div>
                 <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostDrawsPredicted.user}</div>
                 <div style={{ color: '#9e9e9e' }}>{globalStats.mostDrawsPredicted.count} razy postawił "X"</div>
               </Col>
 
-              <Col xs={6} style={{ marginBottom: '12px' }}>
+              <Col xs={globalStats.mostEmpty.count > 0 ? 6 : 4} style={{ marginBottom: '12px' }}>
                 <div style={{ color: '#FFD700', fontSize: '0.72rem', fontWeight: 'bold' }}>👑 OFICJALNY KRÓL REMISÓW</div>
                 <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.kingOfDraws.user}</div>
                 <div style={{ color: '#FFD700', fontWeight: '600' }}>{globalStats.kingOfDraws.count} TRAFIONYCH remisów</div>
               </Col>
               
-              <Col xs={6} style={{ marginBottom: '12px' }}>
+              <Col xs={globalStats.mostEmpty.count > 0 ? 6 : 4} style={{ marginBottom: '12px' }}>
                 <div style={{ color: '#aaa', fontSize: '0.72rem', fontWeight: 'bold' }}>🎯 CZUŁE OKO (DOKŁADNE WYNIKI)</div>
                 <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostExactScores.user}</div>
                 <div style={{ color: '#2196f3' }}>{globalStats.mostExactScores.count} razy w punkt</div>
               </Col>
               
-              <Col xs={6} style={{ marginBottom: '12px' }}>
-                <div style={{ color: '#aaa', fontSize: '0.72rem', fontWeight: 'bold' }}>💤 NAJWIĘKSZY ZAPOMINALSKI (:::)</div>
-                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostEmpty.user}</div>
-                <div style={{ color: '#f44336' }}>{globalStats.mostEmpty.count} pustych typów</div>
-              </Col>
+              {/* WARUNEK: Sekcja wyświetla się tylko jeśli ktokolwiek ma chociaż 1 pusty kupon */}
+              {globalStats.mostEmpty.count > 0 && (
+                <Col xs={6} style={{ marginBottom: '12px' }}>
+                  <div style={{ color: '#aaa', fontSize: '0.72rem', fontWeight: 'bold' }}>💤 NAJWIĘKSZY ZAPOMINALSKI (:::)</div>
+                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostEmpty.user}</div>
+                  <div style={{ color: '#f44336' }}>{globalStats.mostEmpty.count} pustych typów</div>
+                </Col>
+              )}
             </Row>
           </div>
         </Col>
