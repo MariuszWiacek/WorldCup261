@@ -102,15 +102,36 @@ const Stats = () => {
       const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
       const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
 
-      // 🏟️ KLASYFIKACJA STYLU TYPOWANIA
+      // ==========================================
+      // 🏟️ ROZBUDOWANA BAZA STYLÓW I WERDYKTÓW (NOWOŚĆ)
+      // ==========================================
       let style = "Zrównoważony analityk";
+      let verdict = "Klasyczny styl menedżerski. Potrafisz idealnie wypośrodkować ryzyko między czystym wskazaniem faworyta a dokładnym wynikiem. Solidny gracz turniejowy, który rzadko zalicza drastyczne spadki formy.";
 
-      if (outcomeRate > 0.65 && scoreRate < 0.2) {
-        style = "Taktyczny typer";
-      } else if (scoreRate > 0.25) {
-        style = "Łowca wyników";
-      } else if (outcomeRate < 0.4) {
-        style = "Chaotyczny typer";
+      if (emptyBets > 10 && outcomeRate > 0.5) {
+        style = "Ekspert Dezerter";
+        verdict = "Masz ogromną wiedzę i świetną skuteczność, kiedy już... przypomnisz sobie o oddaniu typu. Gdyby nie puste kupony i permanentne spóźnienia na odprawę taktyczną, prawdopodobnie demolowałbyś tę tabelę.";
+      } else if (outcomeRate >= 0.75 && scoreRate >= 0.35) {
+        style = "Legenda Typerów (FUT Icon)";
+        verdict = "Absolutny kosmos. Czytasz mecze jak otwartą księgę. Widzisz to, czego nie widzą najlepsi bukmacherzy. Twoje statystyki budzą strach i zazdrość w całej lidze – grasz na poziomie profesjonalnego analityka.";
+      } else if (outcomeRate > 0.65 && scoreRate < 0.12) {
+        style = "Taktyczny bezpiecznik";
+        verdict = "Genialnie przewidujesz, kto zdobędzie 3 punkty lub kiedy padnie remis, ale unikasz ryzyka i nie potrafisz wstrzelić się w dokładne bramki. Twój minimalizm pozwala zbierać punkty powoli, ale stabilnie.";
+      } else if (scoreRate >= 0.30) {
+        style = "Snajper Dokładności";
+        verdict = "Prawdziwy chirurg precyzji! Możesz nie trafić ogólnego wyniku trzech meczów z rzędu, ale jak już trafisz, to od razu z dokładnym wynikiem do zera. Polujesz na wysokie kursy i grasz bez kompromisów.";
+      } else if (outcomeRate < 0.40 && scoreRate > 0.15) {
+        style = "Szalony Wizjoner";
+        verdict = "Twoja intuicja działa na dziwnych falach. Mylisz się w podstawowych, oczywistych meczach („pewniakach”), po czym bez problemu trafiasz dokładny wynik meczu, w którym skazywano underdogów na pożarcie.";
+      } else if (outcomeRate >= 0.45 && outcomeRate <= 0.55 && scoreRate <= 0.15) {
+        style = "Ligowy Średniak";
+        verdict = "Grasz bardzo bezpiecznie, czasem wręcz podręcznikowo, przez co Twoje wyniki zlewają się z tłumem. Brakuje Ci odrobiny szaleństwa lub głębszej analizy, by odskoczyć grupie pościgowej.";
+      } else if (outcomeRate < 0.38 && scoreRate <= 0.08) {
+        style = "Generator Losowości";
+        verdict = "Twoja forma to totalny rollercoaster bez trzymanki. Wygląda na to, że typujesz wyniki rzutem monetą albo pytasz o radę kota. Algorytmy płaczą, kiedy analizują Twoje konto, a przeciwnicy nigdy nie wiedzą, czego się spodziewać.";
+      } else if (emptyBets > 15) {
+        style = "Duch Turnieju";
+        verdict = "Twoja obecność jest głównie symboliczna. Więcej meczów oddajesz walkowerem niż realnie analizujesz. Twoje konto pokryło się kurzem, ale liga wciąż wierzy w Twój wielki powrót w końcówce fazy grupowej!";
       }
 
       // ⚽ FILTRACJA DRUŻYN (minimum 3 rozegrane mecze)
@@ -134,6 +155,7 @@ const Stats = () => {
       output.push({
         user, 
         style,
+        verdict,
         OVR,
         outcomeRate,
         scoreRate,
@@ -160,8 +182,8 @@ const Stats = () => {
       <Row>
         <Col xs={12}>
           <div style={{ marginTop: '10px', marginBottom: '20px', color: '#FFD700', textAlign: 'center' }}>
-            <h2>🏆 Profile Typerów</h2>
-            <p style={{ color: '#aaa' }}>Szczegółowa analiza tendencji i statystyk graczy</p>
+            <h2>🏆 Zaawansowane Profile Typerów FIFA</h2>
+            <p style={{ color: '#aaa' }}>Głęboka analiza statystyczna oraz unikalne taktyki graczy</p>
             <hr style={{ borderColor: '#FFD700', width: '50%', margin: '10px auto' }} />
           </div>
         </Col>
@@ -204,7 +226,7 @@ const Stats = () => {
               <Row style={{ marginBottom: '15px' }}>
                 <Col xs={6}>
                   <div style={{ background: '#161616', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: 'bold' }}>🔮 TRAFIENIE 1X2</div>
+                    <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: 'bold' }}>🔮 SKUTECZNOŚĆ 1X2</div>
                     <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#4caf50' }}>{pct(p.outcomeRate)}</div>
                     <div style={{ fontSize: '0.7rem', color: '#666' }}>({p.outcomeCorrect}/{p.outcomeTotal} meczów)</div>
                   </div>
@@ -221,14 +243,14 @@ const Stats = () => {
               {/* Relacje z drużynami */}
               <div style={{ fontSize: '0.9rem', marginBottom: '15px', paddingBottom: '10px', borderBottom: '1px solid #333' }}>
                 <div style={{ margin: '6px 0', color: '#ccc' }}>
-                  <span style={{ color: '#4caf50', fontWeight: '600' }}>⚽ Szczęśliwe zespoły:</span> {p.bestPointTeams.join(', ') || 'Brak danych'}
+                  <span style={{ color: '#4caf50', fontWeight: '600' }}>⚽ Zarabiasz na:</span> {p.bestPointTeams.join(', ') || 'Brak stabilnych danych'}
                 </div>
                 <div style={{ margin: '6px 0', color: '#ccc' }}>
-                  <span style={{ color: '#f44336', fontWeight: '600' }}>💔 Pechowe zespoły:</span> {p.worstPointTeams.join(', ') || 'Brak danych'}
+                  <span style={{ color: '#f44336', fontWeight: '600' }}>💔 Tracisz przez:</span> {p.worstPointTeams.join(', ') || 'Brak stabilnych danych'}
                 </div>
               </div>
 
-              {/* Werdykt algorytmu */}
+              {/* Dynamiczny Werdykt algorytmu */}
               <div style={{ 
                 background: 'rgba(255, 215, 0, 0.04)', 
                 padding: '12px', 
@@ -238,17 +260,13 @@ const Stats = () => {
                 lineHeight: '1.45',
                 color: '#ddd' 
               }}>
-                <strong>🧠 Werdykt:</strong>{" "}
-                {p.style === "Taktyczny typer" && "Świetnie przewidujesz, kto wygra lub zremisuje, ale brakuje Ci precyzji snajpera do trafiania idealnego rezultatu bramkowego. Stosujesz bezpieczną i skuteczną taktykę!"}
-                {p.style === "Łowca wyników" && "Prawdziwy hazardzista premium! Masz niesamowity nos do idealnych wyników (np. 2:1, 0:0). Idziesz po całą pulę i nie zadowalasz się półśrodkami."}
-                {p.style === "Zrównoważony analityk" && "Klasyczny styl menedżerski. Potrafisz idealnie wypośrodkować ryzyko między czystym wskazaniem faworyta a dokładnym wynikiem. Solidny gracz turniejowy."}
-                {p.style === "Chaotyczny typer" && "Zupełnie nieprzewidywalna forma. Twoje typy potrafią mocno zaskoczyć zarówno algorytm, jak i samych piłkarzy na boisku. Potrzebujesz więcej stabilizacji formy!"}
+                <strong>🧠 Werdykt systemu:</strong> {p.verdict}
               </div>
 
               {/* Stopka karty użytkownika */}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '8px', borderTop: '1px dashed #333', fontSize: '0.75rem', color: '#777' }}>
-                <span>Aktywne kupony: {p.outcomeTotal}</span>
-                <span>Puste/nieoddane typy: {p.emptyBets}</span>
+                <span>Wysłane kupony: {p.outcomeTotal}</span>
+                <span>Opuszczone mecze: {p.emptyBets}</span>
               </div>
 
             </div>
