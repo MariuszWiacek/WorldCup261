@@ -23,7 +23,7 @@ const Stats = () => {
   const [submittedData, setSubmittedData] = useState({});
   const [profiles, setProfiles] = useState([]);
   
-  // Stany widoczności poszczególnych kafelków
+  // Stany widoczności poszczególnych kafelków liderów
   const [showKingOfDraws, setShowKingOfDraws] = useState(false);
   const [showMostEmpty, setShowMostEmpty] = useState(false);
 
@@ -106,33 +106,37 @@ const Stats = () => {
       const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
       const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
 
-      let style = "Zrównoważony analityk";
-      let verdict = "Klasyczny styl menedżerski. Potrafisz idealnie wypośrodkować ryzyko między czystym wskazaniem faworyta a dokładnym wynikiem. Solidny gracz turniejowy.";
+      // ==========================================
+      // 🏟️ HUMORYSTYCZNE PROFILE I WERDYKTY (BEZ FIFA)
+      // ==========================================
+      let style = "Kalkulujący Profesor";
+      let verdict = "Nuda, stabilizacja i zero szaleństwa. Grasz jak stary, doświadczony ligowiec, który zamiast widowiska woli brzydkie, ale pewne punkty. Bukmacherzy nienawidzą Twojego wyrachowania.";
 
       if (drawBetsCorrect >= 4) {
         style = "Król Remisów";
-        verdict = "Gdzie inni widzą pewne trzy punkty dla faworyta, Ty bezbłędnie wyczuwasz podział punktów. Twoja umiejętność trafiania remisów w trudnych meczach to absolutna ekstraklasa intuicji.";
+        verdict = "Gdzie inni widzą pewne trzy punkty dla faworyta, Ty bezbłędnie wyczuwasz zapach nudnego 0:0 na odległość kilometra. Masz nosa do morderczych meczów walki, w których nikt nie chce wygrać.";
       } else if (emptyBets > 10 && outcomeRate > 0.5) {
         style = "Ekspert Dezerter";
-        verdict = "Masz ogromną wiedzę i świetną skuteczność, kiedy już... przypomnisz sobie o oddaniu typu. Gdyby nie puste kupony, demolowałbyś tę tabelę.";
+        verdict = "Wiedza ekspercka jest, intuicja też, tylko co z tego, skoro budzik na wysyłanie kuponów dzwoni u Ciebie trzy godziny po meczu? Gdyby nie te uciekające walkowery, reszta tabeli mogłaby już zwijać manatki.";
       } else if (outcomeRate >= 0.75 && scoreRate >= 0.35) {
-        style = "Legenda Typerów (FUT Icon)";
-        verdict = "Absolutny kosmos. Czytasz mecze jak otwartą księgę. Twoje statystyki budzą strach i zazdrość w całej lidze – grasz na poziomie profesjonalnego analityka.";
+        style = "Absolutny Geniusz Tabeli";
+        verdict = "Zgłoś się do jakiejś telewizji, bo marnujesz się w naszej amatorskiej lidze. Czytasz intencje zawodników szybciej niż ich własni trenerzy. Podejrzanie często trafiasz – czy na pewno nie masz układów z sędziami?";
       } else if (outcomeRate > 0.65 && scoreRate < 0.12) {
-        style = "Taktyczny bezpiecznik";
-        verdict = "Genialnie przewidujesz, kto zdobędzie punkty, ale unikasz ryzyka i nie potrafisz wstrzelić się w dokładne bramki. Twój minimalizm pozwala zbierać punkty powoli.";
+        style = "Kolekcjoner Minimalizmu";
+        verdict = "Wiesz, kto wygra, ale ustrzelenie dokładnego wyniku bramkowego graniczy u Ciebie z cudem. Grasz tak bezpiecznie, że nawet na wakacje pewnie jedziesz w kasku. Punkty kapią powoli, ale sumiennie.";
       } else if (scoreRate >= 0.30) {
-        style = "Snajper Dokładności";
-        verdict = "Prawdziwy chirurg precyzji! Polujesz na wysokie ryzyko, trafiając dokładne rezultaty bramkowe tam, gdzie inni gubią punkty.";
+        style = "Chirurg Wyników";
+        verdict = "Rzadko trafiasz ogólny rezultat, ale jak już w coś bębniesz, to z dokładnością do centymetra! Polujesz wyłącznie na grube i skomplikowane wyniki. Prawdziwy snajper bezlitosnej precyzji.";
       } else if (outcomeRate < 0.40 && scoreRate > 0.15) {
-        style = "Szalony Wizjoner";
-        verdict = "Mylisz się w podstawowych, oczywistych meczach, po czym bez problemu trafiasz dokładny wynik meczu, w którym skazywano underdogów na pożarcie.";
+        style = "Szalony Jasnowidz";
+        verdict = "Kompletny paradoks. Potrafisz koncertowo wyłożyć się na murowanym faworycie, żeby godzinę później bez mrugnięcia okiem trafić kosmiczny, dokładny wynik meczu skazywanych na pożarcie underdogów.";
       } else if (outcomeRate < 0.38 && scoreRate <= 0.08) {
-        style = "Generator Losowości";
-        verdict = "Twoja forma to totalny rollercoaster. Wygląda na to, że typujesz wyniki rzutem monetą. Przeciwnicy nigdy nie wiedzą, czego się spodziewać.";
+        // ZOSTAWIENI PROFILE DLA KUZYNA (ZGODNIE Z PROŚBĄ)
+        style = "Chaotyczny typer";
+        verdict = "Zupełnie nieprzewidywalna forma. Twoje typy potrafią zaskoczyć zarówno algorytm, jak i samych piłkarzy. Potrzebujesz więcej stabilizacji!";
       } else if (emptyBets > 15) {
-        style = "Duch Turnieju";
-        verdict = "Więcej meczów oddajesz walkowerem niż realnie analizujesz. Twój kupon wiecznie świeci pustkami, zbierz siły na końcówkę!";
+        style = "Mityczna Istota";
+        verdict = "Twoje konto w tabeli pokryło się już metrową warstwą kurzu. Więcej meczów oddajesz walkowerem niż realnie typujesz. Podobno ktoś Cię kiedyś widział na trybunach, ale to niepotwierdzone plotki.";
       }
 
       const validTeams = Object.entries(teamStats).filter(([_, v]) => v.total >= 3);
@@ -151,29 +155,20 @@ const Stats = () => {
     output.sort((a, b) => b.OVR - a.OVR);
     setProfiles(output);
 
-    // ==========================================
-    // REKALKULACJA LIDERÓW Z FILTRAMI (NOWOŚĆ)
-    // ==========================================
+    // REKALKULACJA LIDERÓW Z FILTRAMI
     if (output.length > 0) {
       const mostDrawsPredicted = [...output].sort((a, b) => b.drawBetsPredicted - a.drawBetsPredicted)[0];
       const mostExactScores = [...output].sort((a, b) => b.scoreCorrect - a.scoreCorrect)[0];
 
-      // 1. Logika dla Króla Remisów (Trafione)
       const sortedDraws = [...output].sort((a, b) => b.drawBetsCorrect - a.drawBetsCorrect);
       const topDrawCount = sortedDraws[0].drawBetsCorrect;
-      // Sprawdzenie, ile osób ma ten sam najwyższy wynik
       const drawWinnersCount = sortedDraws.filter(p => p.drawBetsCorrect === topDrawCount).length;
-      
-      // Pokazuj tylko jeśli max > 0 ORAZ jest dokładnie jedna taka osoba
       const isDrawKingValid = topDrawCount > 0 && drawWinnersCount === 1;
       setShowKingOfDraws(isDrawKingValid);
 
-      // 2. Logika dla Największego Zapominalskiego
       const sortedEmpty = [...output].sort((a, b) => b.emptyBets - a.emptyBets);
       const topEmptyCount = sortedEmpty[0].emptyBets;
       const emptyWinnersCount = sortedEmpty.filter(p => p.emptyBets === topEmptyCount).length;
-
-      // Pokazuj tylko jeśli max > 0 ORAZ jest dokładnie jedna taka osoba
       const isSubmittingGhostValid = topEmptyCount > 0 && emptyWinnersCount === 1;
       setShowMostEmpty(isSubmittingGhostValid);
 
@@ -189,8 +184,7 @@ const Stats = () => {
 
   const pct = (v) => `${(v * 100).toFixed(1)}%`;
 
-  // Dynamiczne obliczanie szerokości kolumn (Bootstrap grid ma 12 kolumn)
-  let activeCards = 2; // Zawsze mamy "Najwięcej wytypowanych" i "Dokładne Wyniki"
+  let activeCards = 2; 
   if (showKingOfDraws) activeCards++;
   if (showMostEmpty) activeCards++;
   const colSize = Math.floor(12 / activeCards);
@@ -202,7 +196,7 @@ const Stats = () => {
       <Row>
         <Col xs={12}>
           <div style={{ marginTop: '10px', marginBottom: '20px', color: '#FFD700', textAlign: 'center' }}>
-            <h2>🏆 Zaawansowane Profile Typerów FIFA</h2>
+            <h2>🏆 Zaawansowane Profile Typerów</h2>
             <hr style={{ borderColor: '#FFD700', width: '30%', margin: '10px auto' }} />
           </div>
         </Col>
@@ -217,30 +211,26 @@ const Stats = () => {
             </h5>
             
             <Row style={{ fontSize: '0.85rem' }}>
-              {/* KAFELEK 1: Wytypowane remisy (Zawsze widoczny) */}
               <Col xs={colSize} style={{ marginBottom: '12px', borderRight: '1px solid #2a2a2a' }}>
                 <div style={{ color: '#aaa', fontSize: '0.7rem', fontWeight: 'bold' }}>🔮 NAJWIĘCEJ WYTYPOWANYCH REMISÓW</div>
                 <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1rem', marginTop: '4px' }}>{globalStats.mostDrawsPredicted.user}</div>
                 <div style={{ color: '#9e9e9e', fontSize: '0.8rem' }}>{globalStats.mostDrawsPredicted.count} razy postawił "X"</div>
               </Col>
 
-              {/* KAFELEK 2: Król remisów (Warunkowy: max > 0 oraz brak remisów między graczami) */}
               {showKingOfDraws && (
                 <Col xs={colSize} style={{ marginBottom: '12px', borderRight: '1px solid #2a2a2a' }}>
                   <div style={{ color: '#FFD700', fontSize: '0.7rem', fontWeight: 'bold' }}>👑 OFICJALNY KRÓL REMISÓW</div>
                   <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1rem', marginTop: '4px' }}>{globalStats.kingOfDraws.user}</div>
-                  <div style={{ color: '#FFD700', fontWeight: '600', fontSize: '0.8rem' }}>{globalStats.kingOfDraws.count} trafionych podziałów</div>
+                  <div style={{ color: '#FFD700', fontWeight: '600', fontSize: '0.8rem' }}>{globalStats.kingOfDraws.count} trafionych remisów</div>
                 </Col>
               )}
               
-              {/* KAFELEK 3: Dokładne wyniki (Zawsze widoczny) */}
               <Col xs={colSize} style={{ marginBottom: '12px', borderRight: showMostEmpty ? '1px solid #2a2a2a' : 'none' }}>
                 <div style={{ color: '#aaa', fontSize: '0.7rem', fontWeight: 'bold' }}>🎯 CZUŁE OKO (DOKŁADNE WYNIKI)</div>
                 <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1rem', marginTop: '4px' }}>{globalStats.mostExactScores.user}</div>
                 <div style={{ color: '#2196f3', fontSize: '0.8rem' }}>{globalStats.mostExactScores.count} razy w punkt</div>
               </Col>
               
-              {/* KAFELEK 4: Zapominalski (Warunkowy: max > 0 oraz brak remisów między graczami) */}
               {showMostEmpty && (
                 <Col xs={colSize} style={{ marginBottom: '12px' }}>
                   <div style={{ color: '#aaa', fontSize: '0.7rem', fontWeight: 'bold' }}>💤 NAJWIĘKSZY ZAPOMINALSKI (:::)</div>
