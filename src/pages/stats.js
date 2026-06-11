@@ -42,8 +42,10 @@ const Stats = () => {
       let scoreCorrect = 0;
       let scoreTotal = 0;
 
-      const teamStats = {};
       let emptyBets = 0;
+
+      // IMPORTANT FIX: team accuracy model
+      const teamStats = {};
 
       Object.entries(bets).forEach(([matchId, bet]) => {
         const result = results[matchId];
@@ -60,32 +62,44 @@ const Stats = () => {
 
         const [bh, ba] = bet.score.split(':').map(Number);
 
-        // OUTCOME
+        // --------------------
+        // OUTCOME STATS
+        // --------------------
         outcomeTotal++;
         if (bet.bet === actualOutcome) outcomeCorrect++;
 
-        // SCORE
+        // --------------------
+        // SCORE STATS
+        // --------------------
         scoreTotal++;
         if (bh === rh && ba === ra) scoreCorrect++;
 
-        // TEAM tracking
-        const team = bet.bet === '1' ? bet.home : bet.away;
+        // --------------------
+        // FIXED TEAM MODEL
+        // --------------------
+        const homeTeam = bet.home;
+        const awayTeam = bet.away;
 
-        if (!teamStats[team]) {
-          teamStats[team] = { ok: 0, bad: 0 };
-        }
+        if (!teamStats[homeTeam]) teamStats[homeTeam] = { correct: 0, total: 0 };
+        if (!teamStats[awayTeam]) teamStats[awayTeam] = { correct: 0, total: 0 };
 
+        // every match affects both teams
+        teamStats[homeTeam].total++;
+        teamStats[awayTeam].total++;
+
+        // reward correct match prediction for both teams
         if (bet.bet === actualOutcome) {
-          teamStats[team].ok++;
-        } else {
-          teamStats[team].bad++;
+          teamStats[homeTeam].correct++;
+          teamStats[awayTeam].correct++;
         }
       });
 
       const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
       const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
 
+      // --------------------
       // STYLE CLASSIFICATION
+      // --------------------
       let style = "Zrównoważony analityk";
 
       if (outcomeRate > 0.65 && scoreRate < 0.2) {
@@ -96,16 +110,26 @@ const Stats = () => {
         style = "Chaotyczny typer";
       }
 
-      // BEST / WORST TEAMS
-      const bestTeams = Object.entries(teamStats)
-        .sort((a, b) => b[1].ok - a[1].ok)
-        .slice(0, 3)
-        .map(t => t[0]);
+      // --------------------
+      // TEAM ACCURACY FIX
+      // --------------------
+      const teamAccuracy = Object.entries(teamStats)
+        .filter(([_, v]) => v.total > 0)
+        .map(([team, v]) => ({
+          team,
+          accuracy: v.correct / v.total,
+          total: v.total
+        }));
 
-      const worstTeams = Object.entries(teamStats)
-        .sort((a, b) => b[1].bad - a[1].bad)
+      const bestTeams = [...teamAccuracy]
+        .sort((a, b) => b.accuracy - a.accuracy)
         .slice(0, 3)
-        .map(t => t[0]);
+        .map(t => `${t.team} (${(t.accuracy * 100).toFixed(0)}%)`);
+
+      const worstTeams = [...teamAccuracy]
+        .sort((a, b) => a.accuracy - b.accuracy)
+        .slice(0, 3)
+        .map(t => `${t.team} (${(t.accuracy * 100).toFixed(0)}%)`);
 
       buildProfiles.push({
         user,
@@ -129,7 +153,7 @@ const Stats = () => {
       <Row>
         <Col xs={12}>
           <div style={{ marginTop: '10px', color: '#FFD700' }}>
-            <h2>🏆 Profily graczy Mistrzostw Świata</h2>
+            <h2>🏆 Profil gracza MŚ</h2>
             <hr style={{ borderColor: '#FFD700' }} />
           </div>
         </Col>
@@ -164,7 +188,7 @@ const Stats = () => {
               </p>
 
               <p style={{ color: '#ccc' }}>
-                💔 Najgorsze drużyny: {p.worstTeams.join(', ') || '------'}
+                💔 Najtrudniejsze drużyny: {p.worstTeams.join(', ') || '------'}
               </p>
 
               <p style={{ color: '#999', fontSize: '0.85rem' }}>
