@@ -23,6 +23,10 @@ const Stats = () => {
   const [submittedData, setSubmittedData] = useState({});
   const [profiles, setProfiles] = useState([]);
   
+  // Stany widoczności poszczególnych kafelków
+  const [showKingOfDraws, setShowKingOfDraws] = useState(false);
+  const [showMostEmpty, setShowMostEmpty] = useState(false);
+
   // Stan na globalne statystyki ligi
   const [globalStats, setGlobalStats] = useState({
     mostDrawsPredicted: { user: '---', count: 0 },
@@ -60,7 +64,6 @@ const Stats = () => {
         const result = results[matchId];
         if (!bet || !result) return;
 
-        // Warunek na pusty typ
         if (!bet.score || bet.score === ':::' || bet.score === ':') {
           emptyBets++;
           return;
@@ -149,25 +152,48 @@ const Stats = () => {
     setProfiles(output);
 
     // ==========================================
-    // REKALKULACJA LIDERÓW
+    // REKALKULACJA LIDERÓW Z FILTRAMI (NOWOŚĆ)
     // ==========================================
     if (output.length > 0) {
       const mostDrawsPredicted = [...output].sort((a, b) => b.drawBetsPredicted - a.drawBetsPredicted)[0];
-      const kingOfDraws = [...output].sort((a, b) => b.drawBetsCorrect - a.drawBetsCorrect)[0];
       const mostExactScores = [...output].sort((a, b) => b.scoreCorrect - a.scoreCorrect)[0];
-      const mostEmpty = [...output].sort((a, b) => b.emptyBets - a.emptyBets)[0];
+
+      // 1. Logika dla Króla Remisów (Trafione)
+      const sortedDraws = [...output].sort((a, b) => b.drawBetsCorrect - a.drawBetsCorrect);
+      const topDrawCount = sortedDraws[0].drawBetsCorrect;
+      // Sprawdzenie, ile osób ma ten sam najwyższy wynik
+      const drawWinnersCount = sortedDraws.filter(p => p.drawBetsCorrect === topDrawCount).length;
+      
+      // Pokazuj tylko jeśli max > 0 ORAZ jest dokładnie jedna taka osoba
+      const isDrawKingValid = topDrawCount > 0 && drawWinnersCount === 1;
+      setShowKingOfDraws(isDrawKingValid);
+
+      // 2. Logika dla Największego Zapominalskiego
+      const sortedEmpty = [...output].sort((a, b) => b.emptyBets - a.emptyBets);
+      const topEmptyCount = sortedEmpty[0].emptyBets;
+      const emptyWinnersCount = sortedEmpty.filter(p => p.emptyBets === topEmptyCount).length;
+
+      // Pokazuj tylko jeśli max > 0 ORAZ jest dokładnie jedna taka osoba
+      const isSubmittingGhostValid = topEmptyCount > 0 && emptyWinnersCount === 1;
+      setShowMostEmpty(isSubmittingGhostValid);
 
       setGlobalStats({
         mostDrawsPredicted: { user: mostDrawsPredicted.user, count: mostDrawsPredicted.drawBetsPredicted },
-        kingOfDraws: { user: kingOfDraws.user, count: kingOfDraws.drawBetsCorrect },
+        kingOfDraws: { user: sortedDraws[0].user, count: topDrawCount },
         mostExactScores: { user: mostExactScores.user, count: mostExactScores.scoreCorrect },
-        mostEmpty: { user: mostEmpty.user, count: mostEmpty.emptyBets }
+        mostEmpty: { user: sortedEmpty[0].user, count: topEmptyCount }
       });
     }
 
   }, [submittedData, results]);
 
   const pct = (v) => `${(v * 100).toFixed(1)}%`;
+
+  // Dynamiczne obliczanie szerokości kolumn (Bootstrap grid ma 12 kolumn)
+  let activeCards = 2; // Zawsze mamy "Najwięcej wytypowanych" i "Dokładne Wyniki"
+  if (showKingOfDraws) activeCards++;
+  if (showMostEmpty) activeCards++;
+  const colSize = Math.floor(12 / activeCards);
 
   return (
     <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', padding: '20px', color: '#fff', fontFamily: 'sans-serif' }}>
@@ -184,37 +210,42 @@ const Stats = () => {
 
       {/* STATYSTYKI GLOBALNE LIGI */}
       <Row className="justify-content-center" style={{ marginBottom: '30px' }}>
-        <Col xs={12} md={8} lg={6}>
+        <Col xs={12} md={10} lg={8}>
           <div style={{ background: '#1c1a12', border: '1px solid #FFD700', borderRadius: '14px', padding: '18px', boxShadow: '0 0 15px rgba(255,215,0,0.1)' }}>
             <h5 style={{ color: '#FFD700', margin: '0 0 15px 0', textTransform: 'uppercase', fontSize: '1rem', letterSpacing: '1px', textAlign: 'center' }}>
               📊 STATYSTYKI GLOBALNE LIGI
             </h5>
             
-            <Row style={{ fontSize: '0.88rem' }}>
-              <Col xs={globalStats.mostEmpty.count > 0 ? 6 : 4} style={{ marginBottom: '12px' }}>
-                <div style={{ color: '#aaa', fontSize: '0.72rem', fontWeight: 'bold' }}>🔮 NAJWIĘCEJ WYTYPOWANYCH REMISÓW</div>
-                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostDrawsPredicted.user}</div>
-                <div style={{ color: '#9e9e9e' }}>{globalStats.mostDrawsPredicted.count} razy postawił "X"</div>
+            <Row style={{ fontSize: '0.85rem' }}>
+              {/* KAFELEK 1: Wytypowane remisy (Zawsze widoczny) */}
+              <Col xs={colSize} style={{ marginBottom: '12px', borderRight: '1px solid #2a2a2a' }}>
+                <div style={{ color: '#aaa', fontSize: '0.7rem', fontWeight: 'bold' }}>🔮 NAJWIĘCEJ WYTYPOWANYCH REMISÓW</div>
+                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1rem', marginTop: '4px' }}>{globalStats.mostDrawsPredicted.user}</div>
+                <div style={{ color: '#9e9e9e', fontSize: '0.8rem' }}>{globalStats.mostDrawsPredicted.count} razy postawił "X"</div>
               </Col>
 
-              <Col xs={globalStats.mostEmpty.count > 0 ? 6 : 4} style={{ marginBottom: '12px' }}>
-                <div style={{ color: '#FFD700', fontSize: '0.72rem', fontWeight: 'bold' }}>👑 OFICJALNY KRÓL REMISÓW</div>
-                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.kingOfDraws.user}</div>
-                <div style={{ color: '#FFD700', fontWeight: '600' }}>{globalStats.kingOfDraws.count} TRAFIONYCH remisów</div>
+              {/* KAFELEK 2: Król remisów (Warunkowy: max > 0 oraz brak remisów między graczami) */}
+              {showKingOfDraws && (
+                <Col xs={colSize} style={{ marginBottom: '12px', borderRight: '1px solid #2a2a2a' }}>
+                  <div style={{ color: '#FFD700', fontSize: '0.7rem', fontWeight: 'bold' }}>👑 OFICJALNY KRÓL REMISÓW</div>
+                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1rem', marginTop: '4px' }}>{globalStats.kingOfDraws.user}</div>
+                  <div style={{ color: '#FFD700', fontWeight: '600', fontSize: '0.8rem' }}>{globalStats.kingOfDraws.count} trafionych podziałów</div>
+                </Col>
+              )}
+              
+              {/* KAFELEK 3: Dokładne wyniki (Zawsze widoczny) */}
+              <Col xs={colSize} style={{ marginBottom: '12px', borderRight: showMostEmpty ? '1px solid #2a2a2a' : 'none' }}>
+                <div style={{ color: '#aaa', fontSize: '0.7rem', fontWeight: 'bold' }}>🎯 CZUŁE OKO (DOKŁADNE WYNIKI)</div>
+                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1rem', marginTop: '4px' }}>{globalStats.mostExactScores.user}</div>
+                <div style={{ color: '#2196f3', fontSize: '0.8rem' }}>{globalStats.mostExactScores.count} razy w punkt</div>
               </Col>
               
-              <Col xs={globalStats.mostEmpty.count > 0 ? 6 : 4} style={{ marginBottom: '12px' }}>
-                <div style={{ color: '#aaa', fontSize: '0.72rem', fontWeight: 'bold' }}>🎯 CZUŁE OKO (DOKŁADNE WYNIKI)</div>
-                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostExactScores.user}</div>
-                <div style={{ color: '#2196f3' }}>{globalStats.mostExactScores.count} razy w punkt</div>
-              </Col>
-              
-              {/* WARUNEK: Sekcja wyświetla się tylko jeśli ktokolwiek ma chociaż 1 pusty kupon */}
-              {globalStats.mostEmpty.count > 0 && (
-                <Col xs={6} style={{ marginBottom: '12px' }}>
-                  <div style={{ color: '#aaa', fontSize: '0.72rem', fontWeight: 'bold' }}>💤 NAJWIĘKSZY ZAPOMINALSKI (:::)</div>
-                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostEmpty.user}</div>
-                  <div style={{ color: '#f44336' }}>{globalStats.mostEmpty.count} pustych typów</div>
+              {/* KAFELEK 4: Zapominalski (Warunkowy: max > 0 oraz brak remisów między graczami) */}
+              {showMostEmpty && (
+                <Col xs={colSize} style={{ marginBottom: '12px' }}>
+                  <div style={{ color: '#aaa', fontSize: '0.7rem', fontWeight: 'bold' }}>💤 NAJWIĘKSZY ZAPOMINALSKI (:::)</div>
+                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1rem', marginTop: '4px' }}>{globalStats.mostEmpty.user}</div>
+                  <div style={{ color: '#f44336', fontSize: '0.8rem' }}>{globalStats.mostEmpty.count} pustych typów</div>
                 </Col>
               )}
             </Row>
