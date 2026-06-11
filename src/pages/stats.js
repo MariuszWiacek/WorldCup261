@@ -25,9 +25,9 @@ const Stats = () => {
   
   // Stan na globalne statystyki ligi
   const [globalStats, setGlobalStats] = useState({
-    mostDraws: { user: '---', count: 0 },
+    mostDrawsPredicted: { user: '---', count: 0 },
+    kingOfDraws: { user: '---', count: 0 },
     mostExactScores: { user: '---', count: 0 },
-    bestAccuracy: { user: '---', rate: 0 },
     mostEmpty: { user: '---', count: 0 }
   });
 
@@ -51,7 +51,8 @@ const Stats = () => {
       let scoreTotal = 0;
 
       let emptyBets = 0;
-      let drawBetsCount = 0; 
+      let drawBetsPredicted = 0; // Wytypowane remisy (X)
+      let drawBetsCorrect = 0;   // Trafione remisy (X)
 
       const teamStats = {};
 
@@ -59,6 +60,7 @@ const Stats = () => {
         const result = results[matchId];
         if (!bet || !result) return;
 
+        // Warunek na pusty typ (zgodnie z Twoją specyfikacją :::)
         if (!bet.score || bet.score === ':::' || bet.score === ':') {
           emptyBets++;
           return;
@@ -70,8 +72,14 @@ const Stats = () => {
         const [bh, ba] = bet.score.split(':').map(Number);
 
         outcomeTotal++;
-        if (bet.bet === actualOutcome) outcomeCorrect++;
-        if (bet.bet === 'X') drawBetsCount++;
+        if (bet.bet === actualOutcome) {
+          outcomeCorrect++;
+          // Jeśli trafił i to był remis
+          if (bet.bet === 'X') drawBetsCorrect++;
+        }
+        
+        // Zliczanie po prostu wytypowanych remisów
+        if (bet.bet === 'X') drawBetsPredicted++;
 
         scoreTotal++;
         if (bh === rh && ba === ra) scoreCorrect++;
@@ -96,15 +104,15 @@ const Stats = () => {
 
       const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
       const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
-      const drawRate = outcomeTotal ? drawBetsCount / outcomeTotal : 0;
+      const drawRate = outcomeTotal ? drawBetsPredicted / outcomeTotal : 0;
 
-      // Słownik stylów
+      // Przypisywanie dynamicznych stylów / werdyktów
       let style = "Zrównoważony analityk";
       let verdict = "Klasyczny styl menedżerski. Potrafisz idealnie wypośrodkować ryzyko między czystym wskazaniem faworyta a dokładnym wynikiem. Solidny gracz turniejowy.";
 
-      if (drawRate >= 0.25 && outcomeRate > 0.45) {
+      if (drawBetsCorrect >= 4) {
         style = "Król Remisów";
-        verdict = "Gdzie inni widzą pewne trzy punkty dla faworyta, Ty czujesz zapach podziału punktów na kilometr. Masz niesamowitą intuicję do zaciętych meczów kończących się wynikiem 0:0 lub 1:1.";
+        verdict = "Gdzie inni widzą pewne trzy punkty dla faworyta, Ty bezbłędnie wyczuwasz podział punktów. Twoja umiejętność trafiania remisów w trudnych meczach to absolutna ekstraklasa intuicji.";
       } else if (emptyBets > 10 && outcomeRate > 0.5) {
         style = "Ekspert Dezerter";
         verdict = "Masz ogromną wiedzę i świetną skuteczność, kiedy już... przypomnisz sobie o oddaniu typu. Gdyby nie puste kupony, demolowałbyś tę tabelę.";
@@ -113,10 +121,10 @@ const Stats = () => {
         verdict = "Absolutny kosmos. Czytasz mecze jak otwartą księgę. Twoje statystyki budzą strach i zazdrość w całej lidze – grasz na poziomie profesjonalnego analityka.";
       } else if (outcomeRate > 0.65 && scoreRate < 0.12) {
         style = "Taktyczny bezpiecznik";
-        verdict = "Genialnie przewidujesz, kto zdobędzie punkty, ale unikasz ryzyka i nie potrafisz wstrzelić się w dokładne bramki. Twój minimalizm pozwala zbierać punkty powoli, ale stabilnie.";
+        verdict = "Genialnie przewidujesz, kto zdobędzie punkty, ale unikasz ryzyka i nie potrafisz wstrzelić się w dokładne bramki. Twój minimalizm pozwala zbierać punkty powoli.";
       } else if (scoreRate >= 0.30) {
         style = "Snajper Dokładności";
-        verdict = "Prawdziwy chirurg precyzji! Polujesz na wysokie kursy i wysokie ryzyko, trafiając dokładne rezultaty bramkowe tam, gdzie inni gubią punkty.";
+        verdict = "Prawdziwy chirurg precyzji! Polujesz na wysokie ryzyko, trafiając dokładne rezultaty bramkowe tam, gdzie inni gubią punkty.";
       } else if (outcomeRate < 0.40 && scoreRate > 0.15) {
         style = "Szalony Wizjoner";
         verdict = "Mylisz się w podstawowych, oczywistych meczach, po czym bez problemu trafiasz dokładny wynik meczu, w którym skazywano underdogów na pożarcie.";
@@ -125,7 +133,7 @@ const Stats = () => {
         verdict = "Twoja forma to totalny rollercoaster. Wygląda na to, że typujesz wyniki rzutem monetą. Przeciwnicy nigdy nie wiedzą, czego się spodziewać.";
       } else if (emptyBets > 15) {
         style = "Duch Turnieju";
-        verdict = "Więcej meczów oddajesz walkowerem niż realnie analizujesz. Liga wciąż jednak wierzy w Twój wielki powrót w końcówce turnieju!";
+        verdict = "Więcej meczów oddajesz walkowerem niż realnie analizujesz. Twój kupon wiecznie świeci pustkami, zbierz siły na końcówkę!";
       }
 
       const validTeams = Object.entries(teamStats).filter(([_, v]) => v.total >= 3);
@@ -136,7 +144,7 @@ const Stats = () => {
 
       output.push({
         user, style, verdict, OVR, outcomeRate, scoreRate,
-        outcomeCorrect, scoreCorrect, outcomeTotal, emptyBets, drawBetsCount,
+        outcomeCorrect, scoreCorrect, outcomeTotal, emptyBets, drawBetsPredicted, drawBetsCorrect,
         bestPointTeams, worstPointTeams
       });
     });
@@ -145,18 +153,18 @@ const Stats = () => {
     setProfiles(output);
 
     // ==========================================
-    // CALKOWANIE I WYCIĄGANIE STATYSTYK GLOBALNYCH
+    // SEKCJA GLOBALNA: REKALKULACJA LIDERÓW
     // ==========================================
     if (output.length > 0) {
-      const mostDraws = [...output].sort((a, b) => b.drawBetsCount - a.drawBetsCount)[0];
+      const mostDrawsPredicted = [...output].sort((a, b) => b.drawBetsPredicted - a.drawBetsPredicted)[0];
+      const kingOfDraws = [...output].sort((a, b) => b.drawBetsCorrect - a.drawBetsCorrect)[0];
       const mostExactScores = [...output].sort((a, b) => b.scoreCorrect - a.scoreCorrect)[0];
-      const bestAccuracy = [...output].sort((a, b) => b.outcomeRate - a.outcomeRate)[0];
       const mostEmpty = [...output].sort((a, b) => b.emptyBets - a.emptyBets)[0];
 
       setGlobalStats({
-        mostDraws: { user: mostDraws.user, count: mostDraws.drawBetsCount },
+        mostDrawsPredicted: { user: mostDrawsPredicted.user, count: mostDrawsPredicted.drawBetsPredicted },
+        kingOfDraws: { user: kingOfDraws.user, count: kingOfDraws.drawBetsCorrect },
         mostExactScores: { user: mostExactScores.user, count: mostExactScores.scoreCorrect },
-        bestAccuracy: { user: bestAccuracy.user, rate: bestAccuracy.outcomeRate },
         mostEmpty: { user: mostEmpty.user, count: mostEmpty.emptyBets }
       });
     }
@@ -179,38 +187,38 @@ const Stats = () => {
       </Row>
 
       {/* ==========================================
-          SEKCJA NOWA: PODSUMOWANIE OGÓLNE LIGI
+          ZMODYFIKOWANA SEKCJA STATYSTYK LIGOWYCH
           ========================================== */}
       <Row className="justify-content-center" style={{ marginBottom: '30px' }}>
         <Col xs={12} md={8} lg={6}>
           <div style={{ background: '#1c1a12', border: '1px solid #FFD700', borderRadius: '14px', padding: '18px', boxShadow: '0 0 15px rgba(255,215,0,0.1)' }}>
             <h5 style={{ color: '#FFD700', margin: '0 0 15px 0', textTransform: 'uppercase', fontSize: '1rem', letterSpacing: '1px', textAlign: 'center' }}>
-              📊 LIDERZY STATYSTYK GLOBALNYCH
+              📊 STATYSTYKI GLOBALNE LIGI
             </h5>
             
             <Row style={{ fontSize: '0.88rem' }}>
               <Col xs={6} style={{ marginBottom: '12px' }}>
-                <div style={{ color: '#aaa', fontSize: '0.75rem', fontWeight: 'bold' }}>🤝 NAJWIĘCEJ REMISÓW</div>
-                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostDraws.user}</div>
-                <div style={{ color: '#FFD700' }}>{globalStats.mostDraws.count} wytypowanych</div>
+                <div style={{ color: '#aaa', fontSize: '0.72rem', fontWeight: 'bold' }}>🔮 NAJWIĘCEJ WYTYPOWANYCH REMISÓW</div>
+                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostDrawsPredicted.user}</div>
+                <div style={{ color: '#9e9e9e' }}>{globalStats.mostDrawsPredicted.count} razy postawił "X"</div>
+              </Col>
+
+              <Col xs={6} style={{ marginBottom: '12px' }}>
+                <div style={{ color: '#FFD700', fontSize: '0.72rem', fontWeight: 'bold' }}>👑 OFICJALNY KRÓL REMISÓW</div>
+                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.kingOfDraws.user}</div>
+                <div style={{ color: '#FFD700', fontWeight: '600' }}>{globalStats.kingOfDraws.count} TRAFIONYCH remisów</div>
               </Col>
               
               <Col xs={6} style={{ marginBottom: '12px' }}>
-                <div style={{ color: '#aaa', fontSize: '0.75rem', fontWeight: 'bold' }}>🎯 DOKŁADNE WYNIKI</div>
+                <div style={{ color: '#aaa', fontSize: '0.72rem', fontWeight: 'bold' }}>🎯 CZUŁE OKO (DOKŁADNE WYNIKI)</div>
                 <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostExactScores.user}</div>
-                <div style={{ color: '#2196f3' }}>{globalStats.mostExactScores.count} trafionych</div>
+                <div style={{ color: '#2196f3' }}>{globalStats.mostExactScores.count} razy w punkt</div>
               </Col>
               
-              <Col xs={6}>
-                <div style={{ color: '#aaa', fontSize: '0.75rem', fontWeight: 'bold' }}>🔮 INTUICJA (1X2)</div>
-                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.bestAccuracy.user}</div>
-                <div style={{ color: '#4caf50' }}>Skuteczność: {pct(globalStats.bestAccuracy.rate)}</div>
-              </Col>
-              
-              <Col xs={6}>
-                <div style={{ color: '#aaa', fontSize: '0.75rem', fontWeight: 'bold' }}>💤 ZAPOMINALSKI</div>
+              <Col xs={6} style={{ marginBottom: '12px' }}>
+                <div style={{ color: '#aaa', fontSize: '0.72rem', fontWeight: 'bold' }}>💤 NAJWIĘKSZY ZAPOMINALSKI (:::)</div>
                 <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostEmpty.user}</div>
-                <div style={{ color: '#f44336' }}>{globalStats.mostEmpty.count} pustych kuponów</div>
+                <div style={{ color: '#f44336' }}>{globalStats.mostEmpty.count} pustych typów</div>
               </Col>
             </Row>
           </div>
@@ -233,7 +241,7 @@ const Stats = () => {
                 boxShadow: '0 4px 15px rgba(0,0,0,0.5)'
               }}
             >
-              {/* Nagłówek: Nazwa użytkownika i ocena OVR */}
+              {/* Nagłówek karty */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '15px' }}>
                 <div style={{ flexGrow: 1 }}>
                   <h3 style={{ margin: 0, color: '#fff', textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -279,7 +287,7 @@ const Stats = () => {
                 </div>
               </div>
 
-              {/* Dynamiczny Werdykt algorytmu */}
+              {/* Dynamiczny Werdykt */}
               <div style={{ 
                 background: 'rgba(255, 215, 0, 0.04)', 
                 padding: '12px', 
@@ -294,8 +302,8 @@ const Stats = () => {
 
               {/* Stopka karty użytkownika */}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '8px', borderTop: '1px dashed #333', fontSize: '0.75rem', color: '#777' }}>
-                <span>Wytypowane remisy: {p.drawBetsCount}</span>
-                <span>Opuszczone mecze: {p.emptyBets}</span>
+                <span>Remisy (Wytypowane / TRAFIONE): {p.drawBetsPredicted} / <strong style={{ color: '#FFD700' }}>{p.drawBetsCorrect}</strong></span>
+                <span>Puste typy (:::): {p.emptyBets}</span>
               </div>
 
             </div>
