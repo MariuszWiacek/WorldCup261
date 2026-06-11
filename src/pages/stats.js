@@ -43,8 +43,7 @@ const Stats = () => {
 
     const output = [];
 
-    // Mapujemy użytkowników i przypisujemy im całkowicie unikalne role z puli 23 pozycji
-    Object.keys(submittedData).forEach((user, index) => {
+    Object.keys(submittedData).forEach((user) => {
       const bets = submittedData[user] || {};
 
       let outcomeCorrect = 0;
@@ -102,124 +101,87 @@ const Stats = () => {
 
       const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
       const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
+      const OVR = Math.round((outcomeRate * 0.7 + scoreRate * 0.3) * 100);
 
-      // =========================================================
-      // 🎭 PEŁNA LISTA 23 CAŁKOWICIE UNIKALNYCH OPISÓW I WERDYKTÓW
-      // =========================================================
-      const allUniqueVariants = [
-        {
-          s: "Jasnowidz na Etacie",
-          v: "Zgłoś się do jakiejś telewizji, bo marnujesz się w naszej amatorskiej lidze. Czytasz intencje zawodników szybciej niż ich własni trenerzy. Podejrzanie często trafiasz – sprawdzamy Twój telefon pod kątem układów z sędziami."
-        },
-        {
-          s: "Kalkulujący Profesor",
-          v: "Nuda, stabilizacja i zero szaleństwa. Grasz jak stary, doświadczony ligowiec, który zamiast widowiska woli brzydkie, bezpieczne punkty. Bukmacherzy płaczą, kiedy składasz kupon."
-        },
-        {
-          s: "Chirurg Wyników",
-          v: "Rzadko trafiasz ogólny rezultat, ale jak już w coś bębniesz, to z dokładnością do milimetra! Polujesz wyłącznie na skomplikowane wyniki. Prawdziwy snajper bezlitosnej precyzji."
-        },
-        {
-          s: "Cesarz Remisowy",
-          v: "Gdzie inni widzą pewne trzy punkty dla faworyta, Ty bezbłędnie wyczuwasz zapach nudnego 0:0 na odległość kilometra. Masz nosa do morderczych meczów walki, w których nikt nie chce biegać."
-        },
-        {
-          s: "Chaotyczny typer", // KLASYK Z PLIKU 1000050629.jpg ZAWSZE W PULI
-          v: "Zupełnie nieprzewidywalna forma. Twoje typy potrafią zaskoczyć zarówno algorytm, jak i samych piłkarzy. Potrzebujesz więcej stabilizacji!"
-        },
-        {
-          s: "Kolekcjoner Minimalizmu",
-          v: "Wiesz kto wygra, ale ustrzelenie dokładnego wyniku bramkowego graniczy u Ciebie z cudem. Grasz tak bezpiecznie, że nawet na wakacje jedziesz w kasku. Punkty kapią powoli, ale sumiennie."
-        },
-        {
-          s: "Szalony Wizjoner",
-          v: "Kompletny paradoks. Potrafisz koncertowo wyłożyć się na murowanym faworycie, żeby godzinę później bez mrugnięcia okiem trafić kosmiczny, łamany wynik meczu skazywanych na pożarcie underdogów."
-        },
-        {
-          s: "Ofiara Ostatnich Minut",
-          v: "Fatum w czystej postaci. Twoje kupony wyglądają idealnie do 89. minuty, po czym jakiś rezerwowy strzela gola życia, niszcząc Twój dokładny wynik i sens życia. Potrzebujesz egzorcysty."
-        },
-        {
-          s: "Romantyk Futbolu",
-          v: "Zawsze typujesz sercem, a nie rozumem. Wierzysz w piękne powroty, słabsze drużyny i sportowe bajki. Twoje kupony są piękne, szkoda tylko, że brutalna rzeczywistość weryfikuje je tuż po pierwszym gwizdku."
-        },
-        {
-          s: "Wielki Teoretyk",
-          v: "Znasz składy, analizujesz wilgotność murawy i historię kontuzji kuzyna lewego obrońcy. Masz teorię na każdy mecz. Szkoda tylko, że piłkarze na boisku kompletnie nie wiedzą o Twoich zaawansowanych planach."
-        },
-        {
-          s: "Farfocel League",
-          v: "Twoje punkty to czysty przypadek. Sam nie wiesz, czemu postawiłeś taki wynik, ale rykoszet w 94. minucie uznaje Twoją genialną niewiedzę. Kompletny brak logiki, ale grunt, że wpada!"
-        },
-        {
-          s: "Kibic Sukcesu",
-          v: "Stawiasz tylko na potęgi. Real, City, Bayern – dla Ciebie mniejsi gracze mogliby nie istnieć. Kiedy wielcy wygrywają, Ty świętujesz. Kiedy przychodzi faza pucharowa i sensacje, zaczynają się Twoje schody."
-        },
-        {
-          s: "Betonowy Defensywny",
-          v: "Dla Ciebie mecz bez bezbramkowego remisu to mecz stracony. Kochasz wyniki 1:0 i 0:0. Uważasz, że formacje ofensywne istnieją tylko po to, żeby psuć ludziom dobrze przemyślane kupony."
-        },
-        {
-          s: "Nocny Analityk",
-          v: "Kupony zatwierdzasz o 3:40 nad ranem po przewertowaniu południowoamerykańskich forów dyskusyjnych. Twoja determinacja zasługuje na medal, chociaż Twoje zmęczone oczy czasami mylą drużyny."
-        },
-        {
-          s: "Sabotażysta Własnego Portfela",
-          v: "Masz niesamowity talent do zmieniania zdania na 5 minut przed meczem. Gdybyś zostawiał swoje pierwsze, intuicyjne typy, byłbyś na podium. Zamiast tego przekombinowujesz sam siebie."
-        },
-        {
-          s: "Mistrz Jednej Bramki",
-          v: "Przewidujesz zwycięzcę i przebieg meczu, ale zawsze pomylisz się o jedną bramkę. Albo zabraknie rzutu karnego, albo napastnik potknie się o własne nogi przed pustą bramką. Klątwa trwa."
-        },
-        {
-          s: "Krytyk Algorytmów",
-          v: "Twoje typy nie pasują do żadnych modeli matematycznych ani statystyk. Grasz absolutnie pod prąd i podświadomie udowadniasz komputerom, że ludzka nieprzewidywalność wciąż rządzi tym światem."
-        },
-        {
-          s: "Wieczny Optymista",
-          v: "U Ciebie w każdym meczu musi padać grad bramek. Typujesz wyniki typu 4:3 lub 5:2, bo w głębi duszy pragniesz czystego show. Widowisko dostajesz, punkty w tabeli – rzadziej."
-        },
-        {
-          s: "Cichy Ciułacz",
-          v: "Nikt na Ciebie nie zwraca uwagi, nie udzielasz się na czacie, ale co kolejke po cichu dopisujesz kolejne małe punkty. Klasyczny czarny koń, który zaatakuje z cienia w najważniejszym momencie turnieju."
-        },
-        {
-          s: "Analityk z TikToka",
-          v: "Twoje typy wyglądają tak, jakbyś opierał je na 15-sekundowych skrótach z internetu i fryzurach napastników. Dużo dymu, widowiskowe strzały, ale brakuje w tym wszystkim chłodnej, taktycznej głowy."
-        },
-        {
-          s: "Główny Hamulcowy",
-          v: "Kiedy cała liga stawia na jednego, pewnego faworyta, Ty jako jedyny ryzykujesz i dajesz na remis lub przegraną. Zazwyczaj płoniesz razem z kuponem, ale ten jeden raz, kiedy trafisz, będziesz wspominać latami."
-        },
-        {
-          s: "Ekspert Dezerter",
-          v: "Wiedza ekspercka jest, intuicja też, tylko co z tego, skoro budzik na wysyłanie kuponów dzwoni u Ciebie trzy godziny po meczu? Gdyby nie te uciekające walkowery, reszta tabeli trzęsłaby portkami."
-        },
-        {
-          s: "Mityczna Istota",
-          v: "Twoje konto w tabeli pokryło się już metrową warstwą kurzu. Więcej meczów oddajesz walkowerem niż realnie typujesz. Podobno ktoś Cię kiedyś widział na trybunach, ale to niepotwierdzone plotki."
-        }
-      ];
-
-      // Bezpieczny przydział indeksu (od 0 do 22) gwarantujący brak powtórzeń w 23-osobowej lidze
-      const poolIndex = index % 23;
-      let style = allUniqueVariants[poolIndex].s;
-      let verdict = allUniqueVariants[poolIndex].v;
-
-      // Inteligentne nadpisanie ról dla skrajnych, ewidentnych przypadków
-      if (emptyBets > 15) {
-        style = "Mityczna Istota";
-        verdict = "Twoje konto w tabeli pokryło się już metrową warstwą kurzu. Więcej meczów oddajesz walkowerem niż realnie typujesz.";
-      } else if (outcomeTotal > 0 && outcomeRate < 0.35 && scoreRate <= 0.05) {
-        style = "Chaotyczny typer";
-        verdict = "Zupełnie nieprzewidywalna forma. Twoje typy potrafią zaskoczyć zarówno algorytm, jak i samych piłkarzy. Potrzebujesz więcej stabilizacji!";
-      }
-
-      const validTeams = Object.entries(teamStats).filter(([_, v]) => v.total >= 3);
+      const validTeams = Object.entries(teamStats).filter(([_, v]) => v.total >= 2);
       const bestPointTeams = [...validTeams].sort((a, b) => b[1].points - a[1].points).slice(0, 3).map(([team]) => team);
       const worstPointTeams = [...validTeams].sort((a, b) => b[1].cost - a[1].cost).slice(0, 3).map(([team]) => team);
 
-      const OVR = Math.round((outcomeRate * 0.7 + scoreRate * 0.3) * 100);
+      const mainGoodTeam = bestPointTeams[0] || "losowych drużyn";
+      const mainBadTeam = worstPointTeams[0] || " faworytów spotkania";
+
+      // =========================================================
+      // 🧠 DYNAMICZNY GENERATOR WERDYKTÓW (ZALEŻNY OD STATYSTYK)
+      // =========================================================
+      let style = "";
+      let verdict = "";
+
+      // 1. SKRAJNE PRZYPADKI (Nieaktywni / Widma)
+      if (emptyBets > 15) {
+        style = "Mityczna Istota (Widmo)";
+        verdict = `Twoje konto pokryło się kurzem. Oddajesz kupony walkowerem szybciej niż reprezentacja San Marino traci bramki. Podobno zjadły Cię obowiązki domowe, albo po prostu boisz się rywalizacji.`;
+      } 
+      else if (emptyBets > 6) {
+        style = "Ekspert Spóźnialski";
+        verdict = `Forma i czutka sportowa nawet są, ale co z tego, skoro wiecznie zapominasz wysłać kupon na czas? Gdyby nie te uciekające mecze, reszta ligi mogłaby już zwijać manatki. Ustaw sobie w końcu budzik!`;
+      }
+      // 2. BARDZO DOBRE TYPY (OVR >= 65) - POZYTYWNE
+      else if (OVR >= 70) {
+        style = "Analityczny Terminator";
+        verdict = `Absolutna demolka w tabeli! Czytasz mecze jak otwartą książkę. Twoja intuicja zawstydza superkomputery. Twoja maszynka do zarabiania działa bezbłędnie, a Twoim największym talizmanem jest ${mainGoodTeam}, na którym kosisz punkty jak profesjonalista.`;
+      } 
+      else if (OVR >= 60 && scoreRate >= 0.25) {
+        style = "Chirurg Dokładnych Wyników";
+        verdict = `Genialna intuicja do trafiania w sam punkt! Nie bawisz się w półśrodki – jak już siadasz do typowania, to wjeżdżają czyste, precyzyjne strzały bramkowe. Piłkarze grają dokładnie tak, jak im każesz na kuponie.`;
+      }
+      else if (OVR >= 58 && drawBetsCorrect >= 4) {
+        style = "Cesarz Remisów";
+        verdict = `Wyższa szkoła bukmacherskiej magii. Tam, gdzie inni widzą pewne zwycięstwo faworyta, Ty bezbłędnie wyczuwasz zapach nudnego, taktycznego remisu. Masz nosa do morderczych meczów walki, w których nikomu nie chce się biegać.`;
+      }
+      else if (OVR >= 55) {
+        style = "Solidny Ligowiec";
+        verdict = `Bardzo stabilna, wysoka forma. Nie schodzisz poniżej pewnego, profesjonalnego poziomu. Świetnie czujesz potencjał jaki ma ${mainGoodTeam} i to na nich budujesz swoją potęgę w tym turnieju. Tak trzymać!`;
+      }
+      // 3. ŚREDNIE TYPY (OVR 40 - 54) - NEUTRALNE / LEKKO HUMORYSTYCZNE
+      else if (OVR >= 48 && scoreRate <= 0.08) {
+        style = "Kolekcjoner Minimalizmu";
+        verdict = `Doskonale wiesz, kto wygra mecz, ale ustrzelenie dokładnej liczby bramek graniczy u Ciebie z cudem. Punkty kapią powoli, ale sumiennie. Grasz tak bezpiecznie, że na oglądanie meczów pewnie zakładasz kask ochronny.`;
+      }
+      else if (OVR >= 45 && p => drawBetsPredicted > 8) {
+        style = "Wizjoner Ryzyka";
+        verdict = `Szukasz sensacji tam, gdzie jej nie ma. Twój upór na stawianie pod prąd jest godny podziwu, ale tabela bywa bezlitosna. Gdyby nie to, jak mocno brutalnie weryfikuje Cię ${mainBadTeam}, byłbyś znacznie wyżej!`;
+      }
+      else if (OVR >= 42) {
+        style = "Kalkulujący Teoretyk";
+        verdict = `Analizujesz składy, wilgotność murawy i horoskop sędziego głównego. Masz świetną teorię na każdy mecz, tylko szkoda, że piłkarze biegający po boisku kompletnie nie znają Twoich zaawansowanych planów taktycznych.`;
+      }
+      else if (OVR >= 40) {
+        style = "Romantyk Czystego Show";
+        verdict = `W głębi serca kochasz ładny futbol i w każdym meczu typujesz festiwal strzelecki. Wyniki typu 4:3 lub 3:2 to Twój chleb powszedni. Widowisko na ekranie masz świetne, gorzej z punktami w naszej pragmatycznej lidze.`;
+      }
+      // 4. SŁABSZE TYPY (OVR < 40) - SZYDERA I NEGATYWNE
+      else if (OVR < 40 && outcomeRate < 0.38 && scoreRate <= 0.08 && user.toLowerCase().includes('kuzyn')) {
+        // ORYGINALNY, NIERUSZANY SPERSONALIZOWANY KUZYN Z PLIKU 1000050629.jpg
+        style = "Chaotyczny typer";
+        verdict = "Zupełnie nieprzewidywalna forma. Twoje typy potrafią zaskoczyć zarówno algorytm, jak i samych piłkarzy. Potrzebujesz więcej stabilizacji!";
+      }
+      else if (OVR < 30) {
+        style = "Generator Losowości";
+        verdict = `Kompletna katastrofa i sabotaż własnego konta. Wygląda na to, że przed zatwierdzeniem kuponu rzucasz monetą, albo dajesz telefon psu do polizania. Ekipa, którą jest ${mainBadTeam}, regularnie spuszcza Twoje nadzieje w toalecie. Czas zmienić taktykę.`;
+      }
+      else if (OVR < 35 && scoreRate === 0) {
+        style = "Ślepy Snajper";
+        verdict = `Tragedia w polu karnym! Masz idealne 0% trafionych dokładnych wyników. Nawet jak jakimś cudem trafisz zwycięzcę, napastnicy w 93. minucie zrobią wszystko, żeby zepsuć Twój kupon. Twoim największym wrogiem w tej edycji stała się ekipa: ${mainBadTeam}.`;
+      }
+      else if (OVR < 38) {
+        style = "Ofiara Ostatnich Minut";
+        verdict = `Pech ma Twoje imię. Twoje typy wyglądają doskonale do 89. minuty meczu, po czym sędzia dolicza czas, rezerwowy strzela gola życia kolanem i cały Twój misterny plan ląduje w śmietniku. Potrzebujesz egzorcysty, a nie statystyk.`;
+      }
+      else {
+        // Uniwersalny, bezpieczny tył stawki
+        style = "Podpalacz Kuponów";
+        verdict = `Grasz z niesamowitą fantazją, szkoda tylko, że kompletnie na odwrót niż nakazuje logika. Każdy Twój kupon płonie szybciej niż benzyna. Jeśli chcesz zacząć punktować, sprawdź co obstawiłeś, a potem zmień wszystko na odwrót przed samym meczem.`;
+      }
 
       output.push({
         user, style, verdict, OVR, outcomeRate, scoreRate,
@@ -228,10 +190,11 @@ const Stats = () => {
       });
     });
 
+    // Sortowanie od najlepszego OVR (lidera) do najgorszego
     output.sort((a, b) => b.OVR - a.OVR);
     setProfiles(output);
 
-    // REKALKULACJA LIDERÓW Z FILTRAMI
+    // REKALKULACJA LIDERÓW Z FILTRAMI GLOBALNYMI
     if (output.length > 0) {
       const mostDrawsPredicted = [...output].sort((a, b) => b.drawBetsPredicted - a.drawBetsPredicted)[0];
       const mostExactScores = [...output].sort((a, b) => b.scoreCorrect - a.scoreCorrect)[0];
