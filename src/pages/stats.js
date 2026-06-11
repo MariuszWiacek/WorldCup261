@@ -22,6 +22,14 @@ const Stats = () => {
   const [results, setResults] = useState({});
   const [submittedData, setSubmittedData] = useState({});
   const [profiles, setProfiles] = useState([]);
+  
+  // Stan na globalne statystyki ligi
+  const [globalStats, setGlobalStats] = useState({
+    mostDraws: { user: '---', count: 0 },
+    mostExactScores: { user: '---', count: 0 },
+    bestAccuracy: { user: '---', rate: 0 },
+    mostEmpty: { user: '---', count: 0 }
+  });
 
   useEffect(() => {
     onValue(ref(db, 'results'), snap => setResults(snap.val() || {}));
@@ -43,8 +51,8 @@ const Stats = () => {
       let scoreTotal = 0;
 
       let emptyBets = 0;
+      let drawBetsCount = 0; 
 
-      // 🧠 SYSTEM ANALIZY ZESPOŁÓW
       const teamStats = {};
 
       Object.entries(bets).forEach(([matchId, bet]) => {
@@ -61,31 +69,18 @@ const Stats = () => {
 
         const [bh, ba] = bet.score.split(':').map(Number);
 
-        // --------------------
-        // REZULTAT (1X2)
-        // --------------------
         outcomeTotal++;
         if (bet.bet === actualOutcome) outcomeCorrect++;
+        if (bet.bet === 'X') drawBetsCount++;
 
-        // --------------------
-        // DOKŁADNY WYNIK
-        // --------------------
         scoreTotal++;
         if (bh === rh && ba === ra) scoreCorrect++;
 
-        // --------------------
-        // STATYSTYKI DRUŻYN
-        // --------------------
         const home = bet.home || "Nieznany";
         const away = bet.away || "Nieznany";
 
-        if (!teamStats[home]) {
-          teamStats[home] = { points: 0, cost: 0, total: 0 };
-        }
-
-        if (!teamStats[away]) {
-          teamStats[away] = { points: 0, cost: 0, total: 0 };
-        }
+        if (!teamStats[home]) teamStats[home] = { points: 0, cost: 0, total: 0 };
+        if (!teamStats[away]) teamStats[away] = { points: 0, cost: 0, total: 0 };
 
         teamStats[home].total++;
         teamStats[away].total++;
@@ -101,77 +96,71 @@ const Stats = () => {
 
       const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
       const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
+      const drawRate = outcomeTotal ? drawBetsCount / outcomeTotal : 0;
 
-      // ==========================================
-      // 🏟️ ROZBUDOWANA BAZA STYLÓW I WERDYKTÓW (NOWOŚĆ)
-      // ==========================================
+      // Słownik stylów
       let style = "Zrównoważony analityk";
-      let verdict = "Klasyczny styl menedżerski. Potrafisz idealnie wypośrodkować ryzyko między czystym wskazaniem faworyta a dokładnym wynikiem. Solidny gracz turniejowy, który rzadko zalicza drastyczne spadki formy.";
+      let verdict = "Klasyczny styl menedżerski. Potrafisz idealnie wypośrodkować ryzyko między czystym wskazaniem faworyta a dokładnym wynikiem. Solidny gracz turniejowy.";
 
-      if (emptyBets > 10 && outcomeRate > 0.5) {
+      if (drawRate >= 0.25 && outcomeRate > 0.45) {
+        style = "Król Remisów";
+        verdict = "Gdzie inni widzą pewne trzy punkty dla faworyta, Ty czujesz zapach podziału punktów na kilometr. Masz niesamowitą intuicję do zaciętych meczów kończących się wynikiem 0:0 lub 1:1.";
+      } else if (emptyBets > 10 && outcomeRate > 0.5) {
         style = "Ekspert Dezerter";
-        verdict = "Masz ogromną wiedzę i świetną skuteczność, kiedy już... przypomnisz sobie o oddaniu typu. Gdyby nie puste kupony i permanentne spóźnienia na odprawę taktyczną, prawdopodobnie demolowałbyś tę tabelę.";
+        verdict = "Masz ogromną wiedzę i świetną skuteczność, kiedy już... przypomnisz sobie o oddaniu typu. Gdyby nie puste kupony, demolowałbyś tę tabelę.";
       } else if (outcomeRate >= 0.75 && scoreRate >= 0.35) {
         style = "Legenda Typerów (FUT Icon)";
-        verdict = "Absolutny kosmos. Czytasz mecze jak otwartą księgę. Widzisz to, czego nie widzą najlepsi bukmacherzy. Twoje statystyki budzą strach i zazdrość w całej lidze – grasz na poziomie profesjonalnego analityka.";
+        verdict = "Absolutny kosmos. Czytasz mecze jak otwartą księgę. Twoje statystyki budzą strach i zazdrość w całej lidze – grasz na poziomie profesjonalnego analityka.";
       } else if (outcomeRate > 0.65 && scoreRate < 0.12) {
         style = "Taktyczny bezpiecznik";
-        verdict = "Genialnie przewidujesz, kto zdobędzie 3 punkty lub kiedy padnie remis, ale unikasz ryzyka i nie potrafisz wstrzelić się w dokładne bramki. Twój minimalizm pozwala zbierać punkty powoli, ale stabilnie.";
+        verdict = "Genialnie przewidujesz, kto zdobędzie punkty, ale unikasz ryzyka i nie potrafisz wstrzelić się w dokładne bramki. Twój minimalizm pozwala zbierać punkty powoli, ale stabilnie.";
       } else if (scoreRate >= 0.30) {
         style = "Snajper Dokładności";
-        verdict = "Prawdziwy chirurg precyzji! Możesz nie trafić ogólnego wyniku trzech meczów z rzędu, ale jak już trafisz, to od razu z dokładnym wynikiem do zera. Polujesz na wysokie kursy i grasz bez kompromisów.";
+        verdict = "Prawdziwy chirurg precyzji! Polujesz na wysokie kursy i wysokie ryzyko, trafiając dokładne rezultaty bramkowe tam, gdzie inni gubią punkty.";
       } else if (outcomeRate < 0.40 && scoreRate > 0.15) {
         style = "Szalony Wizjoner";
-        verdict = "Twoja intuicja działa na dziwnych falach. Mylisz się w podstawowych, oczywistych meczach („pewniakach”), po czym bez problemu trafiasz dokładny wynik meczu, w którym skazywano underdogów na pożarcie.";
-      } else if (outcomeRate >= 0.45 && outcomeRate <= 0.55 && scoreRate <= 0.15) {
-        style = "Ligowy Średniak";
-        verdict = "Grasz bardzo bezpiecznie, czasem wręcz podręcznikowo, przez co Twoje wyniki zlewają się z tłumem. Brakuje Ci odrobiny szaleństwa lub głębszej analizy, by odskoczyć grupie pościgowej.";
+        verdict = "Mylisz się w podstawowych, oczywistych meczach, po czym bez problemu trafiasz dokładny wynik meczu, w którym skazywano underdogów na pożarcie.";
       } else if (outcomeRate < 0.38 && scoreRate <= 0.08) {
         style = "Generator Losowości";
-        verdict = "Twoja forma to totalny rollercoaster bez trzymanki. Wygląda na to, że typujesz wyniki rzutem monetą albo pytasz o radę kota. Algorytmy płaczą, kiedy analizują Twoje konto, a przeciwnicy nigdy nie wiedzą, czego się spodziewać.";
+        verdict = "Twoja forma to totalny rollercoaster. Wygląda na to, że typujesz wyniki rzutem monetą. Przeciwnicy nigdy nie wiedzą, czego się spodziewać.";
       } else if (emptyBets > 15) {
         style = "Duch Turnieju";
-        verdict = "Twoja obecność jest głównie symboliczna. Więcej meczów oddajesz walkowerem niż realnie analizujesz. Twoje konto pokryło się kurzem, ale liga wciąż wierzy w Twój wielki powrót w końcówce fazy grupowej!";
+        verdict = "Więcej meczów oddajesz walkowerem niż realnie analizujesz. Liga wciąż jednak wierzy w Twój wielki powrót w końcówce turnieju!";
       }
 
-      // ⚽ FILTRACJA DRUŻYN (minimum 3 rozegrane mecze)
-      const validTeams = Object.entries(teamStats).filter(
-        ([_, v]) => v.total >= 3
-      );
+      const validTeams = Object.entries(teamStats).filter(([_, v]) => v.total >= 3);
+      const bestPointTeams = [...validTeams].sort((a, b) => b[1].points - a[1].points).slice(0, 3).map(([team]) => team);
+      const worstPointTeams = [...validTeams].sort((a, b) => b[1].cost - a[1].cost).slice(0, 3).map(([team]) => team);
 
-      const bestPointTeams = [...validTeams]
-        .sort((a, b) => b[1].points - a[1].points)
-        .slice(0, 3)
-        .map(([team]) => team);
-
-      const worstPointTeams = [...validTeams]
-        .sort((a, b) => b[1].cost - a[1].cost)
-        .slice(0, 3)
-        .map(([team]) => team);
-
-      // 🏆 RANKING OVR (W STYLU FIFA)
       const OVR = Math.round((outcomeRate * 0.7 + scoreRate * 0.3) * 100);
 
       output.push({
-        user, 
-        style,
-        verdict,
-        OVR,
-        outcomeRate,
-        scoreRate,
-        outcomeCorrect,
-        scoreCorrect,
-        outcomeTotal,
-        emptyBets,
-        bestPointTeams,
-        worstPointTeams
+        user, style, verdict, OVR, outcomeRate, scoreRate,
+        outcomeCorrect, scoreCorrect, outcomeTotal, emptyBets, drawBetsCount,
+        bestPointTeams, worstPointTeams
       });
     });
 
-    // Sortowanie od najwyższego do najniższego OVR
     output.sort((a, b) => b.OVR - a.OVR);
-
     setProfiles(output);
+
+    // ==========================================
+    // CALKOWANIE I WYCIĄGANIE STATYSTYK GLOBALNYCH
+    // ==========================================
+    if (output.length > 0) {
+      const mostDraws = [...output].sort((a, b) => b.drawBetsCount - a.drawBetsCount)[0];
+      const mostExactScores = [...output].sort((a, b) => b.scoreCorrect - a.scoreCorrect)[0];
+      const bestAccuracy = [...output].sort((a, b) => b.outcomeRate - a.outcomeRate)[0];
+      const mostEmpty = [...output].sort((a, b) => b.emptyBets - a.emptyBets)[0];
+
+      setGlobalStats({
+        mostDraws: { user: mostDraws.user, count: mostDraws.drawBetsCount },
+        mostExactScores: { user: mostExactScores.user, count: mostExactScores.scoreCorrect },
+        bestAccuracy: { user: bestAccuracy.user, rate: bestAccuracy.outcomeRate },
+        mostEmpty: { user: mostEmpty.user, count: mostEmpty.emptyBets }
+      });
+    }
+
   }, [submittedData, results]);
 
   const pct = (v) => `${(v * 100).toFixed(1)}%`;
@@ -179,16 +168,56 @@ const Stats = () => {
   return (
     <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', padding: '20px', color: '#fff', fontFamily: 'sans-serif' }}>
 
+      {/* Nagłówek Główny */}
       <Row>
         <Col xs={12}>
           <div style={{ marginTop: '10px', marginBottom: '20px', color: '#FFD700', textAlign: 'center' }}>
             <h2>🏆 Zaawansowane Profile Typerów FIFA</h2>
-            <p style={{ color: '#aaa' }}>Głęboka analiza statystyczna oraz unikalne taktyki graczy</p>
-            <hr style={{ borderColor: '#FFD700', width: '50%', margin: '10px auto' }} />
+            <hr style={{ borderColor: '#FFD700', width: '30%', margin: '10px auto' }} />
           </div>
         </Col>
       </Row>
 
+      {/* ==========================================
+          SEKCJA NOWA: PODSUMOWANIE OGÓLNE LIGI
+          ========================================== */}
+      <Row className="justify-content-center" style={{ marginBottom: '30px' }}>
+        <Col xs={12} md={8} lg={6}>
+          <div style={{ background: '#1c1a12', border: '1px solid #FFD700', borderRadius: '14px', padding: '18px', boxShadow: '0 0 15px rgba(255,215,0,0.1)' }}>
+            <h5 style={{ color: '#FFD700', margin: '0 0 15px 0', textTransform: 'uppercase', fontSize: '1rem', letterSpacing: '1px', textAlign: 'center' }}>
+              📊 LIDERZY STATYSTYK GLOBALNYCH
+            </h5>
+            
+            <Row style={{ fontSize: '0.88rem' }}>
+              <Col xs={6} style={{ marginBottom: '12px' }}>
+                <div style={{ color: '#aaa', fontSize: '0.75rem', fontWeight: 'bold' }}>🤝 NAJWIĘCEJ REMISÓW</div>
+                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostDraws.user}</div>
+                <div style={{ color: '#FFD700' }}>{globalStats.mostDraws.count} wytypowanych</div>
+              </Col>
+              
+              <Col xs={6} style={{ marginBottom: '12px' }}>
+                <div style={{ color: '#aaa', fontSize: '0.75rem', fontWeight: 'bold' }}>🎯 DOKŁADNE WYNIKI</div>
+                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostExactScores.user}</div>
+                <div style={{ color: '#2196f3' }}>{globalStats.mostExactScores.count} trafionych</div>
+              </Col>
+              
+              <Col xs={6}>
+                <div style={{ color: '#aaa', fontSize: '0.75rem', fontWeight: 'bold' }}>🔮 INTUICJA (1X2)</div>
+                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.bestAccuracy.user}</div>
+                <div style={{ color: '#4caf50' }}>Skuteczność: {pct(globalStats.bestAccuracy.rate)}</div>
+              </Col>
+              
+              <Col xs={6}>
+                <div style={{ color: '#aaa', fontSize: '0.75rem', fontWeight: 'bold' }}>💤 ZAPOMINALSKI</div>
+                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.05rem' }}>{globalStats.mostEmpty.user}</div>
+                <div style={{ color: '#f44336' }}>{globalStats.mostEmpty.count} pustych kuponów</div>
+              </Col>
+            </Row>
+          </div>
+        </Col>
+      </Row>
+
+      {/* Sekcja kart użytkowników */}
       <Row className="justify-content-center">
         <Col xs={12} md={8} lg={6}>
 
@@ -265,7 +294,7 @@ const Stats = () => {
 
               {/* Stopka karty użytkownika */}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '8px', borderTop: '1px dashed #333', fontSize: '0.75rem', color: '#777' }}>
-                <span>Wysłane kupony: {p.outcomeTotal}</span>
+                <span>Wytypowane remisy: {p.drawBetsCount}</span>
                 <span>Opuszczone mecze: {p.emptyBets}</span>
               </div>
 
