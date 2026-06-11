@@ -110,12 +110,16 @@ const Stats = () => {
       const mainGoodTeam = bestPointTeams[0] || "losowych drużyn";
       const mainBadTeam = worstPointTeams[0] || "faworytów spotkania";
 
+      // Proporcja typowanych remisów do wszystkich typów (żeby sprawdzić styl)
+      const drawPredictionRatio = outcomeTotal ? (drawBetsPredicted / outcomeTotal) : 0;
+
       // =========================================================
-      // 🧠 DYNAMICZNY SYSTEM 50 UNIKALNYCH WERDYKTÓW (PODZIAŁ NA POZIOMY)
+      // 🧠 LOGIKA DYNAMICZNYCH POZIOMÓW I STYLÓW GRY (50 WERDYKTÓW)
       // =========================================================
       let style = "";
       let verdict = "";
 
+      // GRUPA 0: ZAPOMINALSCY (Nadrzędna nad formą)
       const specialGhosts = [
         { s: "Mityczna Istota (Widmo)", v: `Twoje konto pokryło się metrową warstwą kurzu. Oddajesz kupony walkowerem szybciej niż San Marino traci bramki. Podobno zjadły Cię obowiązki, albo po prostu boisz się porażki.` },
         { s: "Ekspert Spóźnialski", v: `Forma może i gdzieś tam w głowie jest, ale co z tego, skoro wiecznie zapominasz wysłać kupon na czas? Puste typy gonią puste typy. Ustaw sobie w końcu budzik!` },
@@ -124,85 +128,109 @@ const Stats = () => {
         { s: "Kibic Widmo", v: `Podobno zapisałeś się do ligi, podobno lubisz piłkę. Statystyki pokazują jednak, że częściej Cię nie ma niż jesteś. Turniej ucieka, a punkty stoją w miejscu.` }
       ];
 
-      const tierElite = [
-        { s: "Analityczny Terminator", v: `Absolutna demolka w tabeli! Czytasz mecze jak otwartą książkę. Twoja maszynka do zarabiania działa bezbłędnie, a Twoim największym talizmanem jest ${mainGoodTeam}, na którym kosisz punkty jak profesjonalista.` },
-        { s: "Jasnowidz na Etacie", v: `Zgłoś się do jakiejś telewizji, bo marnujesz się w amatorskiej lidze. Czytasz intencje zawodników szybciej niż ich trenerzy. Sprawdzamy Twój telefon pod kątem układów z sędziami!` },
-        { s: "Chirurg Wyników", v: `Genialna intuicja do trafiania w sam punkt. Nie bawisz się w półśrodki – wjeżdżają czyste, precyzyjne strzały bramkowe. Piłkarze grają dokładnie tak, jak im każesz na kuponie.` },
-        { s: "Cesarz Intuicji", v: `Klasa światowa. Masz niesamowity zmysł taktyczny, a ekipa którą jest ${mainGoodTeam} zapewnia Ci spokojny sen i stały dopływ punktów do tabeli. Reszta stawki patrzy na Ciebie z zazdrością.` },
-        { s: "Postrach Bukmacherów", v: `Grasz bezczelnie dobrze. Twoje typy są tak celne, że lokalne punkty przyjmowania zakładów zamykają rolety na Twój widok. Twoje kalkulacje niszczą system.` },
-        { s: "Piłkarski Guru", v: `Twoja dominacja nie podlega dyskusji. Analiza meczów w Twoim wykonaniu to czysta poezja. Rozpracowałeś turniej na czynniki pierwsze, a ${mainGoodTeam} to Twoja osobista kopalnia złota.` },
-        { s: "Władca Zielonych Kuponów", v: `Zielono mi! Twój profil mieni się od trafionych wyników. Masz niesamowity dar przewidywania zwrotów akcji. Czysty profesjonalizm w każdym calu.` },
-        { s: "Futbolowy Algorytm", v: `Działasz jak dobrze zaprogramowany komputer. Zero emocji, czysta kalkulacja i bezlitosne punktowanie rywali. Twoja przewaga rośnie z każdą kolejką.` },
-        { s: "Łowca Punktów", v: `Bezwzględny i skuteczny. Wywąchasz punkt w najmniej oczekiwanym meczu. Świetna forma, która budzi uzasadniony strach u reszty uczestników ligi.` }
+      // GRUPA 1: ELITA (OVR >= 65) - TOP FORMA
+      const tierElite_Ofensywny = [
+        { s: "Analityczny Terminator", v: `Absolutna demolka w tabeli! Unikasz asekuracyjnych remisów, bezkompromisowo stawiasz na czyste wygrane i kosisz punkty jak profesjonalista. Twoim największym talizmanem jest ${mainGoodTeam}.` },
+        { s: "Jasnowidz na Etacie", v: `Zgłoś się do jakiejś telewizji, bo marnujesz się w amatorskiej lidze. Czytasz intencje zwycięzców szybciej niż ich trenerzy. Sprawdzamy Twój telefon pod kątem układów z sędziami!` },
+        { s: "Postrach Bukmacherów", v: `Grasz bezczelnie dobrze i agresywnie. Wybierasz zdecydowanych zwycięzców, a Twoje precyzyjne kalkulacje niszczą system i doprowadzają rywali do łez.` },
+        { s: "Piłkarski Guru", v: `Twoja dominacja nie podlega dyskusji. Rozpracowałeś turniej na czynniki pierwsze. Odrzucasz remisy, grasz o pełną pulę, a drużyna ${mainGoodTeam} to Twoja osobista kopalnia złota.` },
+        { s: "Władca Zielonych Kuponów", v: `Twój profil mieni się od trafionych czystych wyników. Masz niesamowity dar przewidywania, kto zmiażdży rywala. Czysty, bezkompromisowy profesjonalizm.` }
+      ];
+      const tierElite_Remisowy = [
+        { s: "Chirurg Wyników X", v: `Genialna intuicja do trafiania w sam punkt tam, gdzie nikt się tego nie spodziewa. Twoje wyczucie remisów i trudnych meczów walki to absolutna klasa światowa.` },
+        { s: "Cesarz Intuicji", v: `Masz niesamowity zmysł taktyczny. Bezbłędnie polujesz na podziały punktów, a ekipa którą jest ${mainGoodTeam} zapewnia Ci spokojny sen i stałą przewagę w tabeli.` },
+        { s: "Futbolowy Algorytm", v: `Działasz jak dobrze zaprogramowany komputer. Wyłapujesz remisowe tendencje z zimną krwią, a Twoja przewaga nad osobami grającymi tylko na faworytów rośnie z każdą kolejką.` },
+        { s: "Łowca Cennych Punktów", v: `Bezwzględny i skuteczny. Wywąchasz remis w najmniej oczekiwanym meczu. Świetna forma, która budzi uzasadniony strach i podziw u reszty uczestników ligi.` }
       ];
 
-      const tierSolid = [
-        { s: "Solidny Ligowiec", v: `Bardzo stabilna, wysoka forma. Nie schodzisz poniżej pewnego, profesjonalnego poziomu. Świetnie czujesz potencjał jaki ma ${mainGoodTeam} i to na nich budujesz swoją potęgę.` },
-        { s: "Cichy Snajper", v: `Nie krzyczysz na czacie, nie robisz szumu, ale co kolejkę bezlitośnie dopisujesz kolejne punkty. Klasyczny czarny koń, który kontroluje sytuację z bezpiecznej pozycji.` },
-        { s: "Profesor Chłodnej Głowy", v: `Żadnych gwałtownych ruchów. Twoja taktyka opiera się na czystej matematyce. Grasz mądrze i chociaż czasami ${mainBadTeam} popsuje Ci szyki, to i tak trzymasz się blisko czołówki.` },
-        { s: "Strateg Turniejowy", v: `Wiesz, że turniej to maraton, a nie sprint. Cierpliwie zbierasz punkty i idealnie dawkujesz ryzyko. Twój nos do wyników 1X2 budzi zasłużony szacunek.` },
-        { s: "Władca Stabilizacji", v: `Twoja forma jest twardsza niż beton. Rzadko zaliczasz spektakularne wpadki, dzięki czemu systematycznie pnącz się w górę. Dobra, rzemieślnicza robota.` },
-        { s: "Ekspert z Kanapy", v: `Twoje typy mają ręce i nogi. Widać, że oglądasz mecze i dobrze analizujesz sytuację. Gdyby tylko ${mainBadTeam} przestało grać na przekór Twoim kuponom, byłoby idealnie.` },
-        { s: "Kalkulator Formy", v: `Masz bardzo dobry przegląd pola. Potrafisz precyzyjnie ocenić, kto jest w gazie. Regularne punktowanie to Twoja domena, a podium jest na wyciągnięcie ręki.` },
-        { s: "Taktyczny Wyjadacz", v: `Twoje zaangażowanie przynosi świetne efekty. Unikasz głupich błędów i potrafisz wyciągać wnioski z poprzednich meczów. Bardzo groźny zawodnik.` },
-        { s: "Pewny Gracz", v: `Rzadko zawodzisz. Twoje typy to synonim solidności. Nawet kiedy faworyci zawodzą, Ty potrafisz znaleźć bezpieczną przystań i uratować cenne punkty.` }
+      // GRUPA 2: SOLIDNI (OVR 55 - 64) - DOBRA FORMA
+      const tierSolid_Ofensywny = [
+        { s: "Solidny Ligowiec", v: `Very stabilna, wysoka forma. Stawiasz na konkretne rozstrzygnięcia, unikasz asekuranctwa. Świetnie czujesz potencjał jaki ma ${mainGoodTeam} i to na nich budujesz swoją potęgę.` },
+        { s: "Cichy Snajper 1X2", v: `Nie robisz szumu na czacie, ale co kolejkę bezlitośnie trafiasz zwycięzców spotkań. Klasyczny czarny koń, który kontroluje sytuację stawiając na pełne trzy punkty.` },
+        { s: "Strateg Turniejowy", v: `Wiesz, że turniej to maraton. Cierpliwie wybierasz ekipy, które zgarną zwycięstwa i idealnie dawkujesz ryzyko. Twój nos do wygranych dla ${mainGoodTeam} budzi zasłużony szacunek.` },
+        { s: "Taktyczny Wyjadacz", v: `Twoje zaangażowanie przynosi świetne efekty. Grasz ofensywnie, unikasz głupich błędów i potrafisz wyciągać wnioski, celnie wskazując kto zdominuje murawę.` },
+        { s: "Pewny Gracz", v: `Rzadko zawodzisz przy typowaniu faworytów. Twoje typy to synonim solidności. Nawet kiedy inni kombinują z remisami, Ty potrafisz znaleźć bezpieczną wygraną i zgarnąć punkty.` }
+      ];
+      const tierSolid_Remisowy = [
+        { s: "Profesor Chłodnej Głowy", v: `Żadnych gwałtownych ruchów. Twoja taktyka opiera się na szukaniu podziałów punktów. Grasz mądrze i chociaż czasami ${mainBadTeam} popsuje Ci szyki, to remisy trzymają Cię wysoko.` },
+        { s: "Władca Stabilizacji", v: `Twoja forma jest twardsza niż beton. Masz nosa do zaciętych, zamkniętych meczów. Rzadko zaliczasz wpadki, bo równe, remisowe wyniki dają Ci systematyczny awans.` },
+        { s: "Ekspert z Remisowej Kanapy", v: `Widać, że dobrze analizujesz taktykę defensywną zespołów. Gdyby tylko ${mainBadTeam} przestało strzelać zwycięskie gole w 90. minucie na przekór Twoim 'X', byłoby idealnie.` },
+        { s: "Kalkulator Podziałów", v: `Masz bardzo dobry przegląd pola. Potrafisz precyzyjnie ocenić, kiedy drużyny zadowolą się jednym punktem. Regularne trafianie trudnych meczów to Twoja domena.` }
       ];
 
-      const tierMedium = [
-        { s: "Kolekcjoner Minimalizmu", v: `Doskonale wiesz, kto wygra mecz, ale ustrzelenie dokładnej liczby bramek graniczy u Ciebie z cudem. Punkty kapią powoli, ale sumiennie. Bezpieczeństwo przede wszystkim!` },
-        { s: "Romantyk Czystego Show", v: `W głębi serca kochasz ładny futbol i w każdym meczu typujesz festiwal strzelecki. Widowisko na ekranie masz świetne, gorzej z punktami w naszej pragmatycznej lidze.` },
-        { s: "Wielki Teoretyk", v: `Analizujesz składy, wilgotność murawy i horoskop sędziego. Masz świetną teorię na każdy mecz, tylko szkoda, że piłkarze biegający po boisku kompletnie nie znają Twoich planów.` },
-        { s: "Cesarz Remisowy", v: `Tam, gdzie inni widzą pewne punkty, Ty bezbłędnie wyczuwasz zapach nudnego 0:0. Masz nosa do morderczych meczów walki, w których nikomu nie chce się biegać.` },
-        { s: "Niezdecydowany Gracz", v: `Przekombinowujesz przed samym gwizdkiem. Twoja primera intuicja zazwyczaj jest dobra, ale potem zaczynasz poprawiać i sam siebie wpuszczasz w maliny.` },
-        { s: "Średniowieczny Wojownik", v: `Grasz twardo, ale bez większego planu. Raz spektakularny sukces, raz bolesna porażka. Trzymasz się bezpiecznego środka tabeli, ale stać Cię na więcej.` },
-        { s: "Typowy Średniak", v: `Ni ziębi, ni grzeje. Twoje typy są tak poprawne, że aż nudne. Brakuje Ci odrobiny szaleństwa i zaryzykowania na nieszablonowe rozstrzygnięcia.` },
-        { s: "Poszukiwacz Formy", v: `Miotasz się od ściany do ściany. Jedna kolejka genialna, następna do zapomnienia. Jeśli ustabilizujesz formę, środek tabeli szybko zamienisz na europejskie puchary.` },
-        { s: "Analityk z TikToka", v: `Twoje typy wyglądają na oparte o 15-sekundowe skróty z internetu. Dużo dymu, efektowne strzały, ale brakuje chłodnej głowy i spojrzenia w tabelę ligową.` }
+      // GRUPA 3: ŚREDNIAKI (OVR 46 - 54) - ŚRODEK TABELI
+      const tierMedium_Ofensywny = [
+        { s: "Kolekcjoner Minimalizmu", v: `Doskonale wiesz, kto wygra mecz, ale ustrzelenie dokładnej liczby bramek graniczy u Ciebie z cudem. Typujesz zwycięstwa, ale punkty za dokładny wynik uciekają.` },
+        { s: "Romantyk Czystego Show", v: `W głębi serca kochasz ładny futbol i w każdym meczu typujesz wysokie wygrane faworytów. Widowisko na ekranie masz świetne, gorzej z punktami w naszej pragmatycznej lidze.` },
+        { s: "Wielki Teoretyk Wygranych", v: `Analizujesz składy i historię kontuzji. Masz świetną teorię na zwycięstwo danej drużyny, tylko szkoda, że piłkarze biegający po boisku kompletnie nie znają Twoich planów.` },
+        { s: "Typowy Średniak", v: `Ni ziębi, ni grzeje. Twoje typy na wygrane są tak oczywiste i poprawne, że aż nudne. Brakuje Ci odrobiny szaleństwa i zaryzykowania na nieszablonowe rozstrzygnięcia.` },
+        { s: "Poszukiwacz Zwycięstw", v: `Miotasz się od ściany do ściany. Jedna kolejka z pięknymi wygranymi, następna do zapomnienia. Jeśli ${mainBadTeam} przestanie Cię zawodzić, środek tabeli szybko zamienisz na podium.` }
+      ];
+      const tierMedium_Remisowy = [
+        { s: "Cesarz Remisowy", v: `Tam, gdzie inni widzą pewne punkty dla potęg, Ty uparcie szukasz zapachu nudnego 0:0 lub 1:1. Masz nosa do morderczych meczów walki, choć czasem kosztuje Cię to spadek dynamiki.` },
+        { s: "Niezdecydowany Strateg", v: `Szukasz złotego środka i remisów tam, gdzie powinna pójść czysta deklaracja wygranej. Przekombinowujesz przed samym gwizdkiem i sam siebie wpuszczasz w maliny.` },
+        { s: "Średniowieczny Wojownik", v: `Grasz twardo, często asekurując się podziałem punktów. Raz spektakularny sukces w nudnym meczu, raz bolesna porażka. Trzymasz się bezpiecznego środka tabeli.` },
+        { s: "Analityk Zamkniętych Meczów", v: `Twoje typy wyglądają na oparte na defensywnych statystykach. Dużo uwagi poświęcasz obronie, przez co brakuje Ci punktów z meczów, gdzie pada grad bramek.` }
       ];
 
-      const tierLow = [
-        { s: "Wizjoner Ryzyka", v: `Szukasz sensacji tam, gdzie jej nie ma. Twój upór na stawianie pod prąd jest godny podziwu, ale tabela bywa bezlitosna. Musisz zacząć grać znacznie bezpieczniej.` },
-        { s: "Ofiara Ostatnich Minut", v: `Pech ma Twoje imię. Twoje typy wyglądają doskonale do 89. minuty meczu, po czym rezerwowy strzela gola życia kolanem i cały Twój misterny plan ląduje w śmietniku.` },
-        { s: "Farfocel League", v: `Twoje punkty to często czysty przypadek. Sam nie wiesz, czemu postawiłeś taki wynik, ale rykoszet w końcówce ratuje honor kuponu. Kompletny brak logiki, ale grunt, że coś wpada.` },
-        { s: "Kibic Sukcesu na Zakręcie", v: `Stawiasz tylko na potęgi, a te w tym turnieju koncertowo zawodzą. Kiedy Real lub City tracą punkty, Ty tracisz z nimi grunt pod nogami. Czas zacząć doceniać słabszych.` },
-        { s: "Wieczny Optymista", v: `U Ciebie w każdym meczu musi padać grad bramek. Typujesz kosmiczne wyniki, bo pragniesz show. Widowisko dostajesz na ekranie, punkty w tabeli – rzadko.` },
-        { s: "Pechowy Analityk", v: `Wkładasz mnóstwo pracy w analizę, ale los śmieje Ci się w twarz. Zespół, który miał dominować, dostaje czerwoną kartkę w 5. minucie i niszczy Twoje starania. Głowa do góry!` },
-        { s: "Krytyk Algorytmów", v: `Twoje typy nie pasują do żadnych modeli matematycznych ani statystyk. Grasz absolutnie pod prąd i udowadniasz, że ludzka nieprzewidywalność nie zna granic.` },
-        { s: "Sabotażysta Własnego Konta", v: `Masz niesamowity talent do zmieniania zdania na 5 minut przed meczem. Gdybyś zostawiał pierwszą intuicję, byłbyś wyżej. Zamiast tego przekombinowujesz.` },
-        { s: "Mistrz Jednej Bramki", v: `Przewidujesz zwycięzcę, ale zawsze pomylisz się o tę jedną, kluczową bramkę. Albo zabraknie rzutu karnego, albo napastnik potknie się o własne nogi przed pustą bramką.` }
+      // GRUPA 4: SŁABSI (OVR 36 - 45) - DOŁY ŚRODKA
+      const tierLow_Ofensywny = [
+        { s: "Wizjoner Ślepych Wygranych", v: `Szukasz wielkich triumfów i sensacyjnych wygranych tam, gdzie ich nie ma. Twój upór na stawianie na słabsze zespoły jest godny podziwu, ale tabela bywa bezlitosna.` },
+        { s: "Kibic Sukcesu na Zakręcie", v: `Stawiasz tylko na wygrane potęg (Real, City, Bayern), a te w tym turnieju koncertowo zawodzą. Kiedy wielcy tracą punkty, Ty lecisz w dół tabeli razem z nimi.` },
+        { s: "Wieczny Optymista Bramkowy", v: `U Ciebie w każdym meczu ktoś musi wysoko wygrać (3:2, 4:1). Typujesz kosmiczne scenariusze, bo pragniesz show. Widowisko dostajesz na ekranie, punkty w tabeli – rzadko.` },
+        { s: "Sabotażysta Własnego Kuponu", v: `Masz talent do zmieniania typu na wygraną na 5 minut przed meczem. Gdybyś zostawiał pierwszą intuicję i nie kombinował z bramkami, byłbyś znacznie wyżej.` },
+        { s: "Mistrz Nietrafionej Bramki", v: `Dobrze przewidujesz, kto zgarnie 3 punkty, ale zawsze pomylisz się o tę jedną, kluczową bramkę w wyniku. Napastnicy robią wszystko, żeby zepsuć Twój kupon.` }
+      ];
+      const tierLow_Remisowy = [
+        { s: "Ofiara Ostatnich Minut", v: `Twoje remisy wyglądają doskonale do 89. minuty meczu. Niestety, w doliczonym czasie ktoś zawsze strzela gola życia kolanem, niszcząc Twój podział punktów i sens życia.` },
+        { s: "Farfocel Draw League", v: `Twoje punkty za remisy to często czysty przypadek. Sam nie wiesz, czemu postawiłeś akurat tam "X", ale rykoszet w końcówce ratuje honor kuponu. Kompletny brak logiki.` },
+        { s: "Pechowy Strateg Defensywy", v: `Wkładasz pracę w analizę obrony, licząc na bezbramkowe remisy. Niestety, los śmieje Ci się w twarz – szybki gol w 2. minucie niszczy całe Twoje starania.` },
+        { s: "Krytyk Logiki Boiskowej", v: `Uparcie forsujesz remisy w meczach, gdzie obie ekipy grają ultra-ofensywnie. Grasz pod prąd matematyce i udowadniasz, że intuicja czasem wyprowadza na manowce.` }
       ];
 
-      const tierBottom = [
-        { s: "Podpalacz Kuponów", v: `Grasz z niesamowitą fantazją, szkoda tylko, że kompletnie na odwrót niż nakazuje logika. Każdy Twój kupon płonie szybciej niż benzyna. Czas zmienić doradców.` },
-        { s: "Ślepy Snajper", v: `Tragedia w polu karnym. Nawet jak jakimś cudem trafisz zwycięzcę, to dokładny wynik ucieka Ci o lata świetlne. Twoim największym katem w tej edycji jest zdecydowanie ${mainBadTeam}.` },
-        { s: "Generator Losowości", v: `Kompletny sabotaż. Wygląda na to, że przed zatwierdzeniem kuponu rzucasz monetą albo dajesz telefon psu do polizania. Ekipa ${mainBadTeam} regularnie niszczy Twoje nadzieje.` },
-        { s: "Czerwona Latarnia", v: `Zamykasz stawkę i bezpiecznie pilnujesz dna tabeli. Twoje typy są idealnym wskaźnikiem tego, co w meczu się NIE WYDARZY. Jeśli ktoś chce wygrać, powinien stawiać odwrotnie niż Ty.` },
-        { s: "Dyrektor Destrukcji", v: `Twoje konto punktowe płacze rzewnymi łzami. Nie pomaga analiza, nie pomaga intuicja. ${mainBadTeam} bezlitośnie wbija gwóźdź do trumny Twoich turniejowych ambicji.` },
-        { s: "Bukmacherski Antytalent", v: `Twoje wyczucie sportowe osiągnęło stan nieważkości. Postawienie na faworyta skutkuje jego natychmiastową porażką. Posiadasz niesamowitą supermoc niszczenia pewniaków.` },
-        { s: "Kolekcjoner Poronionych Pomysłów", v: `Wyniki, które prognozujesz, nie wydarzyłyby się nawet w grach komputerowych. Szaleństwo wygrało z logiką, a tabela brutalnie podsumowuje te eksperymenty.` },
-        { s: "Dno i Metr Mułu", v: `Forma spadła poniżej poziomu morza. Przegrywasz rywalizację nawet z osobami, które zapominają wysyłać kupony. Czas na natychmiastowy reset taktyczny.` },
-        { s: "Dostawca Darmowych Punktów", v: `Twoja obecność w lidze niezwykle cieszy rywali, którzy bez wysiłku uciekają Ci w zestawieniu. Ekipa ${mainBadTeam} skutecznie dba o to, żebyś nie podniósł się z kolan.` }
+      // GRUPA 5: DÓŁ TABELI (OVR < 36) - SZYDERA
+      const tierBottom_Ofensywny = [
+        { s: "Podpalacz Kuponów", v: `Grasz z niesamowitą fantazją, stawiając na wygrane drużyn, które zapomniały jak się biega. Każdy Twój kupon płonie szybciej niż benzyna. Czas zmienić doradców.` },
+        { s: "Ślepy Snajper Wygranych", v: `Tragedia w polu karnym. Nawet jak jakimś cudem trafisz zwycięzcę, to bramki uciekają Ci o lata świetlne. Twoim największym katem w tej edycji jest zdecydowanie ${mainBadTeam}.` },
+        { s: "Generator Losowości", v: `Kompletny sabotaż. Wygląda na to, że przed zatwierdzeniem wygranej rzucasz monetą albo dajesz telefon psu do polizania. Ekipa ${mainBadTeam} regularnie niszczy Twoje kupony.` },
+        { s: "Czerwona Latarnia", v: `Zamykasz stawkę. Twoje typy na zwycięzców są idealnym wskaźnikiem tego, kto w meczu NA PEWNO przegra. Jeśli ktoś chce zdobyć punkty, powinien stawiać odwrotnie niż Ty.` },
+        { s: "Dostawca Darmowych Punktów", v: `Twoje ślepe stawianie na wygrane faworytów bez analizy formy niezwykle cieszy rywali. Ekipa ${mainBadTeam} skutecznie dba o to, żebyś nie podniósł się z kolan.` }
+      ];
+      const tierBottom_Remisowy = [
+        { s: "Kolekcjoner Poronionych Remisów", v: `Wyniki remisowe, które prognozujesz w meczach liderów z autsajderami, nie wydarzyłyby się nawet w grach komputerowych. Szaleństwo wygrało z logiką.` },
+        { s: "Dno i Metr Mułu", v: `Forma spadła poniżej poziomu morza. Twoje uporczywe szukanie remisów skutkuje tym, że przegrywasz rywalizację nawet z osobami, które zapominają wysyłać kupony.` },
+        { s: "Dyrektor Remisowej Destrukcji", v: `Twoje konto punktowe płacze rzewnymi łzami. Próbujesz na siłę asekurować się remisami, a ${mainBadTeam} bezlitośnie wbija gwóźdź do trumny Twoich ambicji.` },
+        { s: "Bukmacherski Antytalent X", v: `Twoje wyczucie zaciętych meczów osiągnęło stan nieważkości. Postawienie na remis skutkuje natychmiastowym jednostronnym laniem na boisku. Niesamowita supermoc.` }
       ];
 
-      let selectedPool = tierMedium;
+      // =========================================================
+      // SELEKCJA PULI NA PODSTAWIE STATYSTYK I STYLU TYPOWANIA
+      // =========================================================
+      
+      const isRemisowy = drawPredictionRatio > 0.28; // Jeśli ponad 28% typów to remisy -> styl remisowy
+
+      let selectedPool = [];
+
       if (emptyBets > 8) {
         selectedPool = specialGhosts;
       } else if (OVR >= 65) {
-        selectedPool = tierElite;
+        selectedPool = isRemisowy ? tierElite_Remisowy : tierElite_Ofensywny;
       } else if (OVR >= 55) {
-        selectedPool = tierSolid;
+        selectedPool = isRemisowy ? tierSolid_Remisowy : tierSolid_Ofensywny;
       } else if (OVR >= 46) {
-        selectedPool = tierMedium;
+        selectedPool = isRemisowy ? tierMedium_Remisowy : tierMedium_Ofensywny;
       } else if (OVR >= 36) {
-        selectedPool = tierLow;
+        selectedPool = isRemisowy ? tierLow_Remisowy : tierLow_Ofensywny;
       } else {
-        selectedPool = tierBottom;
+        selectedPool = isRemisowy ? tierBottom_Remisowy : tierBottom_Ofensywny;
       }
 
+      // Bezpieczne pobranie wariantu (brak błędu przekroczenia tablicy)
       const variantIndex = index % selectedPool.length;
       style = selectedPool[variantIndex].s;
       verdict = selectedPool[variantIndex].v;
 
+      // 🚨 SPECJALNY WARUNEK: KUZYN (Z pliku 1000050629.jpg)
       if (user.toLowerCase().includes('kuzyn')) {
         style = "Chaotyczny typer";
         verdict = "Zupełnie nieprzewidywalna forma. Twoje typy potrafią zaskoczyć zarówno algorytm, jak i samych piłkarzy. Potrzebujesz więcej stabilizacji!";
@@ -222,21 +250,16 @@ const Stats = () => {
     // 🎯 LOGIKA GROMADZENIA WSPÓŁLIDERÓW W KAFELKACH GLOBALNYCH
     // =========================================================
     if (output.length > 0) {
-      
-      // 1. Najwięcej wytypowanych remisów
       const maxDrawsPred = Math.max(...output.map(p => p.drawBetsPredicted));
       const usersMostDrawsPred = output.filter(p => p.drawBetsPredicted === maxDrawsPred).map(p => p.user).join(', ');
 
-      // 2. Król Remisów (Trafione remisy)
       const maxDrawsCorr = Math.max(...output.map(p => p.drawBetsCorrect));
       const usersKingOfDraws = output.filter(p => p.drawBetsCorrect === maxDrawsCorr).map(p => p.user).join(', ');
       setShowKingOfDraws(maxDrawsCorr > 0);
 
-      // 3. Czujne oko (Dokładne wyniki) -> POKAZUJE WSZYSTKICH JEŚLI REMIS W STATYSTYKACH
       const maxExact = Math.max(...output.map(p => p.scoreCorrect));
       const usersMostExact = output.filter(p => p.scoreCorrect === maxExact).map(p => p.user).join(', ');
 
-      // 4. Największy zapominalski
       const maxEmpty = Math.max(...output.map(p => p.emptyBets));
       const usersMostEmpty = output.filter(p => p.emptyBets === maxEmpty).map(p => p.user).join(', ');
       setShowMostEmpty(maxEmpty > 0);
@@ -295,7 +318,6 @@ const Stats = () => {
               
               <Col xs={colSize} style={{ marginBottom: '12px', borderRight: showMostEmpty ? '1px solid #2a2a2a' : 'none' }}>
                 <div style={{ color: '#2196f3', fontSize: '0.7rem', fontWeight: 'bold' }}>🎯 CZUŁE OKO (DOKŁADNE WYNIKI)</div>
-                {/* Tutaj wyświetlają się wszyscy ze stałym, najwyższym wynikiem */}
                 <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{globalStats.mostExactScores.users}</div>
                 <div style={{ color: '#2196f3', fontSize: '0.8rem' }}>{globalStats.mostExactScores.count} razy w punkt</div>
               </Col>
@@ -304,7 +326,7 @@ const Stats = () => {
                 <Col xs={colSize} style={{ marginBottom: '12px' }}>
                   <div style={{ color: '#aaa', fontSize: '0.7rem', fontWeight: 'bold' }}>💤 NAJWIĘKSZY ZAPOMINALSKI (:::)</div>
                   <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{globalStats.mostEmpty.users}</div>
-                  <div style={{ color: '#f44336', fontSize: '0.8rem' }}>{globalStats.mostEmpty.count} pustych typów</div>
+                  <div style={{ color: '#f44336', fontSize: '0.8rem' }}>{globalStats.emptyBets} pustych typów</div>
                 </Col>
               )}
             </Row>
