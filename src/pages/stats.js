@@ -113,9 +113,7 @@ const Stats = () => {
       // Proporcja typowanych remisów do wszystkich typów (żeby sprawdzić styl)
       const drawPredictionRatio = outcomeTotal ? (drawBetsPredicted / outcomeTotal) : 0;
 
-      // =========================================================
-      // 🧠 LOGIKA DYNAMICZNYCH POZIOMÓW I STYLÓW GRY (50 WERDYKTÓW)
-      // =========================================================
+      
       let style = "";
       let verdict = "";
 
@@ -335,6 +333,21 @@ const Stats = () => {
       </Row>
 
       {/* Sekcja kart użytkowników */}
+
+<Row>
+        <Col xs={12}>
+          <div style={{ marginTop: '10px', marginBottom: '20px', textAlign: 'center' }}>
+            <h2 style={{ color: '#FFD700', margin: 0 }}>🏆 Zaawansowane Profile Typerów</h2>
+            {/* 🚨 TUTAJ: Mały, czerwony dopisek o AI i humorystycznym charakterze */}
+            <div style={{ color: '#ff4d4d', fontSize: '0.75rem', marginTop: '5px', letterSpacing: '0.5px', fontWeight: '500' }}>
+              * Treści mają charakter wyłącznie humorystyczny i są generowane automatycznie przez sztuczną inteligencję (AI).
+            </div>
+            <hr style={{ borderColor: '#FFD700', width: '30%', margin: '12px auto 10px auto' }} />
+          </div>
+        </Col>
+      </Row>
+
+
       <Row className="justify-content-center">
         <Col xs={12} md={8} lg={6}>
 
