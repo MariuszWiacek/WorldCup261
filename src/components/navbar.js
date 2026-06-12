@@ -19,7 +19,6 @@ const firebaseConfig = {
   measurementId: "G-1TZ4B0BK9D"
 };
 
-// Initialize Firebase outside to prevent multi-instance memory leaks
 const secondaryApp = initializeApp(firebaseConfig, 'navbar-firebase');
 const db = getDatabase(secondaryApp);
 
@@ -28,19 +27,16 @@ const Navbar = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isChatboxOpen, setIsChatboxOpen] = useState(false);
   
-  // Track unread status globally in Navbar
   const [unreadCount, setUnreadCount] = useState(0);
   const totalMessagesRef = useRef(0);
   const isFirstLoad = useRef(true);
 
-  // Monitor Window Scroll
   useEffect(() => {
     const handleScroll = () => setScrollPosition(window.scrollY);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Listen for Live Messages to Update Unread Badge Count
   useEffect(() => {
     const entriesRef = ref(db, 'guestbookEntries');
     
@@ -53,14 +49,12 @@ const Navbar = () => {
           totalMessagesRef.current = currentTotal;
           isFirstLoad.current = false;
         } else if (!isChatboxOpen) {
-          // If chat is closed and new messages came in, increment badge
           const newMessagesCount = currentTotal - totalMessagesRef.current;
           if (newMessagesCount > 0) {
             setUnreadCount(prev => prev + newMessagesCount);
           }
           totalMessagesRef.current = currentTotal;
         } else {
-          // If chat is open, just keep the total synced without bumping unread
           totalMessagesRef.current = currentTotal;
         }
       }
@@ -74,14 +68,13 @@ const Navbar = () => {
   
   const toggleChatbox = () => {
     setIsChatboxOpen(prev => {
-      if (!prev) setUnreadCount(0); // Clear unread count when opening
+      if (!prev) setUnreadCount(0);
       return !prev;
     });
   };
 
   const menuClass = isMenuOpen ? 'collapse navbar-collapse show' : 'collapse navbar-collapse';
 
-  // --- Inline Styles Stylesheet ---
   const styles = {
     navbar: {
       position: 'fixed',
@@ -127,7 +120,7 @@ const Navbar = () => {
       color: 'aliceblue',
       fontSize: '16px',
       fontWeight: 'bold',
-      position: 'relative', // Context for badge placement
+      position: 'relative',
     },
     icon: {
       color: '#0274ff',
@@ -170,25 +163,39 @@ const Navbar = () => {
           
           <div className={menuClass} id="navbarNav">
             <ul className="navbar-nav" style={styles.links}>
-              {['bets', 'table', 'results', 'stats', 'rules', 'history', 'admin'].map((route) => (
-                <li className="nav-item" key={route}>
-                  <Link to={`/${route}`} className="nav-link" onClick={closeMenu}>
-                    {route.charAt(0).toUpperCase() + route.slice(1)}
-                  </Link>
-                </li>
-              ))}
+              <li className="nav-item">
+                <Link to="/bets" className="nav-link" onClick={closeMenu}>Zakłady</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/table" className="nav-link" onClick={closeMenu}>Tabela</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/results" className="nav-link" onClick={closeMenu}>Wyniki</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/stats" className="nav-link" onClick={closeMenu}>Stats</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/rules" className="nav-link" onClick={closeMenu}>Regulamin</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/history" className="nav-link" onClick={closeMenu}>Historia</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/admin" className="nav-link" onClick={closeMenu}>Admin</Link>
+              </li>
             </ul>
           </div>
         </div>
       </nav>
 
-      {/* Footer Navigation Bar */}
+      {/* Dolny pasek nawigacji */}
       <div style={styles.messageContainer}>
         <Link to="/"><FontAwesomeIcon icon={faHome} style={styles.icon} /></Link>
         <Link to="/bets"><FontAwesomeIcon icon={faFutbol} style={styles.icon} /></Link>
         <Link to="/table"><FontAwesomeIcon icon={faTableList} style={styles.icon} /></Link>
         
-        {/* Chatbox Button with Badge Counter */}
+        {/* Przycisk czatu z licznikiem powiadomień */}
         <button onClick={toggleChatbox} style={styles.toggleButton}>
           <h5 style={{ color: 'aliceblue', marginRight: '8px', marginBottom: 0 }}>chatbox</h5>
           <FontAwesomeIcon icon={faComments} style={styles.icon} />
@@ -198,7 +205,6 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Render Chatbox Exactly Once */}
       <Chatbox isOpen={isChatboxOpen} toggleChatbox={toggleChatbox} externalUnreadCount={unreadCount} />
     </>
   );
