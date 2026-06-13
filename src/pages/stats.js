@@ -102,18 +102,14 @@ const Stats = () => {
       const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
       const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
 
-      // =========================================================
-      // 🚀 NOWY, SPRAWIEDLIWY SYSTEM POCHODZENIA OVR
-      // =========================================================
+      // Kalkulator OVR
       let OVR = 0;
-
-      // BEZPIECZNIK ABSOLUTNEGO ZERA: Masz 0 trafień? Twój OVR umiera.
       if (outcomeCorrect === 0 && scoreCorrect === 0) {
         OVR = emptyBets > 0 ? Math.max(12 - emptyBets, 0) : 0; 
       } else {
-        const baseOVR = 45; 
-        const outcomeBonus = outcomeRate * 35; 
-        const exactScoreBonus = scoreCorrect * 2.2; 
+        const baseOVR = 40; 
+        const outcomeBonus = outcomeRate * 40; 
+        const exactScoreBonus = scoreCorrect * 2.5; 
         OVR = Math.min(Math.round(baseOVR + outcomeBonus + exactScoreBonus), 100);
       }
 
@@ -128,77 +124,73 @@ const Stats = () => {
       let verdict = "";
 
       // =========================================================
-      // 🎭 NOWA KOLEKCJA KOMENTARZY (Z UWZGLĘDNIENIEM DNA I MUŁU)
+      // 🎭 NOWA, ZBALANSOWANA BAZA 50 KOMENTARZY (4 KOSZYKI x 12-13 TEKSTÓW)
       // =========================================================
 
-      // SPECJALNA SEKRECYJNA GRUPA: DNO I METR MUŁU (OVR < 20 lub 0 trafień) - 10 komentarzy
-      const tierAbsoluteZero = [
-        { s: "Dno i metr mułu", v: `Oficjalne, certyfikowane dno tej ligi. Nie trafiłeś NIC. Twój bilans punktowy wygląda jak konto bankowe po wakacjach. Gdyby w tej lidze były spadki, spadłbyś nawet z b klasy.` },
-        { s: "Piłkarski Niewidzialny", v: `Okrągłe zero trafień. Twoja intuicja sportowa jest tak głęboko w mule, że potrzebujemy ekipy nurków, żeby ją odnaleźć. Nawet rzucając monetą miałbyś fart, a Ty przeszedłeś do historii jako anty-mistrz.` },
-        { s: "Legenda Najniższego OVR", v: `Twój wynik to czysta abstrakcja. Jak można obejrzeć tyle meczów i nie trafić ani zwycięzcy, ani wyniku? Ekipa ${mainBadTeam} idealnie podsumowuje Twój poziom patologii taktycznej.` },
-        { s: "Sponsor Punktów", v: `Dno osiągnięte, czas zacząć kopać w mule. Jesteś idealnym tłem dla reszty ligi. Twoja obecność tutaj polega głównie na poprawianiu humoru ludziom, którzy mają chociaż 2 punkty.` },
-        { s: "Analfabeta Turniejowy", v: `Twoja karta OVR szoruje po dnie z taką siłą, że zaraz pęknie ekran. Twój instynkt do omijania punktów powinien być badany przez instytuty naukowe. Totalna katastrofa.` },
-        { s: "Wstyd i Ubóstwo", v: `Nawet nie wiemy jak to skomentować. Masz mniej punktów niż reprezentacje, które odpadły w przedbiegach. Wyłącz to i zacznij zbierać grzyby, tam przynajmniej coś znajdziesz.` },
-        { s: "Anty-Jasnowidz", v: `Niewiarygodne! Masz tak potężny talent do błędnych typów, że powinieneś brać pieniądze od ludzi za mówienie im, co obstawiasz, żeby mogli postawić na odwrót. Jesteś zerem (dosłownie).` },
-        { s: "Maskotka Tabeli", v: `Siedzisz na samym dole, przykryty warstwą mułu i wodorostów. Twoje OVR to oficjalny powód do memów na grupowej konwersacji. Gratulacje, gorzej się fizycznie nie dało.` },
-        { s: "Koszmar Piłkarstwa", v: `Twoje typy obrażają dyscyplinę sportową, jaką jest piłka nożna. Nawet ślepy traf by coś ugrał, a Ty uparcie trzymasz stabilne zero. Absolutna kompromitacja taktyczna.` },
-        { s: "Władca Podziemia", v: `Osiągnąłeś stan absolutnego zera bezwzględnego. Zamknąłeś tabelę z kłódką, a klucz wrzuciłeś do rzeki. Reszta ligi dziękuje za tak łatwego rywala.` }
-      ];
-
-      // KOSZYK 1: ELITA TURNIEJU (OVR >= 85) - 10 komentarzy
+      // POZIOM 1: ELITA TURNIEJU (OVR >= 80) - 13 KOLEKCJONERSKICH POZYTYWÓW
       const tierElite = [
-        { s: "Bezczelny Jasnowidz", v: `Obrzydliwie wysoka forma. Trafiasz dokładne wyniki z taką łatwością, jakbyś opłacał bramkarzy. Wyłącz ten komputer z NASA i daj żyć reszcie ligi. Ekipa ${mainGoodTeam} sponsoruje Twoje wakacje.` },
-        { s: "Mundialowy Cyborg", v: `To nie jest normalne. Kiedy cały świat płacze, bo potęgi koncertowo wtapiają mecze, Ty siedzisz z założonymi rękami i zgarniasz komplet punktów. Jesteś bezdusznym potworem statystyk.` },
-        { s: "Władca Szklanej Kuli", v: `Przejrzałeś ten turniej zanim piłkarze spakowali walizki. Twoje typy to czysta poezja, a reszta tabeli może najwyżej wyczyścić Ci buty. Absolutna, bezwzględna dominacja.` },
-        { s: "Główny Architekt Sukcesu", v: `Twoja przewaga w tabeli budzi uzasadnioną nienawiść. Pachnie to jakimś przeciekiem z szatni albo potężnym układem z sędziami VAR. Strach się z Tobą zakładać o cokolwiek.` },
-        { s: "Profesor Futbolu Premium", v: `Grasz w zupełnie innej lidze. Liczba Twoich trafień w dziesiątkę przeraża bukmacherów. Masz tak potężny monopol na rację, że powinieneś zastąpić całe studio eksperckie w TV.` },
-        { s: "Koszmar Analityków", v: `Twoja intuition demoluje algorytmy matematyczne. Widzisz bramki tam, gdzie inni widzą murowanie dostępu do pola karnego. Ty nie zgadujesz wyników, Ty po prostu znasz przyszłość.` },
-        { s: "Szef Wszystkich Szefów", v: `Spokój, chłodna kalkulacja i zabójcza skuteczność. Twoja karta OVR świeci się na złoto tak mocno, że oślepia ludzi z dolnej połowy tabeli. Absolutny mistrz tej edycji.` },
-        { s: "Strateg Nowej Ery", v: `Gdybyś zarządzał budżetem reprezentacji tak, jak zarządzasz kuponami, mielibyśmy mistrzostwo świata. Twoje oko do detali i bezbłędne rozczytanie ekipy ${mainGoodTeam} przejdzie do historii.` },
-        { s: "Mundialowy Terminator", v: `Zero sentymentów, samo gęste. Nie patrzysz na historię i sympatie – bezlitośnie punktujesz wpadki gigantów i precyzyjne inkasujesz punkty za dokładne rezultaty. Klasa światowa.` },
-        { s: "Jasnowidz z powołania", v: `Inni gracze mogą już powoli walczyć tylko o drugie miejsce. Twój instynkt łowcy bramek działa bez zarzutu. Przestań udawać zaskoczonego swoimi wynikami, wiemy że to zaplanowałeś.` }
+        { s: "Geniusz Taktyczny", v: `Czapki z głów! Twoja intuicja w tym turnieju to absolutna klasa światowa. Czytasz grę jak otwartą książkę, a liczba trafionych dokładnych wyników budzi podziw w całej lidze. Ekipa ${mainGoodTeam} to Twój klucz do sukcesu.` },
+        { s: "Mundialowy Ekspert", v: `Niewiarygodna regularność i potężna wiedza sportowa. Z łatwością omijasz pułapki fazy grupowej i stabilnie budujesz przewagę na szczycie. Rzadko kiedy spotyka się tak precyzyjnie poukładane typy.` },
+        { s: "Władca Szklanej Kuli", v: `Grasz w swojej własnej, mistrzowskiej lidze. Kiedy inni gubią punkty na niespodziankach, Ty spokojnie inkasujesz pełną pulę. Twoje oko do detali i analiza zasługują na złoty medal.` },
+        { s: "Profesor Futbolu", v: `To nie jest przypadek, to jest czysta profeska. Twoje wysokie OVR odzwierciedla świetne zrozumienie dynamiki turnieju. Reszta stawki z zazdrością spogląda na Twoje genialne statystyki.` },
+        { s: "As Wywiadu Sportowego", v: `Fenomenalna forma! Masz niesamowity nos do ofensywnych zespołów, a Twoje precyzyjne strzały w dokładne rezultaty to ozdoba naszej ligi. Wielkie brawa za dotychczasowe osiągnięcia.` },
+        { s: "Strateg Nowej Ery", v: `Imponująca chłodna głowa i analityczny umysł. Twoja przewaga w tabeli to w pełni zasłużony owoc trafnych decyzji. Drużyna ${mainGoodTeam} przynosi Ci najwięcej powodów do dumy.` },
+        { s: "Mundialowy Strateg", v: `Klasa, elegancja i bezwzględna skuteczność na kuponach. Twoje predykcje wyznaczają trendy w tej edycji. Trzymaj to tempo, bo podium i puchar są już na wyciągnięcie ręki.` },
+        { s: "Analityk Premium", v: `Twoja karta OVR świeci czystym złotem. Świetnie wyczuwasz, kiedy faworyci mogą mieć gorszy dzień i potrafisz to perfekcyjnie obrócić w cenne punkty. Zasłużone miejsce w elicie.` },
+        { s: "Łowca Wyników", v: `Oglądanie Twoich postępów w tabeli to czysta przyjemność dla oka. Trafiasz najtrudniejsze spotkania z lekkością rutyniarza. Jesteś obecnie głównym pretendentem do końcowego triumfu.` },
+        { s: "Mistrz Przewidywania", v: `Niewiarygodny instynkt snajpera. Twoje typy 1X2 rzadko kiedy mijają się z prawdą, a skuteczność z doliczonego czasu gry zasługuje na miano fenomenu tych mistrzostw.` },
+        { s: "Mundialowy Maestro", v: `Kompletna dominacja intelektualna nad resztą stawki. Twoje prognozy meczowe są tak trafne, że można by według nich pisać scenariusze turniejowe. Wielki szacunek za formę.` },
+        { s: "Cyborg Statystyczny", v: `Precyzja godna szwajcarskiego zegarka. Nie ponoszą Cię emocje, kalkulujesz jak rasowy manager i zbierasz zasłużone laury. To jest absolutny top poziom w historii naszych lig.` },
+        { s: "Główny Faworyt Ligi", v: `Idziesz przez ten turniej jak burza, nie oglądając się na konkurencję. Stabilna, wysoka forma we wszystkich kolejkach. Z taką grą nikt nie odbierze Ci miana króla typerów.` }
       ];
 
-      // KOSZYK 2: DOSKONAŁY TYPER / GWIAZDA (OVR 75 - 84) - 10 komentarzy
+      // POZIOM 2: SOLIDNY GRACZ (OVR 68 - 79) - 13 NEUTRALNO-POZYTYWNYCH
       const tierSolid = [
-        { s: "As Wywiadu FIFA", v: `OVR 75+ na tym turnieju to rewelacja! Masz oko snajpera – trafiasz seriami dokładne wyniki tam, gdzie inni zaliczają spektakularne gleby. Zespół ${mainGoodTeam} to Twój prywatny bankomat.` },
-        { s: "Pogromca Bukmacherów", v: `Grasz bez kompleksów. Idealnie omijasz miny w fazie grupowej, a Twoje precyzyjne strzały w dokładne wyniki regularnie demolują morale reszty graczy. Podium jest na wyciągnięcie ręki.` },
-        { s: "Strateg z Copacabany", v: `Bardzo mocna karta w tej edycji. Masz świetny nos do ofensywnych ekip. Twój system działa bez zarzutu, dopóki ${mainBadTeam} nie zrobi jakiegoś sabotażu w doliczonym czasie gry.` },
-        { s: "Turniejowy Drapieżnik", v: `Nie panikujesz, kiedy faworyci zaliczają glebę. Spokojnie kalkulujesz siłę ognia i regularnie zgarniasz grube punkty. Rywale czują Twój gorący oddech na plecach.` },
-        { s: "Generał Formacji Ofensywnej", v: `Znakomite wyczucie turniejowego rytmu. Twoja liczba punktów w punkt budzi uzasadnioną zazdrość w środku stawki. Jesteś o krok od zostania legendą tych mistrzostw.` },
-        { s: "Elitarny Snajper Wyników", v: `Kiedy stawiasz kupon, czujesz zapach bramek. Masz świetną powtarzalność i potrafisz wyciągnąć maksa z teoretycznie nudnych meczów. Twoja taktyka przynosi genialne efekty.` },
-        { s: "Mundialowy Rekin", v: `Pływasz w tej tabeli bardzo pewnie i pożerasz słabszych typerów. Twoje wysokie OVR to nie przypadek, tylko efekt omijania najbardziej oczywistych pułapek zastawionych przez los.` },
-        { s: "Doktor Nauk Typerstwa", v: `Wysoka kultura typowania. Wyłapujesz mecze, gdzie faworyt dostaje zadyszki i przekuwasz to na potężny zysk. Drużyna ${mainGoodTeam} powinna odpalić Ci procent ze swoich premii.` },
-        { s: "Łowca Czystych Kont", v: `Twoje precyzyjne oko bezbłędnie namierza drużyny, które potrafią zamurować bramkę. Wyciągasz z dokładnych wyników absolutne maksimum i stabilnie budujesz przewagę.` },
-        { s: "Czarny Koń Typera", v: `Zaskakujesz wszystkich stabilną, wysoką formą. Twoje wyniki pokazują, że potrafisz zachować zimną krew, nawet gdy turniej zamienia się w totalny, nieprzewidywalny chaos.` }
+        { s: "Solidny Rzemieślnik", v: `Bardzo dobra, stabilna forma. Trzymasz się blisko ścisłej czołówki i w każdej chwili możesz zaatakować podium. Masz świetny bilans czystych wygranych, brakuje tylko ciut szczęścia do wyników.` },
+        { s: "Czarny Koń Turnieju", v: `Pokazujesz bardzo mądry futbol na kuponach. Wyłapujesz dobre mecze i regularnie punktujesz. Jeśli podkręcisz dokładne wyniki, liderzy zaczną poważnie drżeć o swoje pozycje.` },
+        { s: "Mundialowy Wojownik", v: `Dobra, rzemieślnicza robota. Twoje OVR pokazuje, że znasz się na rzeczy i potrafisz podjąć skalkulowane ryzyko. Zespół ${mainGoodTeam} stabilizuje Twoją pozycję w górnej połowie.` },
+        { s: "Strateg Środka Pola", v: `Grasz mądrze i bez większych przestojów. Unikasz spektakularnych wpadających wpadek, co w tak nieprzewidywalnym turnieju jest wielką sztuką. Twoja taktyka przynosi stabilne owoce.` },
+        { s: "Koneser Dobrych Typów", v: `Wysoka kultura typowania. Masz dobre oko do niespodzianek i potrafisz wyciągnąć punkty z ciężkich, remisowych potyczek. Jesteś o krok od wejścia do elitarnego grona.` },
+        { s: "Ambitny Ścigający", v: `Stabilizacja to Twoje drugie imię. Punkty rosną regularnie z każdą kolejką. Widać, że turniej sprawia Ci frajdę, a wiedza piłkarska pozwala na spokojne kontrolowanie grupy pościgowej.` },
+        { s: "Analityk z Pasją", v: `Twoja karta prezentuje się bardzo obiecująco. Wykazujesz duże wyczucie intencji selekcjonerów, a drobne potknięcia przez ${mainBadTeam} to tylko wypadek przy pracy. Dobre perspektywy.` },
+        { s: "Mundialowy Aktywista", v: `Solidne punkty zdobywane z pełnym zaangażowaniem. Twoja skuteczność 1X2 jest na bardzo zadowalającym poziomie. Trzymaj kurs, a końcówka turnieju będzie Twoja.` },
+        { s: "Ekspert Regionalny", v: `Grasz pewnie i z pomysłem. Twoje analizy przynoszą stabilny zysk w tabeli generalnej. Jeśli zachowasz tę zimną krew do fazy pucharowej, zameldujesz się na pudle.` },
+        { s: "Dżentelmen Tabeli", v: `Zrównoważone, przemyślane typy bez zbędnego szaleństwa. Masz świetne wyczucie remisów, co chroni Twoje konto przed stratami. Bardzo przyzwoity wynik w tak dużym gronie.` },
+        { s: "Oko Skauta", v: `Dobra intuicja do młodych, dynamicznych reprezentacji. Potrafisz docenić teoretycznie słabszych, co owocuje cennymi punktami. Dobry, stabilny poziom sportowy.` },
+        { s: "Biegiem po Podium", v: `Forma zwyżkuje z meczu na mecz. Początek mógł być spokojny, ale teraz włączasz wyższy bieg. Rywale przed Tobą muszą oglądać się za siebie, bo idziesz jak po swoje.` },
+        { s: "Mundialowy Dyplomata", v: `Wybierasz bezpieczne, ale bardzo zyskowne rozwiązania. Twoja wysoka pozycja w zestawieniu 23 graczy to dowód na to, że systematyczność jest kluczem do sukcesu.` }
       ];
 
-      // KOSZYK 3: KLASA ŚREDNIA (OVR 66 - 74) - 10 komentarzy
+      // POZIOM 3: KLASA ŚREDNIA (OVR 40 - 67) - 12 NEUTRALNO-SZYDERCZE
       const tierMedium = [
-        { s: "Ofiara doliczonego czasu", v: `Wiesz kto wygra, czujesz grę, ale Twoje dokładne wyniki palą się w piekle przez bramki padające po 90. minucie. Gdyby mecze trwały krócej, byłbyś królem. A tak? Środek tabeli.` },
-        { s: "Średniak z Ambicjami", v: `Trafiasz czyste 1X2 całkiem sprawnie, ale ustrzelenie dokładnego wyniku to dla Ciebie misja na Marsa. Ciągle brakuje tej jednej bramki do szczęścia. Typer poprawny, ale bez błysku.` },
-        { s: "Piłkarski Teoretyk", v: `Analizujesz składy, czytasz wywiady, a potem i tak wchodzi turniejowa niespodzianka i niszczy cały Twój plan. Masz wiedzę, ale piłkarze na boisku robią wszystko na przekór.` },
-        { s: "Bezpieczny Gracz", v: `Zero ryzyka, zero zabawy. Stawiasz tak oczywiste wygrane faworytów, że Twoje punkty rosną w żółwim tempo. Jeśli nie zaryzykujesz jakiejś grubej wtopy, utkniesz w tym tłumie na zawsze.` },
-        { s: "Stabilny Urzędnik", v: `Twoje typy są tak przewidywalne jak podatki. Nie zaliczasz spektakularnych upadków, ale Twoja karta nie ma szans na miano gwiazdy ligi. Solidna, rzemieślnicza praca bez grama polotu.` },
-        { s: "Koneser Wyniku 1:1", v: `Masz manię bezpiecznych remisów lub skromnych wygranych. Przez tę asekurację ucieka Ci masa punktów za dokładne wyniki, kiedy drużyny nagle postanawiają urządzić sobie strzelaninę.` },
-        { s: "Więzień Statystyk", v: `Sugerujesz się suchymi liczbami przed meczem, zapominając, że Mundial to turniej emocji i czystego chaosu. Twoje OVR krzyczy: 'Mogło być pięknie, ale wyszło jak zwykle'.` },
-        { s: "Hamulec Ręczny", v: `Zamiast pójść na całość, w kluczowych momentach wciskasz hamulec i zmieniasz typ na nudny standard. Przez to trzymasz się bezpiecznego środka tabeli, z dala od szampana.` },
-        { s: "Ofiara Systemu VAR", v: `Grasz dobrze, ale pech Cię nie opuszcza. Twoje dokładne wyniki są regularnie kasowane przez milimetrowe spalone wyłapywane przez technologię. Musisz zacząć brać poprawkę na sędziów.` },
-        { s: "Turniejowy Turysta", v: `Kręcisz się w okolicach środka stawki, raz trafiając super wynik, a raz pudłując w banalnej sytuacji. Brak stabilizacji sprawia, że jesteś klasycznym, ligowym średniakiem.` }
+        { s: "Ofiara 90. Minuty", v: `Masz niesamowitą wiedzę, ale pech w doliczonym czasie gry odbiera Ci mnóstwo punktów. Gdyby mecze kończyły się w 85. minucie, byłbyś królem. A tak? Bezpieczny środek tabeli.` },
+        { s: "Stabilny Urzędnik", v: `Twoje typy są poprawne, ale brakuje im odrobiny polotu i ryzyka. Stawiasz głównie na faworytów, przez co w tak szalonym turnieju kręcisz się w szarym tłumie środka stawki.` },
+        { s: "Piłkarski Romantyk", v: `Typujesz sercem i pięknem futbolu, a boiskowa rzeczywistość brutalnie weryfikuje te plany. Trochę za dużo wiary w wielkie marki, które na turniej przyjechały bez formy.` },
+        { s: "Typer Falujący", v: `Potrafisz jednego dnia ustrzelić genialny dokładny wynik, by następnego spudłować trzy proste mecze z rzędu. Brak stabilizacji trzyma Cię w bezpiecznej odległości od szampana.` },
+        { s: "Więzień Statystyk", v: `Zbyt mocno wierzysz w suche liczby przedmeczowe, zapominając, że Mundial to turniej czystego chaosu i emocji. Twoje OVR krzyczy: 'Potencjał był, ale wyszło jak zwykle'.` },
+        { s: "Koneser Wyniku 1:1", v: `Twoja asekuracyjna taktyka na skromne remisy chroni Cię przed dnem tabeli, ale jednocześnie skutecznie blokuje awans do czołówki. Czasem warto zaryzykować i pójść na całość!` },
+        { s: "Hamulec Taktyczny", v: `Zamiast zaufać pierwszej myśli, przekombinowujesz przed samym zatwierdzeniem kuponu. Przez to uciekają cenne punkty, a ekipa ${mainBadTeam} regularnie psuje Ci humor.` },
+        { s: "Mundialowy Średniak", v: `Klasyczny przedstawiciel środkowej strefy stanów średnich. Nie ma tragedii, ale szału też nie ma. Solidna, rzemieślnicza praca, która potrzebuje iskry bożej i odwagi.` },
+        { s: "Ofiara Systemu VAR", v: `Grasz dobrze, ale technologia Cię nie kocha. Twoje potencjalne dokładne wyniki są regularnie kasowane przez milimetrowe spalone. Musisz zacząć brać poprawkę na sędziów.` },
+        { s: "Mundialowy Turysta", v: `Wpadłeś tu głównie dla dobrej zabawy i zimnego piwka przy meczu, co widać po Twoich zrelaksowanych typach. Środek tabeli w pełni oddaje Twój rekreacyjny styl gry.` },
+        { s: "Ekspert z Kanapy", v: `W teorii wiesz wszystko najlepiej, ale przełożenie tego na realne wyniki w tabeli idzie opornie. Potrzebujesz jednego, mocnego przełamania, żeby ruszyć w górę stawki.` },
+        { s: "Zakładnik Sentymentów", v: `Ciągle wierzysz w gwiazdy sprzed lat, które na tym turnieju głównie truchtają. Futbol poszedł do przodu, czas zaktualizować bazę danych i przestać tracić punkty.` }
       ];
 
-      // KOSZYK 4: SŁABA FORMA (OVR 20 - 65) - 10 komentarzy
-      const tierLow = [
-        { s: "Pechowiec z Urzędu", v: `Twoje typy to pasmo nieszczęść. Wybierasz wygraną potęgi – zaliczają wtopę roku. Wybierasz dokładny wynik – napastnik nie trafia do pustej bramki z metra. Klasyczny dramat.` },
-        { s: "Naiwny Optymista", v: `Typujesz wyniki rodem z hokeja (4:2, 5:1), zapominając, że na Mistrzostwach Świata drużyny wolą grać mądry, defensywny piach na 1:0. Ogląda się Twoje typy wesoło, ale punktów brak.` },
-        { s: "Ofiara czarnego konia", v: `Wierzysz w wielkie marki z Europy, które na tym turnieju zapomniały jak się biega. Każda kolejna niespodzianka spycha Cię w otchłań, a Twoim koszmarem stała się ekipa: ${mainBadTeam}.` },
-        { s: "Sabotażysta intuicji", v: `Zapewne masz tak, że najpierw myślisz o dobrym typie, a przed samym zatwierdzeniem zmieniasz zdanie i wpisujesz głupoty. Przestań przekombinowywać, bo dół tabeli już macha ręką.` },
-        { s: "Ślepy Snajper", v: `Strzelasz w każdy możliwy wynik, ale celownik jest tak rozregulowany, że piłki latają po trybunach. Skuteczność trafionych dokładnych wyników drastycznie domaga się natychmiastowej reanimacji.` },
-        { s: "Darczyńca Koleżeński", v: `Twoje zaangażowanie w grę jest piękne, ale korzyść z tego mają tylko Twoi rywale, którzy bezlitośnie uciekają Ci w klasyfikacji generalnej. Czas zmienić doradcę taktycznego.` },
-        { s: "Kolekcjoner Spalonych", v: `Twoje typy wiecznie mijają się z linią obrony rywali. Albo przeceniasz formę strzelecką napastników, albo dramatycznie nie doceniasz skłonności bramkarzy do robienia baboli.` },
-        { s: "Zakładnik Przeszłości", v: `Żyjesz sukcesami reprezentacji sprzed 10 lat. Typujesz na podstawie nazwisk, a na boisku biegają młode wilki, które bezlitośnie weryfikują Twoje przestarzałe poglądy piłkarskie.` },
-        { s: "Mundialowy Zagubiony", v: `Turniej pędzi jak szalony, 104 mecze dają popalić, a Ty wyglądasz na kogoś, kto wszedł do złego autobusu. Twoje OVR zbliża się niebezpiecznie do strefy spadkowej.` },
-        { s: "Ofiara Emocjonalna", v: `Typujesz sercem, a nie chłodnym umysłem. Chcesz, żeby mniejsi robili niespodzianki, a potęgi wygrywały pięknie. Futbol jednak jest brutalny i boleśnie niszczy Twoje marzenia.` }
+      // POZIOM 4: KATASTROFA / DÓŁ TABELI (OVR < 40) - 12 SZYDERCZYCH POTĘPIONYCH
+      const tierBottom = [
+        { s: "Dno i metr mułu", v: `Oficjalne, certyfikowane podziemie tej ligi. Twój bilans punktowy wygląda jak stan konta po studenckich wakacjach. Gdyby w tej lidze były spadki, lądujesz w okręgówce.` },
+        { s: "Piłkarski Niewidzialny", v: `Twoja intuicja sportowa schowała się tak głęboko w mule, że potrzebujemy ekipy ratunkowej. Nawet rzucając monetą miałbyś większą skuteczność. Totalny klops.` },
+        { s: "Anty-Jasnowidz Ligi", v: `Masz niesamowity, unikalny talent: typujesz tak spektakularnie źle, że reszta z 23 graczy powinna płacić Ci za podpowiedzi, żeby móc obstawić dokładnie na odwrót.` },
+        { s: "Sponsor Punktów", v: `Siedzisz na samym dole tabeli i dzielnie poprawiasz humor całej reszcie stawki. Twoja obecność tutaj jest wybitnie towarzyska, bo z rywalizacją sportową ma niewiele wspólnego.` },
+        { s: "Generator Losowych Liczb", v: `Czy przed każdą kolejką rzucasz kostką w ciemnym pokoju? Liczba trafionych wyników szoruje po dnie, a drużyna ${mainBadTeam} ostatecznie grzebie Twoje marzenia o wyjściu z mroku.` },
+        { s: "Wstyd i Ubóstwo", v: `Nawet najstarsi eksperci nie pamiętają tak spektakularnego zjazdu formy. Masz mniej punktów niż ekipy, które odpadły w eliminacjach. Czas wyłączyć komputer i odpocząć.` },
+        { s: "Maskotka Tabeli", v: `Zamknąłeś stawkę z kłódką, a klucz wrzuciłeś do najbliższej rzeki. Reszta ligi dziękuje za tak mało wymagającego rywala. Przynajmniej stabilnie trzymasz czerwoną latarnię.` },
+        { s: "Koszmar Taktyczny", v: `Twoje prognozy obrażają dyscyplinę sportową, jaką jest piłka nożna. Nawet ślepy traf by czasem coś ugrał, a Ty uparcie trzymasz się dna. Absolutna kompromitacja systemowa.` },
+        { s: "Władca Podziemia", v: `Osiągnąłeś stan absolutnego zera taktycznego. Twoja karta OVR wzbudza szczery żal i uśmiech politowania na grupie. Gorzej fizycznie nie dało się tego rozegrać.` },
+        { s: "Analfabeta Turniejowy", v: `Twoje wyczucie bramek działa w trybie wstecznym. Tam gdzie sypią się gole, Ty stawiasz na nudne 0:0, a tam gdzie murują – czekasz na hokejowy wynik. Tragedia.` },
+        { s: "Taktyczny Sabotażysta", v: `Twoje analizy przedmeczowe musiały opierać się na śledzeniu pogody w zupełnie innym kraju. Nic tu się nie trzyma kupy, a Twoje punkty po prostu wyparowały.` },
+        { s: "Kibic Sukcesu Widmo", v: `Ogólny obraz Twojej taktyki przypomina krajobraz po przejściu tornada. Kompletny brak formy turniejowej, zagubienie w terminarzu i zasłużona lokata na samym dnie.` }
       ];
 
       // SPECJALNY KOSZYK DLA EMIGRANTÓW (Walkowery)
@@ -209,30 +201,29 @@ const Stats = () => {
       ];
 
       // =========================================================
-      // DYNAMICZNE PRZYPISANIE DO KOSZYKA (Z ZERO-BEZPIECZNIKIEM)
+      // SPRAWIEDLIWE PRZYPISANIE DO KOSZYKA NA BAZIE OVR
       // =========================================================
       const seed = user.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + index;
-      const textIndex = seed % 10;
 
       if (emptyBets > 15) {
         style = "Turysta z loży VIP";
         verdict = ghostVerdicts[seed % ghostVerdicts.length];
-      } else if (outcomeCorrect === 0 && scoreCorrect === 0) {
-        // TU WPADAJĄ KONESERZY ZERA PUNKTÓW
-        style = tierAbsoluteZero[textIndex].s;
-        verdict = tierAbsoluteZero[textIndex].v;
-      } else if (OVR >= 85) {
+      } else if (OVR >= 80) {
+        const textIndex = seed % tierElite.length;
         style = tierElite[textIndex].s;
         verdict = tierElite[textIndex].v;
-      } else if (OVR >= 75) { 
+      } else if (OVR >= 68) { 
+        const textIndex = seed % tierSolid.length;
         style = tierSolid[textIndex].s;
         verdict = tierSolid[textIndex].v;
-      } else if (OVR >= 66) {
+      } else if (OVR >= 40) {
+        const textIndex = seed % tierMedium.length;
         style = tierMedium[textIndex].s;
         verdict = tierMedium[textIndex].v;
       } else {
-        style = tierLow[textIndex].s;
-        verdict = tierLow[textIndex].v;
+        const textIndex = seed % tierBottom.length;
+        style = tierBottom[textIndex].s;
+        verdict = tierBottom[textIndex].v;
       }
 
       // Kultowy Easter Egg dla Kuzyna
@@ -289,9 +280,9 @@ const Stats = () => {
       <Row>
         <Col xs={12}>
           <div style={{ marginTop: '10px', marginBottom: '20px', textAlign: 'center' }}>
-            <h2 style={{ color: '#FFD700', margin: 0, fontWeight: 'bold' }}>🏆 Loża Szyderców i Chwały MŚ</h2>
-            <div style={{ color: '#ff4d4d', fontSize: '0.75rem', marginTop: '5px', letterSpacing: '0.5px', fontWeight: '500' }}>
-              * System analizuje 104 mecze. Gracze z 0 pkt lądują bezlitośnie w mule z zerowym OVR!
+            <h2 style={{ color: '#FFD700', margin: 0, fontWeight: 'bold' }}>🏆 Loża Ekspertów i Szyderców MŚ</h2>
+            <div style={{ color: '#4caf50', fontSize: '0.75rem', marginTop: '5px', letterSpacing: '0.5px', fontWeight: '500' }}>
+              * Rywalizacja {profiles.length} graczy. Komentarze dopasowane poziomem i kulturą do Twojej karty OVR!
             </div>
             <hr style={{ borderColor: '#FFD700', width: '30%', margin: '12px auto 10px auto' }} />
           </div>
@@ -343,80 +334,104 @@ const Stats = () => {
       <Row className="justify-content-center">
         <Col xs={12} md={8} lg={6}>
 
-          {profiles.map((p, idx) => (
-            <div
-              key={idx}
-              style={{
-                background: 'linear-gradient(135deg, #1e1e1e 0%, #252525 100%)',
-                padding: '20px',
-                marginBottom: '25px',
-                borderRadius: '16px',
-                border: p.OVR <= 10 ? '2px dashed #ff4d4d' : '2px solid #2a2a2a',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.5)'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '15px' }}>
-                <div style={{ flexGrow: 1 }}>
-                  <h3 style={{ margin: 0, color: p.OVR <= 10 ? '#ff4d4d' : '#fff', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                    👤 {p.user}
-                  </h3>
-                  <span style={{ color: p.OVR <= 10 ? '#ff4d4d' : '#FFD700', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                    {p.style}
-                  </span>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <h1 style={{ margin: 0, color: p.OVR <= 10 ? '#ff4d4d' : '#FFD700', fontSize: '2.5rem', fontWeight: '800', lineHeight: '1' }}>
-                    {p.OVR}
-                  </h1>
-                  <span style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>OVR</span>
-                </div>
-              </div>
+          {profiles.map((p, idx) => {
+            // Kolorowanie kart zależnie od OVR dla lepszego efektu wizualnego
+            let cardBorder = '#2a2a2a';
+            let ovrColor = '#FFD700';
+            let verdictBg = 'rgba(255, 215, 0, 0.04)';
+            let accentColor = '#FFD700';
 
-              <Row style={{ marginBottom: '15px' }}>
-                <Col xs={6}>
-                  <div style={{ background: '#161616', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: 'bold' }}>🔮 SKUTECZNOŚĆ 1X2</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#4caf50' }}>{pct(p.outcomeRate)}</div>
-                    <div style={{ fontSize: '0.7rem', color: '#666' }}>({p.outcomeCorrect}/{p.outcomeTotal} meczów)</div>
+            if (p.OVR >= 80) {
+              cardBorder = '2px solid #FFD700';
+              ovrColor = '#FFD700';
+              verdictBg = 'rgba(255, 215, 0, 0.05)';
+            } else if (p.OVR >= 68) {
+              cardBorder = '2px solid #c0c0c0';
+              ovrColor = '#c0c0c0';
+              verdictBg = 'rgba(192, 192, 192, 0.05)';
+              accentColor = '#c0c0c0';
+            } else if (p.OVR < 40) {
+              cardBorder = '2px dashed #ff4d4d';
+              ovrColor = '#ff4d4d';
+              verdictBg = 'rgba(255, 77, 77, 0.05)';
+              accentColor = '#ff4d4d';
+            }
+
+            return (
+              <div
+                key={idx}
+                style={{
+                  background: 'linear-gradient(135deg, #1e1e1e 0%, #252525 100%)',
+                  padding: '20px',
+                  marginBottom: '25px',
+                  borderRadius: '16px',
+                  border: cardBorder,
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.5)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '15px' }}>
+                  <div style={{ flexGrow: 1 }}>
+                    <h3 style={{ margin: 0, color: p.OVR < 40 ? '#ff4d4d' : '#fff', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                      👤 {p.user}
+                    </h3>
+                    <span style={{ color: accentColor, fontWeight: 'bold', fontSize: '0.9rem' }}>
+                      {p.style}
+                    </span>
                   </div>
-                </Col>
-                <Col xs={6}>
-                  <div style={{ background: '#161616', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: 'bold' }}>🎯 DOKŁADNE WYNIKI</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2196f3' }}>{pct(p.scoreRate)}</div>
-                    <div style={{ fontSize: '0.7rem', color: '#666' }}>({p.scoreCorrect} trafień w punkt)</div>
+                  <div style={{ textAlign: 'right' }}>
+                    <h1 style={{ margin: 0, color: ovrColor, fontSize: '2.5rem', fontWeight: '800', lineHeight: '1' }}>
+                      {p.OVR}
+                    </h1>
+                    <span style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>OVR</span>
                   </div>
-                </Col>
-              </Row>
-
-              <div style={{ fontSize: '0.9rem', marginBottom: '15px', paddingBottom: '10px', borderBottom: '1px solid #333' }}>
-                <div style={{ margin: '6px 0', color: '#ccc' }}>
-                  <span style={{ color: '#4caf50', fontWeight: '600' }}>⚽ Zarabiasz na:</span> {p.bestPointTeams.join(', ') || 'Brak danych'}
                 </div>
-                <div style={{ margin: '6px 0', color: '#ccc' }}>
-                  <span style={{ color: '#f44336', fontWeight: '600' }}>💔 Tracisz przez:</span> {p.worstPointTeams.join(', ') || 'Brak danych'}
+
+                <Row style={{ marginBottom: '15px' }}>
+                  <Col xs={6}>
+                    <div style={{ background: '#161616', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: 'bold' }}>🔮 SKUTECZNOŚĆ 1X2</div>
+                      <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#4caf50' }}>{pct(p.outcomeRate)}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#666' }}>({p.outcomeCorrect}/{p.outcomeTotal} meczów)</div>
+                    </div>
+                  </Col>
+                  <Col xs={6}>
+                    <div style={{ background: '#161616', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: 'bold' }}>🎯 DOKŁADNE WYNIKI</div>
+                      <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2196f3' }}>{pct(p.scoreRate)}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#666' }}>({p.scoreCorrect} trafień w punkt)</div>
+                    </div>
+                  </Col>
+                </Row>
+
+                <div style={{ fontSize: '0.9rem', marginBottom: '15px', paddingBottom: '10px', borderBottom: '1px solid #333' }}>
+                  <div style={{ margin: '6px 0', color: '#ccc' }}>
+                    <span style={{ color: '#4caf50', fontWeight: '600' }}>⚽ Zarabiasz na:</span> {p.bestPointTeams.join(', ') || 'Brak danych'}
+                  </div>
+                  <div style={{ margin: '6px 0', color: '#ccc' }}>
+                    <span style={{ color: '#f44336', fontWeight: '600' }}>💔 Tracisz przez:</span> {p.worstPointTeams.join(', ') || 'Brak danych'}
+                  </div>
                 </div>
-              </div>
 
-              <div style={{ 
-                background: p.OVR <= 10 ? 'rgba(255, 77, 77, 0.05)' : 'rgba(255, 215, 0, 0.04)', 
-                padding: '12px', 
-                borderRadius: '8px', 
-                borderLeft: p.OVR <= 10 ? '4px solid #ff4d4d' : '4px solid #FFD700', 
-                fontSize: '0.9rem',
-                lineHeight: '1.45',
-                color: '#ddd' 
-              }}>
-                <strong>🧠 Werdykt systemu:</strong> {p.verdict}
-              </div>
+                <div style={{ 
+                  background: verdictBg, 
+                  padding: '12px', 
+                  borderRadius: '8px', 
+                  borderLeft: `4px solid ${accentColor}`, 
+                  fontSize: '0.9rem',
+                  lineHeight: '1.45',
+                  color: '#ddd' 
+                }}>
+                  <strong>🧠 Werdykt systemu:</strong> {p.verdict}
+                </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '8px', borderTop: '1px dashed #333', fontSize: '0.75rem', color: '#777' }}>
-                <span>Remisy (Wytypowane / TRAFIONE): {p.drawBetsPredicted} / <strong style={{ color: '#FFD700' }}>{p.drawBetsCorrect}</strong></span>
-                <span>Puste typy (:::): {p.emptyBets}</span>
-              </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '8px', borderTop: '1px dashed #333', fontSize: '0.75rem', color: '#777' }}>
+                  <span>Remisy (Wytypowane / TRAFIONE): {p.drawBetsPredicted} / <strong style={{ color: '#FFD700' }}>{p.drawBetsCorrect}</strong></span>
+                  <span>Puste typy (:::): {p.emptyBets}</span>
+                </div>
 
-            </div>
-          ))}
+              </div>
+            );
+          })}
 
         </Col>
       </Row>
