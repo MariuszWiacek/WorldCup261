@@ -103,11 +103,13 @@ const Stats = () => {
       const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
 
       // =========================================================
-      // 🚀 REALISTYCZNY ALGORYTM OVR (A LA EA FC / FIFA)
+      // 🚀 NOWA, ZBALANSOWANA SKALA OVR POD TWOJE STATYSTYKI
+      // Lider (18 dokładnych, 46 poprawnych) osiągnie teraz około 92-96 OVR.
+      // Osoba z 8-10 dokładnymi zakręci się wokół świetnego 75-80 OVR.
       // =========================================================
-      const baseOVR = 40; 
-      const outcomeBonus = outcomeRate * 45; 
-      const exactScoreBonus = scoreCorrect * 4.0; 
+      const baseOVR = 45; 
+      const outcomeBonus = outcomeRate * 35; 
+      const exactScoreBonus = scoreCorrect * 2.2; 
       
       const OVR = Math.min(Math.round(baseOVR + outcomeBonus + exactScoreBonus), 100);
 
@@ -115,8 +117,8 @@ const Stats = () => {
       const bestPointTeams = [...validTeams].sort((a, b) => b[1].points - a[1].points).slice(0, 3).map(([team]) => team);
       const worstPointTeams = [...validTeams].sort((a, b) => b[1].cost - a[1].cost).slice(0, 3).map(([team]) => team);
 
-      const mainGoodTeam = bestPointTeams[0] || "losowych reprezentacji";
-      const mainBadTeam = worstPointTeams[0] || "murowanych faworytów";
+      const mainGoodTeam = bestPointTeams[0] || "reprezentacji";
+      const mainBadTeam = worstPointTeams[0] || "faworytów";
 
       const drawPredictionRatio = outcomeTotal ? (drawBetsPredicted / outcomeTotal) : 0;
 
@@ -124,91 +126,70 @@ const Stats = () => {
       let verdict = "";
 
       // =========================================================
-      // 🎭 EKSTREMALNIE ROZBUDOWANA BAZA MUNDIALOWEGO HUMORU
+      // 🎭 REALISTYCZNE PROGI I SZYDERA MUNDIALOWA
       // =========================================================
 
-      // GRUPA 0: WIDMA I DEZERTERZY (Brak typów na maratonie MŚ)
       const specialGhosts = [
-        { s: "Widmo z Trybun", v: `Twoje konto pokryło się kurzem. Oddajesz mecze walkowerem szybciej niż reprezentacje z małych wysp tracą bramki w preeliminacjach. Podobno utknąłeś w strefie kibica albo boisz się presji maratonu 104 meczów.` },
-        { s: "Spóźniony Selekcjoner", v: `Analizujesz składy, oglądasz konferencje, ale co z tego, skoro wiecznie zapominasz zatwierdzić kupon przed pierwszym gwizdkiem? Puste pola gonią puste pola. Ustaw budzik na fazę pucharową!` },
-        { s: "Ekspert Wakacyjny", v: `Twoja absencja na tym Mundialu staje się legendarna. Rywale dopisują darmowe punkty, a Ty oglądasz turniej z pozycji absolutnego plażowicza. Czy zamierzasz w ogóle wysłać chociaż jeden kupon na ćwierćfinały?` },
-        { s: "Kanapowy Dezerter", v: `Cały świat żyje meczami, emocje sięgają zenitu, a u Ciebie w statystykach wieje nudą i pustką. Szkoda uciekających szans, bo z takimi wynikami na turnieju potencjał na punkty był ogromny.` }
+        { s: "Dezerter z Copacabany", v: `Twoje konto zrosło się z ławką rezerwowych. Oddajesz mecze walkowerem szybciej niż faworyci tracą bramki w doliczonym czasie. Podobno utknąłeś w strefie kibica bez internetu.` }
       ];
 
-      // GRUPA 1: TOP ELITA MUNDIALOWA (OVR 86 - 100)
+      // KLASA ŚWIATOWA (OVR 86+) - REZERWACJA DLA LIDERÓW LIGI (~14-18 dokładnych wyników)
       const tierElite_Ofensywny = [
-        { s: "Analityczny Terminator MŚ", v: `Coś niesamowitego! Przewidziałeś pogrom faworyta i idealnie wyczułeś intencje selekcjonerów. Bezkompromisowo niszczysz system na tym turnieju, a Twoją osobistą kopalnią punktów stała się ekipa: ${mainGoodTeam}.` },
-        { s: "Jasnowidz z Katarskich Pustyń", v: `Zgłoś się do telewizji, bo marnujesz się w amatorskiej lidze. Czytasz przebieg meczów na Mistrzostwach Świata szybciej niż system VAR. Sprawdzamy, czy nie masz bezpośredniego telefonu do Gianniego Infantino!` },
-        { s: "Postrach Selekcjonerów", v: `Grasz bezczelnie dobrze. Wybierasz zwycięzców z taką lekkością, jakbyś sam pisał scenariusz tego Mundialu. Rywale dostają stanów lękowych, kiedy zerkają na Twoje zielone kupony.` },
-        { s: "Mundialowy Guru", v: `Twoja dominacja na tym turnieju nie podlega dyskusji. Rozpracowałeś specyfikę 104 meczów do perfekcji. Odrzucasz asekuranctwo, grasz na pełne 3 punkty, a reprezentacja, którą jest ${mainGoodTeam}, to Twój złoty talizman.` },
-        { s: "Władca Złotego Pucharu", v: `Masz niesamowity zmysł do przewidywania, która nacja zamknie usta krytykom. Omijasz turniejowe miny i sensacje szerokim łukiem. Czysty, profesjonalny i piekielnie skuteczny styl.` }
+        { s: "Mundialowy Szaman", v: `Kosmiczny poziom! Trafić tyle dokładnych wyników przy tylu niespodziankach to czysty układ z sędziami albo szamanizm. Rozpracowałeś ten turniej, a ${mainGoodTeam} to Twój prywatny dostawca punktów premium.` },
+        { s: "Analityczny Potwór FIFA", v: `Ty nie typujesz, Ty piszesz scenariusz tego turnieju. Masz więcej trafionych dokładnych wyników niż niektóre reprezentacje mają strzałów na bramkę. Czapki z głów, absolutna elita.` }
       ];
       const tierElite_Remisowy = [
-        { s: "Chirurg Wyników X", v: `Genialna, wręcz przerażająca intuicja do trafiania remisów tam, gdzie wszyscy stawiali na wielką Brazylię czy Francję. Twoje wyczucie morderczych, mundurowych meczów walki o wyjście z grupy to klasa światowa.` },
-        { s: "Cesarz Antyfutbolu", v: `Masz niesamowity zmysł taktyczny. Bezbłędnie polujesz na bezbramkowe remisy w meczach otwarcia i fazie pucharowej. Reprezentacja, którą jest ${mainGoodTeam}, zapewnia Ci spokojny sen i stałe punkty za nudne 0:0.` },
-        { s: "Mundialowy Algorytm", v: `Działasz jak dobrze zaprogramowany komputer. Wyłapujesz reprezentacje grające na czas i szukające dogrywek z zimną krwią. Twoja przewaga nad napalonymi na grad bramek graczami rośnie z każdym meczem.` }
+        { s: "Profesor Wyników X", v: `Chora intuicja do nudnych meczów walki o wyjście z grupy. Podczas gdy wszyscy liczyli na pogromy ze strony gigantów, Ty z zimną krwią inkasujesz punkty za bezbramkowe remisy.` }
       ];
 
-      // GRUPA 2: BARDZO SOLIDNI (OVR 76 - 85)
+      // GENIALNY TYPER / GWIAZDA LIGI (OVR 75 - 85) - (~8-13 dokładnych wyników) -> TU JESTEŚ DOBRY!
       const tierSolid_Ofensywny = [
-        { s: "Solidny Reprezentant", v: `Bardzo stabilna, wysoka forma na przestrzeni całego maratonu. Stawiasz na konkretnych zwycięzców i rzadko dajesz się nabrać na sensacje. Świetnie czujesz formę, jaką prezentuje ${mainGoodTeam}.` },
-        { s: "Łowca Czarnych Koni", v: `Nie robisz szumu, ale co kolejkę bezlitośnie punktujesz na drużynach z Ameryki Południowej czy Afryki. Idealnie wyczuwasz, kiedy faworyt lekceważy rywala. Podium turnieju jest w Twoim zasięgu!` },
-        { s: "Mundialowy Strateg", v: `Wiesz doskonale, że turniej ze 104 meczami to morderczy maraton, a nie sprint. Cierpliwie zbierasz punkty na pewniakach, a Twój nos do zwycięstw drużyny ${mainGoodTeam} budzi zasłużony szacunek w tabeli.` },
-        { s: "Selekcjoner z Charakterem", v: `Twoje zaangażowanie przynosi świetne efekty. Grasz ofensywnie, unikasz turniejowych pułapek i potrafisz idealnie przewidzieć, która reprezentacja pęknie pod presją milionów kibiców.` }
+        { s: "Czarny Koń Typera", v: `OVR 75+ na tym turnieju to rewelacja! Masz na koncie masę bezbłędnie trafionych dokładnych wyników. Nie straszne Ci wpadki potęg, bo idealnie czytasz intencje trenerów. Szczególnie, gdy gra ${mainGoodTeam}.` },
+        { s: "Postrach Bukmacherów", v: `Grasz kapitalny turniej. Masz świetne oko do detali – Twoja liczba trafionych wyników w punkt budzi uzasadnioną zazdrość w całej tabeli. Podium jest na wyciągnięcie ręki!` },
+        { s: "Mundialowy Strateg", v: `Bardzo wysoka kultura typowania. Wyłapujesz mecze, gdzie faworyt dostaje zadyszki i przekuwasz to na potężne punkty. Zespół ${mainGoodTeam} powinien odpalić Ci procent z premii meczowej.` }
       ];
       const tierSolid_Remisowy = [
-        { s: "Profesor Chłodnej Głowy", v: `Żadnych gwałtownych ruchów na kuponie. Twoja taktyka opiera się na szukaniu podziałów punktów w zaciętych meczach grupowych. Choć czasem ${mainBadTeam} popsuje Ci szyki golem w 94. minucie, remisy trzymają Cię wysoko.` },
-        { s: "Władca Dogrywek", v: `Twoja forma jest twardsza niż obrona reprezentacji Włoch w najlepszych latach. Masz niesamowitego nosa do zaciętych meczów o wszystko, gdzie nikt nie chce zaryzykować otwartej gry.` }
+        { s: "Minister Obrony Narodowej", v: `Twoja wysoka pozycja i OVR to zasługa kapitalnego wyczucia taktycznego. Wychwytujesz mecze, w których reprezentacje murują bramkę i dowożą cenne remisy do końca.` }
       ];
 
-      // GRUPA 3: KLASYCZNA KLASA ŚREDNIA (OVR 66 - 75)
+      // SOLIDNA KLASA ŚREDNIA (OVR 66 - 74) - (~5-7 dokładnych wyników)
       const tierMedium_Ofensywny = [
-        { s: "Ofiara Sensacyjnych Wtop", v: `Doskonale wiesz, kto dominuje na boisku, ale ten turniej to festiwal niespodzianek. Trafiasz faworytów, dopóki Argentyna nie przegra z jakimś autsajderem, niszcząc Twój idealny kupon.` },
-        { s: "Romantyk Ofensywnego Futbolu", v: `W głębi serca kochasz piękną grę i w każdym meczu Mundialu typujesz grad bramek i pogromy (3:0, 4:2). Widowisko na ekranie masz super, ale turniejowa pragmatyka i mecze o życie boleśnie weryfikują Twoje punkty.` },
-        { s: "Mundialowy Teoretyk", v: `Analizujesz rankingi FIFA, powołania i temperaturę powietrza w miastach gospodarzach. Masz świetną teorię na każdy mecz, tylko szkoda, że piłkarze na murawie kompletnie nie znają Twoich zaawansowanych planów.` },
-        { s: "Stabilny Średniak Turnieju", v: `Twoje typy na wygrane potęg są tak bezpieczne, oczywiste i poprawne, że aż nudne. Brakuje Ci odrobiny szaleństwa, żeby postawić na jakąś piękną turniejową sensację i uciec środkowi tabeli.` }
+        { s: "Ofiara Mundurowych Wtop", v: `Grasz dobrze, ale turniejowe niespodzianki (typu wygrana Kopciuszka z pretendentem do złota) regularnie psują Twój wysoki dorobek. Skuteczność 1X2 jest na miejscu, ale brakuje jeszcze kilku czystych trafień bramkowych.` },
+        { s: "Niezły Taktyk", v: `Trzymasz się blisko czołówki. Masz przebłyski geniuszu i kilka pięknych wyników w punkt, ale w tym maratonie 104 meczów zdarzają Ci się też kolejki, o których wolałbyś jak najszybciej zapomnieć.` }
       ];
       const tierMedium_Remisowy = [
-        { s: "Koneser Nudnych Meczów", v: `Tam, gdzie inni widzą pewne punkty dla mistrzów świata, Ty uparcie szukasz zapachu nudnego 0:0 lub wymęczonego 1:1. Masz nosa do morderczych meczów walki, choć czasem kosztuje Cię to spadek dynamiki.` },
-        { s: "Niezdecydowany Analityk", v: `Szukasz remisów w meczach reprezentacji, które słyną z ultra-ofensywnej gry. Przekombinowujesz przed samym gwizdkiem, próbując przewidzieć sensację tam, gdzie skończy się klasycznym 3:0.` }
+        { s: "Koneser Wyniku 1:1", v: `Stabilny środek stawki. Masz nosa do zaciętych spotkań, ale zbyt często asekurujesz się remisem tam, gdzie któraś nacja ostatecznie przepycha kolanem wygraną w 90. minucie.` }
       ];
 
-      // GRUPA 4: NIŻSZE SFERY (OVR 51 - 65)
+      // NIŻSZE REJONY (OVR 51 - 65) - (Mało dokładnych wyników, faworyci zawodzą)
       const tierLow_Ofensywny = [
-        { s: "Wizjoner Ślepych Sensacji", v: `Uparcie szukasz wielkich triumfów i historycznych niespodzianek tam, gdzie ich po prostu nie ma. Twój patriotyzm lub sympatia do piłkarskich liliputów jest godna podziwu, ale tabela MŚ bywa bezlitosna.` },
-        { s: "Kibic Sukcesu na Zakręcie", v: `Stawiasz w ciemno wyłącznie na wielkie nazwy naczyń (Brazylia, Niemcy, Francja), a te na tym turnieju koncertowo zawodzą i tracą punkty z teoretycznie słabszymi. Lecisz w dół tabeli razem ze swoimi pupilami.` },
-        { s: "Mistrz Pechowej Bramki", v: `To jest dopiero dramat. Dobrze przewidujesz, która reprezentacja zgarnie 3 punkty, ale zawsze pomylisz się o tę jedną, kluczową bramkę w doliczonym czasie. Napastnicy robią wszystko, by zepsuć Twoje dokładne wyniki.` },
-        { s: "Ofiara Systemu VAR", v: `Masz potwornego pecha na tym turnieju. Twoje dokładne wyniki i wygrane płoną w oczach, gdy sędziowie po pięciominutowej analizie wideo odwołują kluczowe gole ze spalonego o długość paznokcia.` }
+        { s: "Ofiara Systemu VAR", v: `Masz potwornego pecha. Często dobrze typujesz zwycięzcę, ale sędziowie anulujący bramki w doliczonym czasie gry zabierają Ci bezcenne punkty za dokładne wyniki. Tabela bywa brutalna.` },
+        { s: "Romantyk Pięknego Futbolu", v: `Uparcie wierzysz, że na Mundialu każda potęga wygra 3:0 lub 4:1. Piłkarze jednak wolą nudne, turniejowe 1:0 i przez to tracisz masę punktów na swoich szalonych prognozach.` }
       ];
       const tierLow_Remisowy = [
-        { s: "Ofiara 90. Minuty", v: `Twoje turniejowe remisy wyglądają doskonale do 89. minuty meczu. Niestety, w doliczonym czasie jakiś rezerwowy zawsze strzela gola życia kolanem po rzucie rożnym, niszcząc Twój podział punktów.` },
-        { s: "Pechowy Obrońca Częstochowy", v: `Wkładasz masę pracy w analizę formacji defensywnych, licząc na bezbramkowe remisy w meczach o wyjście z grupy. Los śmieje Ci się w twarz – szybki gol z karnego w 3. minucie niszczy całą Twoją taktykę.` }
+        { s: "Pechowy Obrońca", v: `Szukasz remisów tam, gdzie padają pogromy. Twoje kalkulacje obronne pękają jak domek z kart, gdy jedna z drużyn strzeli szybkiego gola na początku meczu.` }
       ];
 
-      // GRUPA 5: DÓŁ TABELI (OVR <= 50) - KATASTROFA I SZYDERA MUNDIALOWA
+      // DÓŁ TABELI (OVR <= 50) - PEŁNA KATASTROFA I SZYDERA
       const tierBottom_Ofensywny = [
-        { s: "Podpalacz Mundialowych Kuponów", v: `Grasz z niesamowitą, wręcz ułańską fantazją, stawiając na wygrane reprezentacji, które zapomniały zabrać na turniej butów piłkarskich. Każdy Twój kupon płonie szybciej niż flary kibiców. Czas zmienić taktykę.` },
-        { s: "Ślepy Snajper Reprezentacji", v: `Kompletna tragedia na murawie. Nawet jak jakimś cudem wytypujesz zwycięzcę, to liczba bramek ucieka Ci o lata świetlne. Twoim największym katem na tym turnieju jest zdecydowanie reprezentacja: ${mainBadTeam}.` },
-        { s: "Generator Losowych Wyników", v: `Kompletny sabotaż kuponów. Wygląda na to, że przed zatwierdzeniem typu dajesz kotu przejść po klawiaturze albo rzucasz rzutkami w mapę świata. Drużyna ${mainBadTeam} regularnie i z premedytacją niszczy Twoje życie.` },
-        { s: "Mundialowa Czerwona Latarnia", v: `Zamykasz stawkę mistrzostw. Twoje typy na wygrane potęg są idealnym wskaźnikiem tego, kto w danym meczu zaliczy kompromitację stulecia. Znajomi z ligi powinni stawiać dokładnie odwrotnie niż Ty.` }
+        { s: "Mundialowy Sabotażysta", v: `Kompletny brak formy turniejowej. Twoje typy wyglądają tak, jakbyś rzucał monetą, a i tak los robi Ci na złość. Reprezentacja ${mainBadTeam} skutecznie zadbała o Twój spadek na samo dno tabeli.` },
+        { s: "Generator Losowości", v: `Zamykasz stawkę mistrzostw. Jeśli ktoś z Twoich znajomych chce zdobyć punkty, wystarczy że zapyta Cię o typ i postawi dokładnie odwrotnie. Katastrofalny nos do wyników.` }
       ];
       const tierBottom_Remisowy = [
-        { s: "Kolekcjoner Kosmicznych Remisów", v: `Wyniki remisowe, które prognozujesz w meczach absolutnych potęg z totalnymi debiutantami na Mundialu, nie wydarzyłyby się nawet w grach komputerowych. Abstrakcja całkowicie wygrała u Ciebie z logiką.` },
-        { s: "Antytalent Taktyczny X", v: `Twoje wyczucie zaciętych meczów turniejowych osiągnęło stan nieważkości. Postawienie przez Ciebie na remis skutkuje natychmiastowym, jednostronnym laniem i pogromem 5:0 na boisku. Niesamowita supermoc.` }
+        { s: "Wizjoner Kosmicznych X", v: `Stawiasz remisy w meczach, gdzie faworyci robią sobie trening strzelecki i wygrywają po 5:0. Abstrakcja całkowicie wygrała u Ciebie z logiką boiskową.` }
       ];
 
       // =========================================================
-      // SELEKCJA PULI KOMENTARZY (MŚ OVR)
+      // SELEKCJA PULI
       // =========================================================
       const isRemisowy = drawPredictionRatio > 0.28; 
-
       let selectedPool = [];
 
-      if (emptyBets > 12) {
+      if (emptyBets > 15) {
         selectedPool = specialGhosts;
       } else if (OVR >= 86) {
         selectedPool = isRemisowy ? tierElite_Remisowy : tierElite_Ofensywny;
-      } else if (OVR >= 76) {
+      } else if (OVR >= 75) { // <--- OD TERAZ 75 TO OFICJALNA GWIAZDA LIGI
         selectedPool = isRemisowy ? tierSolid_Remisowy : tierSolid_Ofensywny;
       } else if (OVR >= 66) {
         selectedPool = isRemisowy ? tierMedium_Remisowy : tierMedium_Ofensywny;
@@ -218,7 +199,6 @@ const Stats = () => {
         selectedPool = isRemisowy ? tierBottom_Remisowy : tierBottom_Ofensywny;
       }
 
-      // Dynamiczne generowanie unikalnego indeksu, by teksty nie powtarzały się wśród graczy o tym samym progu OVR
       const seed = user.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + index;
       const variantIndex = seed % selectedPool.length;
       style = selectedPool[variantIndex].s;
@@ -279,7 +259,7 @@ const Stats = () => {
           <div style={{ marginTop: '10px', marginBottom: '20px', textAlign: 'center' }}>
             <h2 style={{ color: '#FFD700', margin: 0, fontWeight: 'bold' }}>🏆 Zaawansowane Profile Typerów</h2>
             <div style={{ color: '#ff4d4d', fontSize: '0.75rem', marginTop: '5px', letterSpacing: '0.5px', fontWeight: '500' }}>
-              * Treści mają charakter wyłącznie humorystyczny i są generowane automatycznie przez sztuczną inteligencję (AI) na podstawie statystyk turniejowych MŚ.
+              * Skala OVR dostosowana do realiów turnieju (Lider ~18 dokładnych wyników).
             </div>
             <hr style={{ borderColor: '#FFD700', width: '30%', margin: '12px auto 10px auto' }} />
           </div>
@@ -291,7 +271,7 @@ const Stats = () => {
         <Col xs={12} md={10} lg={8}>
           <div style={{ background: '#1c1a12', border: '1px solid #FFD700', borderRadius: '14px', padding: '18px', boxShadow: '0 0 15px rgba(255,215,0,0.1)' }}>
             <h5 style={{ color: '#FFD700', margin: '0 0 15px 0', textTransform: 'uppercase', fontSize: '1rem', letterSpacing: '1px', textAlign: 'center' }}>
-              📊 STATYSTYKI GLOBALNE LIGI (MUNDIAL 104 MECZE)
+              📊 STATYSTYKI GLOBALNE LIGI (REALISTYCZNA SKALA MŚ)
             </h5>
             
             <Row style={{ fontSize: '0.85rem' }}>
@@ -372,7 +352,7 @@ const Stats = () => {
                   <div style={{ background: '#161616', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
                     <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: 'bold' }}>🎯 DOKŁADNE WYNIKI</div>
                     <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2196f3' }}>{pct(p.scoreRate)}</div>
-                    <div style={{ fontSize: '0.7rem', color: '#666' }}>({p.scoreCorrect} czystych trafień)</div>
+                    <div style={{ fontSize: '0.7rem', color: '#666' }}>({p.scoreCorrect} trafień w punkt)</div>
                   </div>
                 </Col>
               </Row>
