@@ -93,7 +93,7 @@ const Chatbox = ({ isOpen, toggleChatbox, externalUnreadCount }) => {
       fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
     },
     header: {
-      backgroundColor: '#008131',
+      backgroundColor: '#0274ff',
       color: 'white',
       padding: '12px 14px',
       fontWeight: 'bold',
