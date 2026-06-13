@@ -3,7 +3,7 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 import { initializeApp } from 'firebase/app';
 import { Row, Col, Container } from 'react-bootstrap';
 
-// 🔌 Firebase — tu zaczyna się cała zabawa (i potencjalne bugi 😄)
+// 🔌 Firebase — serce chaosu typerskiego
 const firebaseConfig = {
   apiKey: "AIzaSyBnSIOvM6OkqRqujx_kDWzo8RhFBPS7aVw",
   authDomain: "wc2026-396b7.firebaseapp.com",
@@ -23,68 +23,49 @@ const Stats = () => {
   const [submittedData, setSubmittedData] = useState({});
   const [profiles, setProfiles] = useState([]);
 
-  const [showKingOfDraws, setShowKingOfDraws] = useState(false);
-  const [showMostEmpty, setShowMostEmpty] = useState(false);
+  const pick = (arr, seed) => arr[Math.abs(seed) % arr.length];
 
-  const [globalStats, setGlobalStats] = useState({
-    mostDrawsPredicted: { users: '---', count: 0 },
-    kingOfDraws: { users: '---', count: 0 },
-    mostExactScores: { users: '---', count: 0 },
-    mostEmpty: { users: '---', count: 0 }
-  });
-
-  // 📡 Podpinamy realtime feed (czyli: kto właśnie się ośmiesza)
+  // 📡 LIVE DANE
   useEffect(() => {
-    const resultsRef = ref(db, 'results');
-    const submittedRef = ref(db, 'submittedData');
-
-    const unsubResults = onValue(resultsRef, snap =>
+    const unsubResults = onValue(ref(db, 'results'), snap =>
       setResults(snap.val() || {})
     );
 
-    const unsubSubmitted = onValue(submittedRef, snap =>
+    const unsubSubmitted = onValue(ref(db, 'submittedData'), snap =>
       setSubmittedData(snap.val() || {})
     );
 
-    // 🧹 Sprzątanie po Firebase (żeby nie było duchów listenerów 👻)
     return () => {
       unsubResults?.();
       unsubSubmitted?.();
     };
   }, []);
 
-  // 🧠 Główna maszyna analityczna — tu rodzą się legendy i kompromitacje
   useEffect(() => {
     if (!submittedData || !results) return;
 
     const parseScore = (s = "") => {
-      const clean = String(s).replace(/\s/g, '');
-      const [a, b] = clean.split(':');
+      const [a, b] = String(s).replace(/\s/g, '').split(':');
       return [Number(a), Number(b)];
     };
 
     const output = [];
 
-    Object.keys(submittedData).forEach((user, index) => {
+    Object.keys(submittedData).forEach((user) => {
       const bets = submittedData[user] || {};
 
       let outcomeCorrect = 0;
       let outcomeTotal = 0;
-
       let scoreCorrect = 0;
       let scoreTotal = 0;
-
       let emptyBets = 0;
-      let drawBetsPredicted = 0;
-      let drawBetsCorrect = 0;
-
-      const teamStats = {};
+      let drawPred = 0;
+      let drawCorr = 0;
 
       Object.entries(bets).forEach(([matchId, bet]) => {
         const result = results[matchId];
         if (!bet || !result) return;
 
-        // 💤 Puste typy — klasyczny „zapomniałem wysłać”
         if (!bet.score || bet.score === ':::' || bet.score === ':') {
           emptyBets++;
           return;
@@ -93,196 +74,169 @@ const Stats = () => {
         const [rh, ra] = parseScore(result);
         const [bh, ba] = parseScore(bet.score);
 
-        const actualOutcome = rh === ra ? 'X' : rh > ra ? '1' : '2';
+        const actual = rh === ra ? 'X' : rh > ra ? '1' : '2';
 
         outcomeTotal++;
         scoreTotal++;
 
-        if (bet.bet === actualOutcome) {
-          outcomeCorrect++;
-          if (bet.bet === 'X') drawBetsCorrect++;
-        }
+        if (bet.bet === actual) outcomeCorrect++;
+        if (bh === rh && ba === ra) scoreCorrect++;
 
-        if (bet.bet === 'X') drawBetsPredicted++;
-
-        if (bh === rh && ba === ra) {
-          scoreCorrect++;
-        }
-
-        const tHome = bet.home || "Nieznany";
-        const tAway = bet.away || "Nieznany";
-
-        if (!teamStats[tHome]) teamStats[tHome] = { points: 0, cost: 0, total: 0 };
-        if (!teamStats[tAway]) teamStats[tAway] = { points: 0, cost: 0, total: 0 };
-
-        teamStats[tHome].total++;
-        teamStats[tAway].total++;
-
-        if (bet.bet === actualOutcome) {
-          teamStats[tHome].points++;
-          teamStats[tAway].points++;
-        } else {
-          teamStats[tHome].cost++;
-          teamStats[tAway].cost++;
+        if (bet.bet === 'X') {
+          drawPred++;
+          if (actual === 'X') drawCorr++;
         }
       });
 
-      const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
-      const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
+      const hasBets = outcomeTotal > 0 || scoreTotal > 0;
 
-      // 🎯 OVR — czyli jak bardzo możesz flexować na grupie
-      const baseOVR = 45;
-      const outcomeBonus = outcomeRate * 35;
-      const exactBonus = scoreTotal ? (scoreCorrect / scoreTotal) * 20 : 0;
-
-      const OVR = Math.min(
-        Math.round(baseOVR + outcomeBonus + exactBonus),
-        100
-      );
-
-      const validTeams = Object.entries(teamStats).filter(([_, v]) => v.total >= 2);
-
-      const bestPointTeams = [...validTeams]
-        .sort((a, b) => b[1].points - a[1].points)
-        .slice(0, 3)
-        .map(([team]) => team);
-
-      const worstPointTeams = [...validTeams]
-        .sort((a, b) => b[1].cost - a[1].cost)
-        .slice(0, 3)
-        .map(([team]) => team);
-
-      const mainGoodTeam = bestPointTeams[0] || "reprezentacji";
-      const mainBadTeam = worstPointTeams[0] || "faworytów";
-
-      const drawPredictionRatio =
-        outcomeTotal ? drawBetsPredicted / outcomeTotal : 0;
-
-      // 🎲 Generator losowego upokorzenia (ale sprawiedliwy 😄)
-      const seed =
-        user.split('').reduce((a, c) => a + c.charCodeAt(0), 0) +
-        index +
-        OVR;
-
-      let selectedPool = [];
-
-      // 👻 brak aktywności
-      if (emptyBets > 15) {
-        selectedPool = [
-          { s: "Ekspert widmo", v: "Zniknąłeś z turnieju szybciej niż VAR po kontrowersji." }
-        ];
-      } else {
-        selectedPool =
-          OVR >= 75
-            ? [
-                { s: "Mistrz analiz", v: `Grasz jakbyś znał wyniki przed meczem. ${mainGoodTeam} Cię niesie.` },
-                { s: "Bukmacher killer", v: "Twoje typy robią straty gdzie się da." }
-              ]
-            : [
-                { s: "Chaos kontrolowany", v: `Twoje decyzje są odważne... niestety dla tabeli. Winny: ${mainBadTeam}` },
-                { s: "Generator losowości", v: "Tu logika bierze urlop." }
-              ];
+      // 👻 brak gry
+      if (!hasBets) {
+        output.push({
+          user,
+          OVR: 0,
+          style: "Nieaktywny obserwator",
+          verdict: "Brak typów = brak miejsca w tabeli.",
+          outcomeRate: 0,
+          scoreRate: 0,
+          outcomeCorrect: 0,
+          scoreCorrect: 0,
+          outcomeTotal: 0,
+          emptyBets,
+          drawPred,
+          drawCorr
+        });
+        return;
       }
 
-      const variantIndex = selectedPool.length ? seed % selectedPool.length : 0;
+      // 📊 TABELA (core system)
+      const outcomeRate = outcomeCorrect / outcomeTotal;
+      const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
+      const activity = Math.min(outcomeTotal / 104, 1);
 
-      const style = selectedPool[variantIndex]?.s || "Niestabilny typer";
-      const verdict =
-        selectedPool[variantIndex]?.v ||
-        "System nie był w stanie Cię sklasyfikować. To też wynik.";
+      const OVRraw =
+        outcomeRate * 55 +
+        scoreRate * 35 +
+        activity * 10;
+
+      const OVR = Math.min(Math.round(OVRraw), 100);
+
+      const seed =
+        user.split('').reduce((a, c) => a + c.charCodeAt(0), 0) + OVR;
+
+      // 🎭 WERDYKTY (DUŻA BAZA)
+
+      const ghostPool = [
+        "Nieaktywny obserwator ligi.",
+        "Brak typów = brak historii.",
+        "System nie znalazł Twojej obecności.",
+        "Jesteś w tabeli, ale nie grasz.",
+        "Offline mode aktywny."
+      ];
+
+      const elitePool = [
+        "Grasz jak ktoś, kto zna wynik przed meczem.",
+        "Tabela jest tylko statystyką Twojej dominacji.",
+        "Bukmacherzy analizują Twoje typy jak zagrożenie systemowe.",
+        "Twoje decyzje wyprzedzają futbol o krok.",
+        "Nie zgadujesz — Ty przewidujesz."
+      ];
+
+      const solidPool = [
+        "Stabilna forma bez fajerwerków.",
+        "Solidny ligowiec — zawsze w grze.",
+        "Bez dramatu, bez historii.",
+        "Tabela Cię lubi, ale nie kocha.",
+        "Grasz poprawnie, ale bez legendy."
+      ];
+
+      const midPool = [
+        "Środek tabeli — klasyczny balans chaosu.",
+        "Raz trafiasz, raz uczysz się na błędach.",
+        "Liga zna Twoje imię, ale nie boi się go.",
+        "Stabilna przeciętność.",
+        "Możesz więcej, ale coś blokuje upgrade."
+      ];
+
+      const lowPool = [
+        "Tabela nie kłamie — jest ciężko.",
+        "Twoje typy testują cierpliwość ligi.",
+        "Chaos jest Twoim stylem gry.",
+        "Każdy mecz to nowa lekcja bólu.",
+        "Futbol wygrywa z Twoją logiką."
+      ];
+
+      let style = "";
+      let verdict = "";
+
+      if (OVR >= 80) {
+        style = "Elita tabeli";
+        verdict = pick(elitePool, seed);
+      } else if (OVR >= 60) {
+        style = "Solidny ligowiec";
+        verdict = pick(solidPool, seed);
+      } else if (OVR >= 40) {
+        style = "Środek tabeli";
+        verdict = pick(midPool, seed);
+      } else {
+        style = "Czerwona latarnia";
+        verdict = pick(lowPool, seed);
+      }
 
       output.push({
         user,
+        OVR,
         style,
         verdict,
-        OVR,
         outcomeRate,
         scoreRate,
         outcomeCorrect,
         scoreCorrect,
         outcomeTotal,
         emptyBets,
-        drawBetsPredicted,
-        drawBetsCorrect,
-        bestPointTeams,
-        worstPointTeams
+        drawPred,
+        drawCorr
       });
     });
 
     output.sort((a, b) => b.OVR - a.OVR);
     setProfiles(output);
-
-    if (output.length) {
-      const maxDrawsPred = Math.max(...output.map(p => p.drawBetsPredicted));
-      const maxDrawsCorr = Math.max(...output.map(p => p.drawBetsCorrect));
-      const maxExact = Math.max(...output.map(p => p.scoreCorrect));
-      const maxEmpty = Math.max(...output.map(p => p.emptyBets));
-
-      const usersMostDrawsPred = output
-        .filter(p => p.drawBetsPredicted === maxDrawsPred)
-        .map(p => p.user)
-        .join(', ');
-
-      const usersKingOfDraws = output
-        .filter(p => p.drawBetsCorrect === maxDrawsCorr)
-        .map(p => p.user)
-        .join(', ');
-
-      const usersMostExact = output
-        .filter(p => p.scoreCorrect === maxExact)
-        .map(p => p.user)
-        .join(', ');
-
-      const usersMostEmpty = output
-        .filter(p => p.emptyBets === maxEmpty)
-        .map(p => p.user)
-        .join(', ');
-
-      setShowKingOfDraws(maxDrawsCorr > 0);
-      setShowMostEmpty(maxEmpty > 0);
-
-      setGlobalStats({
-        mostDrawsPredicted: { users: usersMostDrawsPred, count: maxDrawsPred },
-        kingOfDraws: { users: usersKingOfDraws, count: maxDrawsCorr },
-        mostExactScores: { users: usersMostExact, count: maxExact },
-        mostEmpty: { users: usersMostEmpty, count: maxEmpty }
-      });
-    }
   }, [submittedData, results]);
 
   const pct = v => `${(v * 100).toFixed(1)}%`;
 
-  let activeCards = 2;
-  if (showKingOfDraws) activeCards++;
-  if (showMostEmpty) activeCards++;
-
-  const colSize = Math.floor(12 / activeCards);
-
   return (
-    <Container fluid style={{ background: '#121212', minHeight: '100vh', padding: 20, color: '#fff' }}>
+    <Container fluid style={{ background: '#121212', minHeight: '100vh', color: '#fff', padding: 20 }}>
+
       <Row>
-        <Col xs={12}>
-          <h2 style={{ textAlign: 'center', color: '#FFD700' }}>
-            🏆 Loża Szyderców i Chwały MŚ
-          </h2>
+        <Col xs={12} style={{ textAlign: 'center' }}>
+          <h2>🏆 Liga Typerska MŚ</h2>
         </Col>
       </Row>
 
-      {profiles.map((p, idx) => (
-        <div key={idx} style={{ margin: 20, padding: 20, background: '#1e1e1e', borderRadius: 12 }}>
+      {profiles.map((p, i) => (
+        <div key={i} style={{ margin: 15, padding: 15, background: '#1e1e1e', borderRadius: 10 }}>
+
           <h3>👤 {p.user}</h3>
           <div style={{ color: '#FFD700' }}>{p.style}</div>
+
           <h1>{p.OVR}</h1>
 
-          <div>📊 {pct(p.outcomeRate)} | 🎯 {pct(p.scoreRate)}</div>
-
-          <div>🧠 {p.verdict}</div>
-
-          <div style={{ fontSize: 12, opacity: 0.7 }}>
-            Remisy: {p.drawBetsPredicted}/{p.drawBetsCorrect} | Puste: {p.emptyBets}
+          <div>
+            📊 1X2: {pct(p.outcomeRate)} | 🎯 Exact: {pct(p.scoreRate)}
           </div>
+
+          <div style={{ marginTop: 10 }}>
+            🧠 {p.verdict}
+          </div>
+
+          <div style={{ fontSize: 12, opacity: 0.7, marginTop: 10 }}>
+            Remisy: {p.drawPred}/{p.drawCorr} | Puste: {p.emptyBets}
+          </div>
+
         </div>
       ))}
+
     </Container>
   );
 };
