@@ -28,7 +28,7 @@ const VERDICTS_BANK = {
     { s: "Władca Szklanej Kuli", v: "Forma godna mistrza. Rywale widzą Cię już tylko w lusterkach." },
     { s: "Profesor Futbolu", v: "Profesor sztuki typerskiej. Każdy ruch jest przemyślany." },
     { s: "As Wywiadu Sportowego", v: "Geniusz strategii. Twoje analizy i nos do wyników to wyższa szkoła jazdy." },
-    { s: "Strateg Nowej Eras", v: "Prawdziwy dominator tego sezonu. Klasa sama w sobie." },
+    { s: "Strateg Nowej Ery", v: "Prawdziwy dominator tego sezonu. Klasa sama w sobie." },
     { s: "Mundialowy Strateg", v: "Złoty standard typowania. Twoja intuicja rzadko kiedy zawodzi." },
     { s: "Analityk Premium", v: "Na tym poziomie nie ma już mowy o przypadku. To czysty skill." },
     { s: "Łowca Wyników", v: "Twoje typy wchodzą z chirurgiczną precyzją. Czapki z głów." },
@@ -62,7 +62,7 @@ const VERDICTS_BANK = {
     { s: "Ekspert z Kanapy", v: "Czasami brakuje po prostu sportowego szczęścia. Głowa do góry.", draw: false },
     { s: "Zakładnik Sentymentów", v: "Statystyki nie kłamią – ten sezon to solidna, lekka szkoła przetrwania.", draw: false },
     { s: "Koneser Wyniku 1:1", v: "Przynajmniej z remisami masz jakąś nić porozumienia. Uratowały Ci skórę.", draw: true },
-    { s: "Strażnik Podziału Punktów", v: "Gdyby nie te trafione remisy, środek tabeli oglądałbyś tylko przez lornetkę.", draw: true }
+    { s: "Strażnik Podziału Punktów", v: "Grytby nie te trafione remisy, środek tabeli oglądałbyś tylko przez lornetkę.", draw: true }
   ],
   mul: [
     { s: "Dno i metr mułu", v: "Czerwona latarnia ligi. Czas drastycznie zmienić taktykę." },
@@ -100,7 +100,7 @@ const Stats = () => {
     mostEmpty: { users: '---', count: 0 }
   });
 
-  // Fetch data safely from Realtime Database
+  // Safe Realtime Database subscription hooks
   useEffect(() => {
     const unsubResults = onValue(ref(db, 'results'), snap => {
       if (snap.exists()) setResults(snap.val());
@@ -114,15 +114,23 @@ const Stats = () => {
     };
   }, []);
 
-  // Compute stats on data change
+  // Compute operational stats dynamic loops
   useEffect(() => {
-    // If data hasn't arrived yet, do not execute parsing loops
     if (!submittedData || Object.keys(submittedData).length === 0 || !results || Object.keys(results).length === 0) {
       return;
     }
 
     const rawProfiles = [];
     let absoluteMaxDrawsCorrect = 0;
+
+    // A. DYNAMICZNE WYLICZENIE ROZEGRANYCH MECZÓW Z BAZY RESULTS
+    const playedMatchesCount = Object.values(results).filter(res => {
+      if (!res) return false;
+      const resString = typeof res === 'object' ? String(res.score || '') : String(res);
+      return resString.includes(':') && resString.trim() !== '';
+    }).length;
+
+    const currentMatchesBase = playedMatchesCount > 0 ? playedMatchesCount : 1;
 
     Object.keys(submittedData).forEach((user, index) => {
       const bets = submittedData[user] || {};
@@ -141,14 +149,14 @@ const Stats = () => {
       Object.entries(bets).forEach(([matchId, bet]) => {
         if (!bet) return;
 
-        // 1. Walkover/Empty Bet Check
+        // 1. Walkover/Empty validation
         const scoreStr = String(bet.score || '');
         if (!scoreStr || scoreStr === ':::' || scoreStr === ':' || scoreStr.trim() === '') {
           emptyBets++;
           return;
         }
 
-        // 2. Fetch match result safely
+        // 2. Fetch match result shapes safely
         const rawResult = results[matchId];
         if (!rawResult) return;
 
@@ -158,12 +166,11 @@ const Stats = () => {
         } else if (typeof rawResult === 'string') {
           finalResultString = rawResult;
         } else {
-          return; // Unknown shape
+          return;
         }
 
         if (!finalResultString.includes(':')) return;
 
-        // Extract numbers from result (handles structures like "TeamA_TeamB:2:1" or simply "2:1")
         const resParts = finalResultString.split(':');
         let rh, ra;
         if (resParts.length >= 3) {
@@ -177,7 +184,6 @@ const Stats = () => {
 
         const actualOutcome = rh === ra ? 'X' : rh > ra ? '1' : '2';
 
-        // 3. Parse prediction score
         if (!scoreStr.includes(':')) return;
         const betParts = scoreStr.split(':');
         const bh = Number(betParts[0]);
@@ -186,7 +192,6 @@ const Stats = () => {
 
         outcomeTotal++;
         
-        // 1X2 Check
         if (String(bet.bet).toUpperCase() === actualOutcome) {
           outcomeCorrect++;
           calculatedPoints += 1;
@@ -195,14 +200,13 @@ const Stats = () => {
         
         if (String(bet.bet).toUpperCase() === 'X') drawBetsPredicted++;
 
-        // Exact Score Check
         scoreTotal++;
         if (bh === rh && ba === ra) {
           scoreCorrect++;
           calculatedPoints += 2;
         }
 
-        // 4. Safe Team Names Identification
+        // 3. Fallback tracking algorithm for team profiles
         let tHome = bet.home || (matchId.includes('_') ? matchId.split('_')[0] : null);
         let tAway = bet.away || (matchId.includes('_') ? matchId.split('_')[1] : null);
 
@@ -232,7 +236,6 @@ const Stats = () => {
       const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
       const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
 
-      // Filter out raw generated keys to make it visually descriptive
       const validTeams = Object.entries(teamStats).filter(([name, v]) => v.total >= 1 && !name.startsWith("Klub "));
       const bestPointTeams = [...validTeams].sort((a, b) => b[1].points - a[1].points).slice(0, 3).map(([team]) => team);
       const worstPointTeams = [...validTeams].sort((a, b) => b[1].cost - a[1].cost).slice(0, 3).map(([team]) => team);
@@ -244,25 +247,27 @@ const Stats = () => {
       });
     });
 
-    // Process algorithms for rankings & comments
+    // B. PRZELICZANIE OVR NA BAZIE ROZEGRANYCH SPOTKAŃ
     const output = rawProfiles.map(p => {
       const mainBadTeam = p.worstPointTeams[0] || "pewniaków";
-      
-      const totalLeagueMatches = 153; 
-      const actualPredictions = totalLeagueMatches - p.emptyBets;
 
       let OVR = 0;
-      if (actualPredictions <= 0) {
+      if (p.outcomeTotal === 0) {
         OVR = 10;
       } else {
-        const pointsPerMatch = p.calculatedPoints / actualPredictions;
-        const exactScoreEfficiency = p.scoreCorrect / actualPredictions;
+        const pointsPerMatch = p.calculatedPoints / p.outcomeTotal;
+        const exactScoreEfficiency = p.scoreCorrect / p.outcomeTotal;
 
         const pointsScore = Math.min((pointsPerMatch / 0.75) * 100, 100);
         const exactScoreBonus = Math.min((exactScoreEfficiency / 0.15) * 100, 100);
 
         let baseOvr = (pointsScore * 0.70) + (exactScoreBonus * 0.30);
-        if (p.emptyBets > 0) baseOvr -= (p.emptyBets * 1.5);
+
+        // Kara za pominięte mecze z tych, które już się odbyły w bazie danych
+        const missedMatchesInCurrentPool = currentMatchesBase - p.outcomeTotal;
+        if (missedMatchesInCurrentPool > 0) {
+          baseOvr -= (missedMatchesInCurrentPool * 2.0);
+        }
 
         OVR = Math.max(1, Math.min(Math.round(baseOvr), 99));
       }
@@ -315,7 +320,6 @@ const Stats = () => {
     output.sort((a, b) => b.OVR - a.OVR);
     setProfiles(output);
 
-    // Global highlights data pipeline
     if (output.length > 0) {
       const maxDrawsPred = Math.max(...output.map(p => p.drawBetsPredicted));
       const usersMostDrawsPred = output.filter(p => p.drawBetsPredicted === maxDrawsPred).map(p => p.user).join(', ');
@@ -348,7 +352,7 @@ const Stats = () => {
   if (showMostEmpty) activeCards++;
   const colSize = Math.floor(12 / activeCards);
 
-  // Fallback Loading Screen to prevent blank rendering during structural processing
+  // Zabezpieczenie przed pustym renderem w czasie synchronizacji bazy
   if (profiles.length === 0) {
     return (
       <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#FFD700' }}>
@@ -364,14 +368,14 @@ const Stats = () => {
           <div style={{ marginTop: '10px', marginBottom: '20px', textAlign: 'center' }}>
             <h2 style={{ color: '#FFD700', margin: 0, fontWeight: 'bold' }}>🏆 Loża Ekspertów i Szyderców MŚ</h2>
             <div style={{ color: '#4caf50', fontSize: '0.75rem', marginTop: '5px', letterSpacing: '0.5px', fontWeight: '500' }}>
-              * Rywalizacja {profiles.length} graczy. OVR skalowane pod realia ligi (Lider sezonu otwiera strefę Złota).
+              * Rywalizacja {profiles.length} graczy. OVR skalowane dynamicznie pod rozegrane mecze.
             </div>
             <hr style={{ borderColor: '#FFD700', width: '30%', margin: '12px auto 10px auto' }} />
           </div>
         </Col>
       </Row>
 
-      {/* GLOBAL REKORDS */}
+      {/* GLOBAL LIGA RECORDS */}
       <Row className="justify-content-center" style={{ marginBottom: '30px' }}>
         <Col xs={12} md={10} lg={8}>
           <div style={{ background: '#1c1a12', border: '1px solid #FFD700', borderRadius: '14px', padding: '18px', boxShadow: '0 0 15px rgba(255,215,0,0.1)' }}>
@@ -412,7 +416,7 @@ const Stats = () => {
         </Col>
       </Row>
 
-      {/* USER CARDS */}
+      {/* PROFILE PLAYER CARDS */}
       <Row className="justify-content-center">
         <Col xs={12} md={8} lg={6}>
           {profiles.map((p, idx) => {
