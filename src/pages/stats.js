@@ -62,7 +62,7 @@ const VERDICTS_BANK = {
     { s: "Ekspert z Kanapy", v: "Czasami brakuje po prostu sportowego szczęścia. Głowa do góry.", draw: false },
     { s: "Zakładnik Sentymentów", v: "Statystyki nie kłamią – ten sezon to solidna, lekka szkoła przetrwania.", draw: false },
     { s: "Koneser Wyniku 1:1", v: "Przynajmniej z remisami masz jakąś nić porozumienia. Uratowały Ci skórę.", draw: true },
-    { s: "Strażnik Podziału Punktów", v: "Grytby nie te trafione remisy, środek tabeli oglądałbyś tylko przez lornetkę.", draw: true }
+    { s: "Strażnik Podziału Punktów", v: "Gdyby nie te trafione remisy, środek tabeli oglądałbyś tylko przez lornetkę.", draw: true }
   ],
   mul: [
     { s: "Dno i metr mułu", v: "Czerwona latarnia ligi. Czas drastycznie zmienić taktykę." },
@@ -100,7 +100,6 @@ const Stats = () => {
     mostEmpty: { users: '---', count: 0 }
   });
 
-  // Safe Realtime Database subscription hooks
   useEffect(() => {
     const unsubResults = onValue(ref(db, 'results'), snap => {
       if (snap.exists()) setResults(snap.val());
@@ -114,7 +113,6 @@ const Stats = () => {
     };
   }, []);
 
-  // Compute operational stats dynamic loops
   useEffect(() => {
     if (!submittedData || Object.keys(submittedData).length === 0 || !results || Object.keys(results).length === 0) {
       return;
@@ -122,8 +120,9 @@ const Stats = () => {
 
     const rawProfiles = [];
     let absoluteMaxDrawsCorrect = 0;
+    let absoluteMaxExactScores = 0;
+    let absoluteMaxOutcomeCorrect = 0;
 
-    // A. DYNAMICZNE WYLICZENIE ROZEGRANYCH MECZÓW Z BAZY RESULTS
     const playedMatchesCount = Object.values(results).filter(res => {
       if (!res) return false;
       const resString = typeof res === 'object' ? String(res.score || '') : String(res);
@@ -149,14 +148,12 @@ const Stats = () => {
       Object.entries(bets).forEach(([matchId, bet]) => {
         if (!bet) return;
 
-        // 1. Walkover/Empty validation
         const scoreStr = String(bet.score || '');
         if (!scoreStr || scoreStr === ':::' || scoreStr === ':' || scoreStr.trim() === '') {
           emptyBets++;
           return;
         }
 
-        // 2. Fetch match result shapes safely
         const rawResult = results[matchId];
         if (!rawResult) return;
 
@@ -191,22 +188,22 @@ const Stats = () => {
         if (isNaN(bh) || isNaN(ba)) return;
 
         outcomeTotal++;
+        scoreTotal++;
         
-        if (String(bet.bet).toUpperCase() === actualOutcome) {
+        // --- NOWY SYSTEM PUNKTACJI (3 PKT ZA WYNIK, 1 PKT ZA TYP) ---
+        if (bh === rh && ba === ra) {
+          scoreCorrect++;
+          calculatedPoints += 3; // Dokładny wynik = 3 punkty
+          if (actualOutcome === 'X') drawBetsCorrect++;
+          outcomeCorrect++; 
+        } else if (String(bet.bet).toUpperCase() === actualOutcome) {
           outcomeCorrect++;
-          calculatedPoints += 1;
+          calculatedPoints += 1; // Tylko tendencja (1X2) = 1 punkt
           if (actualOutcome === 'X') drawBetsCorrect++;
         }
         
         if (String(bet.bet).toUpperCase() === 'X') drawBetsPredicted++;
 
-        scoreTotal++;
-        if (bh === rh && ba === ra) {
-          scoreCorrect++;
-          calculatedPoints += 2;
-        }
-
-        // 3. Fallback tracking algorithm for team profiles
         let tHome = bet.home || (matchId.includes('_') ? matchId.split('_')[0] : null);
         let tAway = bet.away || (matchId.includes('_') ? matchId.split('_')[1] : null);
 
@@ -229,9 +226,9 @@ const Stats = () => {
         }
       });
 
-      if (drawBetsCorrect > absoluteMaxDrawsCorrect) {
-        absoluteMaxDrawsCorrect = drawBetsCorrect;
-      }
+      if (drawBetsCorrect > absoluteMaxDrawsCorrect) absoluteMaxDrawsCorrect = drawBetsCorrect;
+      if (scoreCorrect > absoluteMaxExactScores) absoluteMaxExactScores = scoreCorrect;
+      if (outcomeCorrect > absoluteMaxOutcomeCorrect) absoluteMaxOutcomeCorrect = outcomeCorrect;
 
       const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
       const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
@@ -247,7 +244,7 @@ const Stats = () => {
       });
     });
 
-    // B. PRZELICZANIE OVR NA BAZIE ROZEGRANYCH SPOTKAŃ
+    // B. PRZELICZANIE OVR NA BAZIE ROZEGRANYCH SPOTKAŃ I NOWEJ PUNKTACJI
     const output = rawProfiles.map(p => {
       const mainBadTeam = p.worstPointTeams[0] || "pewniaków";
 
@@ -255,18 +252,17 @@ const Stats = () => {
       if (p.outcomeTotal === 0) {
         OVR = 10;
       } else {
-        const pointsPerMatch = p.calculatedPoints / p.outcomeTotal;
-        const exactScoreEfficiency = p.scoreCorrect / p.outcomeTotal;
+        // Maksymalna teoretyczna liczba punktów do zdobycia w rozegranych meczach (gdyby wszystko trafić za 3 pkt)
+        const maxPossiblePoints = p.outcomeTotal * 3;
+        const performanceRatio = p.calculatedPoints / maxPossiblePoints;
 
-        const pointsScore = Math.min((pointsPerMatch / 0.75) * 100, 100);
-        const exactScoreBonus = Math.min((exactScoreEfficiency / 0.15) * 100, 100);
+        // Skalowanie: Złoty poziom (100 OVR) oczekujemy przy zdobyciu ~45% maksymalnych punktów (bardzo wysoki poziom w lidze)
+        let baseOvr = (performanceRatio / 0.45) * 100;
 
-        let baseOvr = (pointsScore * 0.70) + (exactScoreBonus * 0.30);
-
-        // Kara za pominięte mecze z tych, które już się odbyły w bazie danych
+        // Kara za pominięte mecze z tych, które już się odbyły
         const missedMatchesInCurrentPool = currentMatchesBase - p.outcomeTotal;
         if (missedMatchesInCurrentPool > 0) {
-          baseOvr -= (missedMatchesInCurrentPool * 2.0);
+          baseOvr -= (missedMatchesInCurrentPool * 2.5);
         }
 
         OVR = Math.max(1, Math.min(Math.round(baseOvr), 99));
@@ -289,15 +285,26 @@ const Stats = () => {
       let verdict = "";
       const seed = p.user.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + p.index;
 
+      // --- AKTYWACJA UNIKALNYCH RÓL PREMIUM DLA LIDERÓW STATYSTYK ---
       if (basket === "nieaktywny") {
         const pool = VERDICTS_BANK.nieaktywny;
         const item = pool[seed % pool.length];
         style = item.s;
         verdict = item.v;
       } 
+      // 🎯 Unikalna rola: Snajper Dokładnych Wyników
+      else if (p.scoreCorrect === absoluteMaxExactScores && p.scoreCorrect > 0 && OVR >= 48) {
+        style = "Chirurg Wyników (Snajper)";
+        verdict = `Niewiarygodna precyzja! Masz najwięcej dokładnych trafień w lidze (${p.scoreCorrect}). Podczas gdy inni zgarniają marne grosze za 1X2, Ty inkasujesz potężne pakiety po 3 punkty. Prawdziwy postrach tabeli.`;
+      }
+      // 🔮 Unikalna rola: Król Czystych Typów 1X2
+      else if (p.outcomeCorrect === absoluteMaxOutcomeCorrect && p.outcomeCorrect > 0 && OVR >= 48) {
+        style = "Analityk Trendów (Główny Strateg)";
+        verdict = `Twoje czytanie boiskowych intencji to majstersztyk. Masz najwięcej bezbłędnie wytypowanych tendencji meczów (${p.outcomeCorrect}). Twój algorytm analityczny rzadko kiedy się myli!`;
+      }
       else if (p.drawBetsCorrect === absoluteMaxDrawsCorrect && p.drawBetsCorrect > 0) {
         style = "Oficjalny Król Remisów";
-        verdict = `Genialny, turniejowy nos do najbardziej ryzykownych spotkań. Podczas gdy cała liga ślepo stawia na pewniaków, Ty bezbłędnie namierzasz podziały punktów i zgarniasz potężne premie za iksy. Oby tak dalej!`;
+        verdict = `Genialny, turniejowy nos do najbardziej ryzykownych spotkań. Podczas gdy cała liga ślepo stawia na pewniaków, Ty bezbłędnie namierzasz podziały punktów. Oby tak dalej!`;
       } 
       else {
         let currentPool = VERDICTS_BANK[basket];
@@ -352,7 +359,6 @@ const Stats = () => {
   if (showMostEmpty) activeCards++;
   const colSize = Math.floor(12 / activeCards);
 
-  // Zabezpieczenie przed pustym renderem w czasie synchronizacji bazy
   if (profiles.length === 0) {
     return (
       <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#FFD700' }}>
@@ -368,14 +374,14 @@ const Stats = () => {
           <div style={{ marginTop: '10px', marginBottom: '20px', textAlign: 'center' }}>
             <h2 style={{ color: '#FFD700', margin: 0, fontWeight: 'bold' }}>🏆 Loża Ekspertów i Szyderców MŚ</h2>
             <div style={{ color: '#4caf50', fontSize: '0.75rem', marginTop: '5px', letterSpacing: '0.5px', fontWeight: '500' }}>
-              * Rywalizacja {profiles.length} graczy. OVR skalowane dynamicznie pod rozegrane mecze.
+              * Ranking OVR uwzględnia wagę punktacji (Dokładny wynik: 3pkt | Typ 1X2: 1pkt).
             </div>
             <hr style={{ borderColor: '#FFD700', width: '30%', margin: '12px auto 10px auto' }} />
           </div>
         </Col>
       </Row>
 
-      {/* GLOBAL LIGA RECORDS */}
+      {/* GLOBAL REKORDS */}
       <Row className="justify-content-center" style={{ marginBottom: '30px' }}>
         <Col xs={12} md={10} lg={8}>
           <div style={{ background: '#1c1a12', border: '1px solid #FFD700', borderRadius: '14px', padding: '18px', boxShadow: '0 0 15px rgba(255,215,0,0.1)' }}>
@@ -408,7 +414,7 @@ const Stats = () => {
                 <Col xs={colSize} style={{ marginBottom: '12px' }}>
                   <div style={{ color: '#aaa', fontSize: '0.7rem', fontWeight: 'bold' }}>💤 ODKLEJONY OD TERMINARZA</div>
                   <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{globalStats.mostEmpty.users}</div>
-                  <div style={{ color: '#f44336', fontSize: '0.8rem' }}>{globalStats.mostEmpty.count} oddanych walkowerów</div>
+                  <div style={{ color: '#ff4d4d', fontSize: '0.8rem' }}>{globalStats.mostEmpty.count} oddanych walkowerów</div>
                 </Col>
               )}
             </Row>
@@ -416,7 +422,7 @@ const Stats = () => {
         </Col>
       </Row>
 
-      {/* PROFILE PLAYER CARDS */}
+      {/* USER CARDS */}
       <Row className="justify-content-center">
         <Col xs={12} md={8} lg={6}>
           {profiles.map((p, idx) => {
@@ -425,7 +431,17 @@ const Stats = () => {
             let verdictBg = 'rgba(255, 215, 0, 0.04)';
             let accentColor = '#FFD700';
 
-            if (p.style === "Oficjalny Król Remisów") {
+            if (p.style.includes("Chirurg Wyników")) {
+              cardBorder = '2px solid #2196f3';
+              ovrColor = '#2196f3';
+              verdictBg = 'rgba(33, 150, 243, 0.06)';
+              accentColor = '#2196f3';
+            } else if (p.style.includes("Analityk Trendów")) {
+              cardBorder = '2px solid #4caf50';
+              ovrColor = '#4caf50';
+              verdictBg = 'rgba(76, 175, 80, 0.06)';
+              accentColor = '#4caf50';
+            } else if (p.style === "Oficjalny Król Remisów") {
               cardBorder = '2px solid #00e5ff';
               ovrColor = '#00e5ff';
               verdictBg = 'rgba(0, 229, 255, 0.05)';
@@ -480,21 +496,21 @@ const Stats = () => {
                     <div style={{ background: '#161616', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: 'bold' }}>🔮 SKUTECZNOŚĆ 1X2</div>
                       <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#4caf50' }}>{pct(p.outcomeRate)}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#666' }}>({p.outcomeCorrect}/{p.outcomeTotal} meczów)</div>
+                      <div style={{ fontSize: '0.7rem', color: '#666' }}>({p.outcomeCorrect}/{p.outcomeTotal} m.)</div>
                     </div>
                   </Col>
                   <Col xs={6}>
                     <div style={{ background: '#161616', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: 'bold' }}>🎯 DOKŁADNE WYNIKI</div>
                       <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2196f3' }}>{pct(p.scoreRate)}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#666' }}>({p.scoreCorrect} trafień w punkt)</div>
+                      <div style={{ fontSize: '0.7rem', color: '#666' }}>({p.scoreCorrect} trafień za 3pkt)</div>
                     </div>
                   </Col>
                 </Row>
 
                 <div style={{ fontSize: '0.9rem', marginBottom: '15px', paddingBottom: '10px', borderBottom: '1px solid #333' }}>
                   <div style={{ margin: '6px 0', color: '#ccc' }}>
-                    <span style={{ color: '#4caf50', fontWeight: '600' }}>⚽ Zarabiasz na:</span> {p.bestPointTeams.join(', ') || 'Brak danych'}
+                    <span style={{ color: '#4caf50', fontWeight: '600' }}>⚡ Zarabiasz na:</span> {p.bestPointTeams.join(', ') || 'Brak danych'}
                   </div>
                   <div style={{ margin: '6px 0', color: '#ccc' }}>
                     <span style={{ color: '#f44336', fontWeight: '600' }}>💔 Tracisz przez:</span> {p.worstPointTeams.join(', ') || 'Brak danych'}
@@ -514,8 +530,8 @@ const Stats = () => {
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '8px', borderTop: '1px dashed #333', fontSize: '0.75rem', color: '#777' }}>
-                  <span>Remisy (Wytypowane / TRAFIONE): {p.drawBetsPredicted} / <strong style={{ color: '#FFD700' }}>{p.drawBetsCorrect}</strong></span>
-                  <span>Puste typy (:::): {p.emptyBets}</span>
+                  <span>Punkty: <strong style={{ color: '#4caf50' }}>{p.calculatedPoints} pkt</strong></span>
+                  <span>Remisy (X): {p.drawBetsPredicted} / <strong style={{ color: '#00e5ff' }}>{p.drawBetsCorrect}</strong></span>
                 </div>
               </div>
             );
