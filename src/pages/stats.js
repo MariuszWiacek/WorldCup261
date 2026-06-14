@@ -28,7 +28,7 @@ const VERDICTS_BANK = {
     { s: "Władca Szklanej Kuli", v: "Forma godna mistrza. Rywale widzą Cię już tylko w lusterkach." },
     { s: "Profesor Futbolu", v: "Profesor sztuki typerskiej. Każdy ruch jest przemyślany." },
     { s: "As Wywiadu Sportowego", v: "Geniusz strategii. Twoje analizy i nos do wyników to wyższa szkoła jazdy." },
-    { s: "Strateg Nowej Ery", v: "Prawdziwy dominator tego sezonu. Klasa sama w sobie." },
+    { s: "Strateg Nowej Eras", v: "Prawdziwy dominator tego sezonu. Klasa sama w sobie." },
     { s: "Mundialowy Strateg", v: "Złoty standard typowania. Twoja intuicja rzadko kiedy zawodzi." },
     { s: "Analityk Premium", v: "Na tym poziomie nie ma już mowy o przypadku. To czysty skill." },
     { s: "Łowca Wyników", v: "Twoje typy wchodzą z chirurgiczną precyzją. Czapki z głów." },
@@ -50,7 +50,7 @@ const VERDICTS_BANK = {
     { s: "Mundialowy Dyplomata", v: "Bilans zdecydowanie na plus. Sezon w Twoim wykonaniu wygląda obiecująco." }
   ],
   braz: [
-    { s: "Ofiara 90. Minuty", v: "Środek tabeli to bezpieczna przystąń, ale stać Cię na więcej.", draw: false },
+    { s: "Ofiara 90. Minuty", v: "Środek tabeli to bezpieczna przystań, ale stać Cię na więcej.", draw: false },
     { s: "Stabilny Urzędnik", v: "Grasz falami – genialne weekendy przeplatasz totalną posuchą.", draw: false },
     { s: "Piłkarski Romantyk", v: "Przeciętny sezon. Potrzebujesz serii punktowej, by uciec szarzyźnie.", draw: false },
     { s: "Typer Falujący", v: "Typujesz sercem, a piłka bywa brutalna. Czas na chłodną kalkulację.", draw: false },
@@ -100,17 +100,26 @@ const Stats = () => {
     mostEmpty: { users: '---', count: 0 }
   });
 
+  // Fetch data safely from Realtime Database
   useEffect(() => {
-    const unsubResults = onValue(ref(db, 'results'), snap => setResults(snap.val() || {}));
-    const unsubData = onValue(ref(db, 'submittedData'), snap => setSubmittedData(snap.val() || {}));
+    const unsubResults = onValue(ref(db, 'results'), snap => {
+      if (snap.exists()) setResults(snap.val());
+    });
+    const unsubData = onValue(ref(db, 'submittedData'), snap => {
+      if (snap.exists()) setSubmittedData(snap.val());
+    });
     return () => {
       unsubResults();
       unsubData();
     };
   }, []);
 
+  // Compute stats on data change
   useEffect(() => {
-    if (!submittedData || Object.keys(submittedData).length === 0 || !results || Object.keys(results).length === 0) return;
+    // If data hasn't arrived yet, do not execute parsing loops
+    if (!submittedData || Object.keys(submittedData).length === 0 || !results || Object.keys(results).length === 0) {
+      return;
+    }
 
     const rawProfiles = [];
     let absoluteMaxDrawsCorrect = 0;
@@ -130,49 +139,74 @@ const Stats = () => {
       const teamStats = {};
 
       Object.entries(bets).forEach(([matchId, bet]) => {
-        const resultString = results[matchId];
-        // Safely check if result exists and contains a score delimiter
-        if (!bet || !resultString || typeof resultString !== 'string' || !resultString.includes(':')) return;
+        if (!bet) return;
 
-        if (!bet.score || bet.score === ':::' || bet.score === ':') {
+        // 1. Walkover/Empty Bet Check
+        const scoreStr = String(bet.score || '');
+        if (!scoreStr || scoreStr === ':::' || scoreStr === ':' || scoreStr.trim() === '') {
           emptyBets++;
           return;
         }
 
-        const scoreParts = resultString.split(':');
-        // Fallback safety if database stores "Home-Away:Score" or just "Score"
-        const resultScore = scoreParts.length > 2 ? scoreParts[2] : scoreParts[0] + ':' + scoreParts[1];
-        
-        const [rh, ra] = resultScore.split(':').map(Number);
+        // 2. Fetch match result safely
+        const rawResult = results[matchId];
+        if (!rawResult) return;
+
+        let finalResultString = '';
+        if (typeof rawResult === 'object' && rawResult.score) {
+          finalResultString = String(rawResult.score);
+        } else if (typeof rawResult === 'string') {
+          finalResultString = rawResult;
+        } else {
+          return; // Unknown shape
+        }
+
+        if (!finalResultString.includes(':')) return;
+
+        // Extract numbers from result (handles structures like "TeamA_TeamB:2:1" or simply "2:1")
+        const resParts = finalResultString.split(':');
+        let rh, ra;
+        if (resParts.length >= 3) {
+          rh = Number(resParts[resParts.length - 2]);
+          ra = Number(resParts[resParts.length - 1]);
+        } else {
+          rh = Number(resParts[0]);
+          ra = Number(resParts[1]);
+        }
         if (isNaN(rh) || isNaN(ra)) return;
 
         const actualOutcome = rh === ra ? 'X' : rh > ra ? '1' : '2';
-        
-        if (!bet.score.includes(':')) return;
-        const [bh, ba] = bet.score.split(':').map(Number);
+
+        // 3. Parse prediction score
+        if (!scoreStr.includes(':')) return;
+        const betParts = scoreStr.split(':');
+        const bh = Number(betParts[0]);
+        const ba = Number(betParts[1]);
+        if (isNaN(bh) || isNaN(ba)) return;
 
         outcomeTotal++;
-        if (bet.bet === actualOutcome) {
+        
+        // 1X2 Check
+        if (String(bet.bet).toUpperCase() === actualOutcome) {
           outcomeCorrect++;
           calculatedPoints += 1;
-          if (bet.bet === 'X') drawBetsCorrect++;
+          if (actualOutcome === 'X') drawBetsCorrect++;
         }
         
-        if (bet.bet === 'X') drawBetsPredicted++;
+        if (String(bet.bet).toUpperCase() === 'X') drawBetsPredicted++;
 
+        // Exact Score Check
         scoreTotal++;
         if (bh === rh && ba === ra) {
           scoreCorrect++;
           calculatedPoints += 2;
         }
 
-        // --- FIX FOR TEAM STATS ---
-        // Fallback logic to grab team names from the matchId context keys if not present on 'bet'
+        // 4. Safe Team Names Identification
         let tHome = bet.home || (matchId.includes('_') ? matchId.split('_')[0] : null);
         let tAway = bet.away || (matchId.includes('_') ? matchId.split('_')[1] : null);
 
         if (!tHome || !tAway) {
-          // Alternative fallback to avoid bundling all teams together into "Nieznany"
           tHome = "Klub H_" + matchId;
           tAway = "Klub A_" + matchId;
         }
@@ -182,7 +216,7 @@ const Stats = () => {
         teamStats[tHome].total++;
         teamStats[tAway].total++;
 
-        if (bet.bet === actualOutcome) {
+        if (String(bet.bet).toUpperCase() === actualOutcome) {
           teamStats[tHome].points++;
           teamStats[tAway].points++;
         } else {
@@ -198,7 +232,7 @@ const Stats = () => {
       const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
       const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
 
-      // Filter teams that actually have a descriptive name string
+      // Filter out raw generated keys to make it visually descriptive
       const validTeams = Object.entries(teamStats).filter(([name, v]) => v.total >= 1 && !name.startsWith("Klub "));
       const bestPointTeams = [...validTeams].sort((a, b) => b[1].points - a[1].points).slice(0, 3).map(([team]) => team);
       const worstPointTeams = [...validTeams].sort((a, b) => b[1].cost - a[1].cost).slice(0, 3).map(([team]) => team);
@@ -210,8 +244,8 @@ const Stats = () => {
       });
     });
 
+    // Process algorithms for rankings & comments
     const output = rawProfiles.map(p => {
-      const mainGoodTeam = p.bestPointTeams[0] || "Twoich faworytów";
       const mainBadTeam = p.worstPointTeams[0] || "pewniaków";
       
       const totalLeagueMatches = 153; 
@@ -228,10 +262,7 @@ const Stats = () => {
         const exactScoreBonus = Math.min((exactScoreEfficiency / 0.15) * 100, 100);
 
         let baseOvr = (pointsScore * 0.70) + (exactScoreBonus * 0.30);
-
-        if (p.emptyBets > 0) {
-          baseOvr -= (p.emptyBets * 1.5);
-        }
+        if (p.emptyBets > 0) baseOvr -= (p.emptyBets * 1.5);
 
         OVR = Math.max(1, Math.min(Math.round(baseOvr), 99));
       }
@@ -265,11 +296,9 @@ const Stats = () => {
       } 
       else {
         let currentPool = VERDICTS_BANK[basket];
-
         if (basket === "braz" && p.drawBetsCorrect === 0) {
           currentPool = currentPool.filter(item => item.draw !== true);
         }
-
         const item = currentPool[seed % currentPool.length];
         style = item.s;
         verdict = item.v;
@@ -286,6 +315,7 @@ const Stats = () => {
     output.sort((a, b) => b.OVR - a.OVR);
     setProfiles(output);
 
+    // Global highlights data pipeline
     if (output.length > 0) {
       const maxDrawsPred = Math.max(...output.map(p => p.drawBetsPredicted));
       const usersMostDrawsPred = output.filter(p => p.drawBetsPredicted === maxDrawsPred).map(p => p.user).join(', ');
@@ -318,6 +348,15 @@ const Stats = () => {
   if (showMostEmpty) activeCards++;
   const colSize = Math.floor(12 / activeCards);
 
+  // Fallback Loading Screen to prevent blank rendering during structural processing
+  if (profiles.length === 0) {
+    return (
+      <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#FFD700' }}>
+        <h3>⏳ Wczytywanie i przeliczanie danych ligowych...</h3>
+      </Container>
+    );
+  }
+
   return (
     <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', padding: '20px', color: '#fff', fontFamily: 'sans-serif' }}>
       <Row>
@@ -332,7 +371,7 @@ const Stats = () => {
         </Col>
       </Row>
 
-      {/* GLOBAL LIGA STATS */}
+      {/* GLOBAL REKORDS */}
       <Row className="justify-content-center" style={{ marginBottom: '30px' }}>
         <Col xs={12} md={10} lg={8}>
           <div style={{ background: '#1c1a12', border: '1px solid #FFD700', borderRadius: '14px', padding: '18px', boxShadow: '0 0 15px rgba(255,215,0,0.1)' }}>
@@ -373,7 +412,7 @@ const Stats = () => {
         </Col>
       </Row>
 
-      {/* PROFILE CARDS SECTION */}
+      {/* USER CARDS */}
       <Row className="justify-content-center">
         <Col xs={12} md={8} lg={6}>
           {profiles.map((p, idx) => {
