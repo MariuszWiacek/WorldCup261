@@ -50,7 +50,7 @@ const VERDICTS_BANK = {
     { s: "Mundialowy Dyplomata", v: "Bilans zdecydowanie na plus. Sezon w Twoim wykonaniu wygląda obiecująco." }
   ],
   braz: [
-    { s: "Ofiara 90. Minuty", v: "Środek tabeli to bezpieczna przystań, ale stać Cię na więcej.", draw: false },
+    { s: "Ofiara 90. Minuty", v: "Środek tabeli to bezpieczna przystąń, ale stać Cię na więcej.", draw: false },
     { s: "Stabilny Urzędnik", v: "Grasz falami – genialne weekendy przeplatasz totalną posuchą.", draw: false },
     { s: "Piłkarski Romantyk", v: "Przeciętny sezon. Potrzebujesz serii punktowej, by uciec szarzyźnie.", draw: false },
     { s: "Typer Falujący", v: "Typujesz sercem, a piłka bywa brutalna. Czas na chłodną kalkulację.", draw: false },
@@ -61,7 +61,6 @@ const VERDICTS_BANK = {
     { s: "Mundialowy Turysta", v: "Potencjał jest, ale wykonanie w tym sezonie mocno kratkowane.", draw: false },
     { s: "Ekspert z Kanapy", v: "Czasami brakuje po prostu sportowego szczęścia. Głowa do góry.", draw: false },
     { s: "Zakładnik Sentymentów", v: "Statystyki nie kłamią – ten sezon to solidna, lekka szkoła przetrwania.", draw: false },
-    // Bezpieczniki: te 2 poniżej aktywują się TYLKO, gdy gracz trafi chociaż 1 remis (drawBetsCorrect > 0)
     { s: "Koneser Wyniku 1:1", v: "Przynajmniej z remisami masz jakąś nić porozumienia. Uratowały Ci skórę.", draw: true },
     { s: "Strażnik Podziału Punktów", v: "Gdyby nie te trafione remisy, środek tabeli oglądałbyś tylko przez lornetkę.", draw: true }
   ],
@@ -102,17 +101,20 @@ const Stats = () => {
   });
 
   useEffect(() => {
-    onValue(ref(db, 'results'), snap => setResults(snap.val() || {}));
-    onValue(ref(db, 'submittedData'), snap => setSubmittedData(snap.val() || {}));
+    const unsubResults = onValue(ref(db, 'results'), snap => setResults(snap.val() || {}));
+    const unsubData = onValue(ref(db, 'submittedData'), snap => setSubmittedData(snap.val() || {}));
+    return () => {
+      unsubResults();
+      unsubData();
+    };
   }, []);
 
   useEffect(() => {
-    if (!submittedData || !results) return;
+    if (!submittedData || Object.keys(submittedData).length === 0 || !results || Object.keys(results).length === 0) return;
 
     const rawProfiles = [];
     let absoluteMaxDrawsCorrect = 0;
 
-    // KROK 1: Wyciągnięcie czystych danych z bazy Firebase i wstępne obliczenia punktów
     Object.keys(submittedData).forEach((user, index) => {
       const bets = submittedData[user] || {};
 
@@ -128,39 +130,53 @@ const Stats = () => {
       const teamStats = {};
 
       Object.entries(bets).forEach(([matchId, bet]) => {
-        const result = results[matchId];
-        if (!bet || !result) return;
+        const resultString = results[matchId];
+        // Safely check if result exists and contains a score delimiter
+        if (!bet || !resultString || typeof resultString !== 'string' || !resultString.includes(':')) return;
 
-        // Liczenie walkowerów/pustych typów
         if (!bet.score || bet.score === ':::' || bet.score === ':') {
           emptyBets++;
           return;
         }
 
-        const [rh, ra] = result.split(':').map(Number);
+        const scoreParts = resultString.split(':');
+        // Fallback safety if database stores "Home-Away:Score" or just "Score"
+        const resultScore = scoreParts.length > 2 ? scoreParts[2] : scoreParts[0] + ':' + scoreParts[1];
+        
+        const [rh, ra] = resultScore.split(':').map(Number);
+        if (isNaN(rh) || isNaN(ra)) return;
+
         const actualOutcome = rh === ra ? 'X' : rh > ra ? '1' : '2';
+        
+        if (!bet.score.includes(':')) return;
         const [bh, ba] = bet.score.split(':').map(Number);
 
         outcomeTotal++;
-        // 1X2 Trafienie (Zwycięzca / Remis)
         if (bet.bet === actualOutcome) {
           outcomeCorrect++;
-          calculatedPoints += 1; // Podstawa: +1 punkt za trafienie 1X2
+          calculatedPoints += 1;
           if (bet.bet === 'X') drawBetsCorrect++;
         }
         
         if (bet.bet === 'X') drawBetsPredicted++;
 
-        // Dokładny wynik Trafienie
         scoreTotal++;
         if (bh === rh && ba === ra) {
           scoreCorrect++;
-          calculatedPoints += 2; // Dodatkowe punkty za dokładny wynik (w sumie 3 punkty za mecz)
+          calculatedPoints += 2;
         }
 
-        // Statystyki drużynowe (Kto daje, a kto zabiera punkty)
-        const tHome = bet.home || "Nieznany";
-        const tAway = bet.away || "Nieznany";
+        // --- FIX FOR TEAM STATS ---
+        // Fallback logic to grab team names from the matchId context keys if not present on 'bet'
+        let tHome = bet.home || (matchId.includes('_') ? matchId.split('_')[0] : null);
+        let tAway = bet.away || (matchId.includes('_') ? matchId.split('_')[1] : null);
+
+        if (!tHome || !tAway) {
+          // Alternative fallback to avoid bundling all teams together into "Nieznany"
+          tHome = "Klub H_" + matchId;
+          tAway = "Klub A_" + matchId;
+        }
+
         if (!teamStats[tHome]) teamStats[tHome] = { points: 0, cost: 0, total: 0 };
         if (!teamStats[tAway]) teamStats[tAway] = { points: 0, cost: 0, total: 0 };
         teamStats[tHome].total++;
@@ -182,7 +198,8 @@ const Stats = () => {
       const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
       const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
 
-      const validTeams = Object.entries(teamStats).filter(([_, v]) => v.total >= 2);
+      // Filter teams that actually have a descriptive name string
+      const validTeams = Object.entries(teamStats).filter(([name, v]) => v.total >= 1 && !name.startsWith("Klub "));
       const bestPointTeams = [...validTeams].sort((a, b) => b[1].points - a[1].points).slice(0, 3).map(([team]) => team);
       const worstPointTeams = [...validTeams].sort((a, b) => b[1].cost - a[1].cost).slice(0, 3).map(([team]) => team);
 
@@ -193,31 +210,25 @@ const Stats = () => {
       });
     });
 
-    // KROK 2: KALKULACJA OVR W OPARCIU O REALIA SEZONU (Lider: 46 typów / 19 dokładnych / 153 mecze)
     const output = rawProfiles.map(p => {
-      const mainGoodTeam = p.bestPointTeams[0] || "reprezentacji";
-      const mainBadTeam = p.worstPointTeams[0] || "faworytów";
+      const mainGoodTeam = p.bestPointTeams[0] || "Twoich faworytów";
+      const mainBadTeam = p.worstPointTeams[0] || "pewniaków";
       
-      const totalLeagueMatches = 153; // Nasza baza referencyjna sezonu
+      const totalLeagueMatches = 153; 
       const actualPredictions = totalLeagueMatches - p.emptyBets;
 
       let OVR = 0;
       if (actualPredictions <= 0) {
         OVR = 10;
       } else {
-        // Obliczamy efektywność punktową na podstawie rozegranych meczów
         const pointsPerMatch = p.calculatedPoints / actualPredictions;
         const exactScoreEfficiency = p.scoreCorrect / actualPredictions;
 
-        // Skalowanie: Lider zdobywał ~0.67 pkt na mecz. Przyjmujemy 0.75 za 100% doskonałości.
         const pointsScore = Math.min((pointsPerMatch / 0.75) * 100, 100);
-        // Lider miał ~12.4% skuteczności dokładnych wyników. Przyjmujemy 15% za maksimum skilla.
         const exactScoreBonus = Math.min((exactScoreEfficiency / 0.15) * 100, 100);
 
-        // OVR ważone: 70% stabilność typowania 1X2, 30% genialne dokładne wyniki
         let baseOvr = (pointsScore * 0.70) + (exactScoreBonus * 0.30);
 
-        // Kary za walkowery (każda opuszczona gra zbija formę i OVR o 1.5 pkt)
         if (p.emptyBets > 0) {
           baseOvr -= (p.emptyBets * 1.5);
         }
@@ -225,32 +236,29 @@ const Stats = () => {
         OVR = Math.max(1, Math.min(Math.round(baseOvr), 99));
       }
 
-      // KROK 3: SPRAWIEDLIWY PODZIAŁ NA KOSZYKI I LOGICZNE PRZYPISANIE KOMENTARZY
       let basket = "braz";
       if (p.emptyBets > 15) {
         basket = "nieaktywny";
-      } else if (OVR >= 65) { // Nowy próg dla elity (Złoto zgrane z liderem)
+      } else if (OVR >= 65) { 
         basket = "zloto";
-      } else if (OVR >= 48) { // Srebro
+      } else if (OVR >= 48) { 
         basket = "srebro";
-      } else if (OVR >= 30) { // Brąz
+      } else if (OVR >= 30) { 
         basket = "braz";
       } else {
-        basket = "mul"; // Katastrofa
+        basket = "mul"; 
       }
 
       let style = "";
       let verdict = "";
       const seed = p.user.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + p.index;
 
-      // ZABEZPIECZENIE I PRIORYTETYZACJA KOMENTARZY
       if (basket === "nieaktywny") {
         const pool = VERDICTS_BANK.nieaktywny;
         const item = pool[seed % pool.length];
         style = item.s;
         verdict = item.v;
       } 
-      // Jeśli gracz jest liderem remisów w lidze i ma ich na koncie więcej niż zero
       else if (p.drawBetsCorrect === absoluteMaxDrawsCorrect && p.drawBetsCorrect > 0) {
         style = "Oficjalny Król Remisów";
         verdict = `Genialny, turniejowy nos do najbardziej ryzykownych spotkań. Podczas gdy cała liga ślepo stawia na pewniaków, Ty bezbłędnie namierzasz podziały punktów i zgarniasz potężne premie za iksy. Oby tak dalej!`;
@@ -258,7 +266,6 @@ const Stats = () => {
       else {
         let currentPool = VERDICTS_BANK[basket];
 
-        // Inteligentna filtracja koszyka BRĄZ: Jeśli gracz ma 0 trafionych remisów, odcinamy komentarze o remisach
         if (basket === "braz" && p.drawBetsCorrect === 0) {
           currentPool = currentPool.filter(item => item.draw !== true);
         }
@@ -268,21 +275,17 @@ const Stats = () => {
         verdict = item.v;
       }
 
-      // Kultowy Wielkanocny Cukierek (Easter Egg) dla Kuzyna
       if (p.user.toLowerCase().includes('kuzyn')) {
         style = "Chaotyczny Selekcjoner";
         verdict = `Twoje kupony potrafią zszokować zarówno zaawansowane algorytmy matematyczne, jak i samych zawodników biegających po murawie. Do tego ekipa ${mainBadTeam} regularnie weryfikuje te plany. Absolutna jazda bez trzymanki!`;
       }
 
-      return {
-        ...p, OVR, style, verdict, basket
-      };
+      return { ...p, OVR, style, verdict, basket };
     });
 
     output.sort((a, b) => b.OVR - a.OVR);
     setProfiles(output);
 
-    // KROK 4: Obliczanie globalnych rekordów ligi
     if (output.length > 0) {
       const maxDrawsPred = Math.max(...output.map(p => p.drawBetsPredicted));
       const usersMostDrawsPred = output.filter(p => p.drawBetsPredicted === maxDrawsPred).map(p => p.user).join(', ');
@@ -299,10 +302,10 @@ const Stats = () => {
       setShowMostEmpty(maxEmpty > 0);
 
       setGlobalStats({
-        mostDrawsPredicted: { users: usersMostDrawsPred, count: maxDrawsPred },
-        kingOfDraws: { users: usersKingOfDraws, count: maxDrawsCorr },
-        mostExactScores: { users: usersMostExact, count: maxExact },
-        mostEmpty: { users: usersMostEmpty, count: maxEmpty }
+        mostDrawsPredicted: { users: usersMostDrawsPred || '---', count: maxDrawsPred },
+        kingOfDraws: { users: usersKingOfDraws || '---', count: maxDrawsCorr },
+        mostExactScores: { users: usersMostExact || '---', count: maxExact },
+        mostEmpty: { users: usersMostEmpty || '---', count: maxEmpty }
       });
     }
 
@@ -317,7 +320,6 @@ const Stats = () => {
 
   return (
     <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', padding: '20px', color: '#fff', fontFamily: 'sans-serif' }}>
-
       <Row>
         <Col xs={12}>
           <div style={{ marginTop: '10px', marginBottom: '20px', textAlign: 'center' }}>
@@ -330,7 +332,7 @@ const Stats = () => {
         </Col>
       </Row>
 
-      {/* STATYSTYKI GLOBALNE LIGI */}
+      {/* GLOBAL LIGA STATS */}
       <Row className="justify-content-center" style={{ marginBottom: '30px' }}>
         <Col xs={12} md={10} lg={8}>
           <div style={{ background: '#1c1a12', border: '1px solid #FFD700', borderRadius: '14px', padding: '18px', boxShadow: '0 0 15px rgba(255,215,0,0.1)' }}>
@@ -371,17 +373,15 @@ const Stats = () => {
         </Col>
       </Row>
 
-      {/* SEKCJA KART UŻYTKOWNIKÓW */}
+      {/* PROFILE CARDS SECTION */}
       <Row className="justify-content-center">
         <Col xs={12} md={8} lg={6}>
-
           {profiles.map((p, idx) => {
-            let cardBorder = '#2a2a2a';
+            let cardBorder = '1px solid #2a2a2a';
             let ovrColor = '#FFD700';
             let verdictBg = 'rgba(255, 215, 0, 0.04)';
             let accentColor = '#FFD700';
 
-            // Dynamiczna stylizacja kart na bazie koszyka OVR i ról specjalnych
             if (p.style === "Oficjalny Król Remisów") {
               cardBorder = '2px solid #00e5ff';
               ovrColor = '#00e5ff';
@@ -474,14 +474,11 @@ const Stats = () => {
                   <span>Remisy (Wytypowane / TRAFIONE): {p.drawBetsPredicted} / <strong style={{ color: '#FFD700' }}>{p.drawBetsCorrect}</strong></span>
                   <span>Puste typy (:::): {p.emptyBets}</span>
                 </div>
-
               </div>
             );
           })}
-
         </Col>
       </Row>
-
     </Container>
   );
 };
