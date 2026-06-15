@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { getDatabase, ref, onValue, update } from 'firebase/database';
 import 'firebase/compat/auth';
@@ -103,7 +102,6 @@ const Bets = () => {
         return gameData.map(staticGame => {
           const userEditedGame = prevGames.find(g => g.id === staticGame.id);
           
-          // Jeśli użytkownik zaczął wpisywać wynik, nie nadpisuj go pustym stanem bazowym!
           if (userEditedGame && userEditedGame.score) {
             return {
               ...staticGame,
@@ -141,17 +139,32 @@ const Bets = () => {
     return now >= kickoff;
   };
 
+  // DETEKCJA TYPU ZAKŁADU (ZAKŁADA BRAK TYPU DLA ":::")
   const autoDetectBetType = (score) => {
+    if (score === ':::' || score.replace(/[^:]/g, "").length >= 3) {
+      return ''; 
+    }
+
     const [home, away] = score.split(':').map(Number);
+    if (isNaN(home) || isNaN(away)) return '';
+
     if (home === away) return 'X';
     return home > away ? '1' : '2';
   };
 
+  // OBSŁUGA ZMIANY WYNIKU Z POMINIĘCIEM AUTO-FORMATU DLA POTRÓJNEGO DWUKROPKA
   const handleScoreChange = (gameId, scoreInput) => {
-    const cleaned = scoreInput.replace(/[^0-9:]/g, '');
-    const formatted = cleaned.replace(/^(?:(\d))([^:]*$)/, '$1:$2');
+    let formatted = scoreInput.replace(/[^0-9:]/g, '');
     
-    setAllGames(prev => prev.map(game => game.id === gameId ? { ...game, score: formatted, bet: autoDetectBetType(formatted) } : game));
+    if (formatted !== ':::' && !formatted.startsWith('::')) {
+      formatted = formatted.replace(/^(?:(\d))([^:]*$)/, '$1:$2');
+    }
+    
+    setAllGames(prev => prev.map(game => 
+      game.id === gameId 
+        ? { ...game, score: formatted, bet: autoDetectBetType(formatted) } 
+        : game
+    ));
   };
 
   const handleSubmit = () => {
@@ -301,7 +314,10 @@ const Bets = () => {
                     <td style={{ textAlign: 'center', fontSize: '20px' }}>{results[game.id]}</td>
                     <td style={{ textAlign: 'center' }}>
                       <select value={game.bet || ''} disabled>
-                        <option value="1">1</option><option value="X">X</option><option value="2">2</option>
+                        <option value="">--</option>
+                        <option value="1">1</option>
+                        <option value="X">X</option>
+                        <option value="2">2</option>
                       </select>
                     </td>
                     <td>
