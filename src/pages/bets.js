@@ -49,9 +49,26 @@ const Bets = () => {
     type: "info"
   });
 
-  // STRONICOWANIE: PODZIAŁ WEDŁUG KOLEJEK (PO 24 MECZE NA STRONĘ)
+  const gameStarted = (gameDate, gameKickoff) => {
+    const now = DateTime.now().setZone('Europe/Warsaw');
+    const kickoff = DateTime.fromISO(`${gameDate}T${gameKickoff}:00`, { zone: 'Europe/Warsaw' });
+    return now >= kickoff;
+  };
+
+  // STRONICOWANIE: PODZIAŁ WEDŁUG KOLEJEK
+  // Auto-fill missed games with ':::' and 'X_MISSED' for presentation layout
   const paginatedTabs = useMemo(() => {
-    const sortedGames = [...allGames].sort((a, b) => a.id - b.id);
+    const sortedGames = [...allGames].map(game => {
+      const hasBetSaved = submittedData[selectedUser] && submittedData[selectedUser][game.id];
+      if (gameStarted(game.date, game.kickoff) && !game.score && !hasBetSaved) {
+        return {
+          ...game,
+          score: ':::',
+          bet: 'X_MISSED' // Changed from 'X' to separate it from actual draw predictions
+        };
+      }
+      return game;
+    }).sort((a, b) => a.id - b.id);
 
     const kolejka1 = sortedGames.filter(game => game.id <= 24);
     const kolejka2 = sortedGames.filter(game => game.id > 24 && game.id <= 48);
@@ -64,7 +81,7 @@ const Bets = () => {
       { label: "Kolejka 3", games: kolejka3 },
       { label: "Faza pucharowa", games: fazaPucharowa }
     ];
-  }, [allGames]);
+  }, [allGames, submittedData, selectedUser]);
 
   const activeTabInfo = paginatedTabs[currentPage] || paginatedTabs[0];
 
@@ -95,14 +112,12 @@ const Bets = () => {
     setCurrentPage(dynamicTargetPage);
   }, [allGames, paginatedTabs]);
 
-  // NAPRAWIONY INTERWAŁ: Aktualizuje czas bez wymazywania wpisywanych typów użytkownika
+  // NAPRAWIONY INTERWAŁ
   useEffect(() => {
     const timer = setInterval(() => {
       setAllGames(prevGames => {
         return gameData.map(staticGame => {
           const userEditedGame = prevGames.find(g => g.id === staticGame.id);
-          
-          // Jeśli użytkownik zaczął wpisywać wynik, nie nadpisuj go pustym stanem bazowym!
           if (userEditedGame && userEditedGame.score) {
             return {
               ...staticGame,
@@ -134,13 +149,8 @@ const Bets = () => {
 
   const isReadOnly = (user, gameId) => submittedData[user] && submittedData[user][gameId];
 
-  const gameStarted = (gameDate, gameKickoff) => {
-    const now = DateTime.now().setZone('Europe/Warsaw');
-    const kickoff = DateTime.fromISO(`${gameDate}T${gameKickoff}:00`, { zone: 'Europe/Warsaw' });
-    return now >= kickoff;
-  };
-
   const autoDetectBetType = (score) => {
+    if (!score || score === ':::') return ''; // Returns empty string if it's the missed placeholder
     const [home, away] = score.split(':').map(Number);
     if (home === away) return 'X';
     return home > away ? '1' : '2';
@@ -163,15 +173,24 @@ const Bets = () => {
     const currentGames = paginatedTabs[currentPage]?.games || [];
     
     const newBetsToSubmit = currentGames.reduce((acc, game) => {
-      if (game.score && !userSubmittedBets[game.id]) {
+      const isStarted = gameStarted(game.date, game.kickoff);
+      
+      if ((game.score || isStarted) && !userSubmittedBets[game.id]) {
         let targetKolejkaId = 4;
         if (game.id <= 24) targetKolejkaId = 1;
         else if (game.id <= 48) targetKolejkaId = 2;
         else if (game.id <= 72) targetKolejkaId = 3;
 
+        // Separate user draw setups vs automatic missed bets completely
+        const finalScore = game.score || ':::';
+        const finalBet = finalScore === ':::' ? 'X_MISSED' : autoDetectBetType(finalScore);
+
         acc[game.id] = {
-          home: game.home, away: game.away, score: game.score,
-          bet: autoDetectBetType(game.score), kolejkaId: targetKolejkaId,
+          home: game.home, 
+          away: game.away, 
+          score: finalScore,
+          bet: finalBet, 
+          kolejkaId: targetKolejkaId,
           isHidden: isHiddenActive 
         };
       }
@@ -300,7 +319,10 @@ const Bets = () => {
                     <td style={{ textAlign: 'center', fontSize: '20px' }}>{results[game.id]}</td>
                     <td style={{ textAlign: 'center' }}>
                       <select value={game.bet || ''} disabled>
-                        <option value="1">1</option><option value="X">X</option><option value="2">2</option>
+                        <option value="1">1</option>
+                        <option value="X">X</option>
+                        <option value="2">2</option>
+                        <option value="X_MISSED">--</option>
                       </select>
                     </td>
                     <td>
