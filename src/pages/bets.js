@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { getDatabase, ref, onValue, update } from 'firebase/database';
 import 'firebase/compat/auth';
@@ -49,12 +50,6 @@ const Bets = () => {
     type: "info"
   });
 
-  const gameStarted = (gameDate, gameKickoff) => {
-    const now = DateTime.now().setZone('Europe/Warsaw');
-    const kickoff = DateTime.fromISO(`${gameDate}T${gameKickoff}:00`, { zone: 'Europe/Warsaw' });
-    return now >= kickoff;
-  };
-
   // STRONICOWANIE: PODZIAŁ WEDŁUG KOLEJEK (PO 24 MECZE NA STRONĘ)
   const paginatedTabs = useMemo(() => {
     const sortedGames = [...allGames].sort((a, b) => a.id - b.id);
@@ -101,33 +96,28 @@ const Bets = () => {
     setCurrentPage(dynamicTargetPage);
   }, [allGames, paginatedTabs]);
 
-  // FIX: This interval monitors the clock. If a game starts and has no local score 
-  // and no database record, it automatically injects ':::' and 'X_MISSED' directly into the live state.
+  // NAPRAWIONY INTERWAŁ: Aktualizuje czas bez wymazywania wpisywanych typów użytkownika
   useEffect(() => {
-    const checkAndFillMissedGames = () => {
+    const timer = setInterval(() => {
       setAllGames(prevGames => {
-        return prevGames.map(game => {
-          const hasStarted = gameStarted(game.date, game.kickoff);
-          const hasBetSaved = submittedData[selectedUser] && submittedData[selectedUser][game.id];
-
-          if (hasStarted && !game.score && !hasBetSaved) {
+        return gameData.map(staticGame => {
+          const userEditedGame = prevGames.find(g => g.id === staticGame.id);
+          
+          // Jeśli użytkownik zaczął wpisywać wynik, nie nadpisuj go pustym stanem bazowym!
+          if (userEditedGame && userEditedGame.score) {
             return {
-              ...game,
-              score: ':::',
-              bet: 'X_MISSED'
+              ...staticGame,
+              score: userEditedGame.score,
+              bet: userEditedGame.bet
             };
           }
-          return game;
+          return staticGame;
         });
       });
-    };
-
-    // Run verification immediately on mount/dependency change, then every 30 seconds
-    checkAndFillMissedGames();
-    const timer = setInterval(checkAndFillMissedGames, 30000);
+    }, 60000);
 
     return () => clearInterval(timer);
-  }, [submittedData, selectedUser]);
+  }, []);
 
   useEffect(() => {
     const lastChosenUser = localStorage.getItem('selectedUser');
@@ -145,8 +135,13 @@ const Bets = () => {
 
   const isReadOnly = (user, gameId) => submittedData[user] && submittedData[user][gameId];
 
+  const gameStarted = (gameDate, gameKickoff) => {
+    const now = DateTime.now().setZone('Europe/Warsaw');
+    const kickoff = DateTime.fromISO(`${gameDate}T${gameKickoff}:00`, { zone: 'Europe/Warsaw' });
+    return now >= kickoff;
+  };
+
   const autoDetectBetType = (score) => {
-    if (!score || score === ':::') return 'X_MISSED';
     const [home, away] = score.split(':').map(Number);
     if (home === away) return 'X';
     return home > away ? '1' : '2';
@@ -169,24 +164,15 @@ const Bets = () => {
     const currentGames = paginatedTabs[currentPage]?.games || [];
     
     const newBetsToSubmit = currentGames.reduce((acc, game) => {
-      const isStarted = gameStarted(game.date, game.kickoff);
-
-      // Process if user explicitly typed a bet OR if the game is started (meaning it falls back to auto-fill)
-      if ((game.score || isStarted) && !userSubmittedBets[game.id]) {
+      if (game.score && !userSubmittedBets[game.id]) {
         let targetKolejkaId = 4;
         if (game.id <= 24) targetKolejkaId = 1;
         else if (game.id <= 48) targetKolejkaId = 2;
         else if (game.id <= 72) targetKolejkaId = 3;
 
-        const finalScore = game.score || '::';
-        const finalBet = finalScore === ':::' ? 'X_MISSED' : autoDetectBetType(finalScore);
-
         acc[game.id] = {
-          home: game.home, 
-          away: game.away, 
-          score: finalScore,
-          bet: finalBet, 
-          kolejkaId: targetKolejkaId,
+          home: game.home, away: game.away, score: game.score,
+          bet: autoDetectBetType(game.score), kolejkaId: targetKolejkaId,
           isHidden: isHiddenActive 
         };
       }
@@ -315,10 +301,7 @@ const Bets = () => {
                     <td style={{ textAlign: 'center', fontSize: '20px' }}>{results[game.id]}</td>
                     <td style={{ textAlign: 'center' }}>
                       <select value={game.bet || ''} disabled>
-                        <option value="1">1</option>
-                        <option value="X">X</option>
-                        <option value="2">2</option>
-                        <option value="X_MISSED">--</option>
+                        <option value="1">1</option><option value="X">X</option><option value="2">2</option>
                       </select>
                     </td>
                     <td>
