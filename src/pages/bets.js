@@ -55,20 +55,9 @@ const Bets = () => {
     return now >= kickoff;
   };
 
-  // STRONICOWANIE: PODZIAŁ WEDŁUG KOLEJEK
-  // Auto-fill missed games with ':::' and 'X_MISSED' for presentation layout
+  // STRONICOWANIE: PODZIAŁ WEDŁUG KOLEJEK (PO 24 MECZE NA STRONĘ)
   const paginatedTabs = useMemo(() => {
-    const sortedGames = [...allGames].map(game => {
-      const hasBetSaved = submittedData[selectedUser] && submittedData[selectedUser][game.id];
-      if (gameStarted(game.date, game.kickoff) && !game.score && !hasBetSaved) {
-        return {
-          ...game,
-          score: ':::',
-          bet: 'X_MISSED' // Changed from 'X' to separate it from actual draw predictions
-        };
-      }
-      return game;
-    }).sort((a, b) => a.id - b.id);
+    const sortedGames = [...allGames].sort((a, b) => a.id - b.id);
 
     const kolejka1 = sortedGames.filter(game => game.id <= 24);
     const kolejka2 = sortedGames.filter(game => game.id > 24 && game.id <= 48);
@@ -81,7 +70,7 @@ const Bets = () => {
       { label: "Kolejka 3", games: kolejka3 },
       { label: "Faza pucharowa", games: fazaPucharowa }
     ];
-  }, [allGames, submittedData, selectedUser]);
+  }, [allGames]);
 
   const activeTabInfo = paginatedTabs[currentPage] || paginatedTabs[0];
 
@@ -112,26 +101,33 @@ const Bets = () => {
     setCurrentPage(dynamicTargetPage);
   }, [allGames, paginatedTabs]);
 
-  // NAPRAWIONY INTERWAŁ
+  // FIX: This interval monitors the clock. If a game starts and has no local score 
+  // and no database record, it automatically injects ':::' and 'X_MISSED' directly into the live state.
   useEffect(() => {
-    const timer = setInterval(() => {
+    const checkAndFillMissedGames = () => {
       setAllGames(prevGames => {
-        return gameData.map(staticGame => {
-          const userEditedGame = prevGames.find(g => g.id === staticGame.id);
-          if (userEditedGame && userEditedGame.score) {
+        return prevGames.map(game => {
+          const hasStarted = gameStarted(game.date, game.kickoff);
+          const hasBetSaved = submittedData[selectedUser] && submittedData[selectedUser][game.id];
+
+          if (hasStarted && !game.score && !hasBetSaved) {
             return {
-              ...staticGame,
-              score: userEditedGame.score,
-              bet: userEditedGame.bet
+              ...game,
+              score: ':::',
+              bet: 'X_MISSED'
             };
           }
-          return staticGame;
+          return game;
         });
       });
-    }, 60000);
+    };
+
+    // Run verification immediately on mount/dependency change, then every 30 seconds
+    checkAndFillMissedGames();
+    const timer = setInterval(checkAndFillMissedGames, 30000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [submittedData, selectedUser]);
 
   useEffect(() => {
     const lastChosenUser = localStorage.getItem('selectedUser');
@@ -150,7 +146,7 @@ const Bets = () => {
   const isReadOnly = (user, gameId) => submittedData[user] && submittedData[user][gameId];
 
   const autoDetectBetType = (score) => {
-    if (!score || score === ':::') return ''; // Returns empty string if it's the missed placeholder
+    if (!score || score === ':::') return 'X_MISSED';
     const [home, away] = score.split(':').map(Number);
     if (home === away) return 'X';
     return home > away ? '1' : '2';
@@ -174,15 +170,15 @@ const Bets = () => {
     
     const newBetsToSubmit = currentGames.reduce((acc, game) => {
       const isStarted = gameStarted(game.date, game.kickoff);
-      
+
+      // Process if user explicitly typed a bet OR if the game is started (meaning it falls back to auto-fill)
       if ((game.score || isStarted) && !userSubmittedBets[game.id]) {
         let targetKolejkaId = 4;
         if (game.id <= 24) targetKolejkaId = 1;
         else if (game.id <= 48) targetKolejkaId = 2;
         else if (game.id <= 72) targetKolejkaId = 3;
 
-        // Separate user draw setups vs automatic missed bets completely
-        const finalScore = game.score || ':::';
+        const finalScore = game.score || '::';
         const finalBet = finalScore === ':::' ? 'X_MISSED' : autoDetectBetType(finalScore);
 
         acc[game.id] = {
