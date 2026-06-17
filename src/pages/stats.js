@@ -18,9 +18,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ============================================================================
-// 🎭 JAŚNIEJSZY, BARDZIEJ SZYDERCZY I HUMORYSTYCZNY BANK WERDYKTÓW
-// ============================================================================
 const VERDICTS_BANK = {
   zloto: [
     { s: "Jasnowidz na etacie", v: "Typujesz z taką precyzją, że zaraz zgłosi się do Ciebie ABW z podejrzeniem o podróże w czasie." },
@@ -47,9 +44,9 @@ const VERDICTS_BANK = {
     { s: "Dno i metr mułu", v: "Oficjalnie szorujesz po dnie. Gdyby odwrócić tabelę do góry nogami, Twoja dominacja byłaby bezdyskusyjna." },
     { s: "Generator Losowych Liczb", v: "Twoje typy wyglądają tak, jakby kot przeszedł się po klawiaturze numerycznej. Pełen chaos." },
     { s: "Sponsor Oficjalny", v: "Rywale powinni zrzucić się dla Ciebie na pizzę w podzięce za to, jak skutecznie windujesz ich w górę tabeli." },
-    { s: "Anty-Jasnowidz", v: "Gryt stawiasz na drużynę A, bezpieczniej jest postawić dom, oszczędności życia i nerkę na drużynę B." },
+    { s: "Anty-Jasnowidz", v: "Gdy stawiasz na drużynę A, bezpieczniej jest postawić dom, oszczędności życia i nerkę na drużynę B." },
     { s: "Koszmar Typera", v: "Twoja forma jest stabilna – stabilnie zła. Nawet sędziowie z B-klasy mieliby lepszą skuteczność." },
-    { s: "Maskotka Ligi", v: "Nikt się Ciebie ne boi, ale wszyscy Cię lubią, bo tak pięknie zamykasz tabelę od dołu." },
+    { s: "Maskotka Ligi", v: "Nikit się Ciebie nie boi, ale wszyscy Cię lubią, bo tak pięknie zamykasz tabelę od dołu." },
     { s: "Sabotażysta Roku", v: "Twoje predykcje wywołują u innych graczy niekontrolowane napady śmiechu. Zmień dyscyplinę na krykiet." }
   ],
   nieaktywny: [
@@ -116,7 +113,6 @@ const Stats = () => {
       let drawBetsCorrect = 0;   
       let calculatedPoints = 0;
 
-      // Słownik przechowujący realne zyski i straty punktowe dla każdej drużyny
       const teamStats = {};
 
       Object.entries(bets).forEach(([matchId, bet]) => {
@@ -165,10 +161,12 @@ const Stats = () => {
         scoreTotal++;
 
         let matchPointsEarned = 0;
+        let isExact = false;
         
         if (bh === rh && ba === ra) {
           scoreCorrect++;
           matchPointsEarned = 3; 
+          isExact = true;
           if (actualOutcome === 'X') drawBetsCorrect++;
           outcomeCorrect++; 
         } else if (String(bet.bet).toUpperCase() === actualOutcome) {
@@ -189,46 +187,33 @@ const Stats = () => {
           tAway = "Klub A_" + matchId;
         }
 
-        if (!teamStats[tHome]) teamStats[tHome] = { pointsEarned: 0, pointsLost: 0 };
-        if (!teamStats[tAway]) teamStats[tAway] = { pointsEarned: 0, pointsLost: 0 };
+        if (!teamStats[tHome]) teamStats[tHome] = { pointsEarned: 0, matchesBlown: 0 };
+        if (!teamStats[tAway]) teamStats[tAway] = { pointsEarned: 0, matchesBlown: 0 };
 
         const predictedOutcome = String(bet.bet).toUpperCase();
 
-        // LOGIKA DLA GOSPODARZA (Home Team)
-        if (predictedOutcome === '1') { 
-          if (actualOutcome === '1') {
-            teamStats[tHome].pointsEarned += matchPointsEarned; // Zarabiasz, bo wygrali zgodnie z planem
-          } else {
-            teamStats[tHome].pointsLost += (3 - matchPointsEarned); // Tracisz przez nich, bo zawiedli
-          }
-        } else if (predictedOutcome === '2') {
-          if (actualOutcome === '2') {
-            teamStats[tHome].pointsEarned += matchPointsEarned; // Zarabiasz obstawiając przeciwko nim
-          }
-        }
-
-        // LOGIKA DLA GOŚCIA (Away Team)
-        if (predictedOutcome === '2') {
-          if (actualOutcome === '2') {
-            teamStats[tAway].pointsEarned += matchPointsEarned; // Zarabiasz, bo wygrali zgodnie z planem
-          } else {
-            teamStats[tAway].pointsLost += (3 - matchPointsEarned); // Tracisz przez nich, bo zawiedli
-          }
-        } else if (predictedOutcome === '1') {
-          if (actualOutcome === '1') {
-            teamStats[tAway].pointsEarned += matchPointsEarned; // Zarabiasz obstawiając przeciwko nim
-          }
-        }
-
-        // LOGIKA DLA REMISU (Draw 'X')
-        if (predictedOutcome === 'X') {
-          if (actualOutcome === 'X') {
+        // 🌟 CAŁKOWICIE NOWA LOGIKA PRZYPISYWANIA DRUŻYN (ZYSKI / WTOPY)
+        if (matchPointsEarned > 0) {
+          // Jeśli zdobyliśmy punkty, przypisujemy je tylko tym, na których faktycznie stawialiśmy
+          if (predictedOutcome === '1') {
+            teamStats[tHome].pointsEarned += matchPointsEarned;
+          } else if (predictedOutcome === '2') {
+            teamStats[tAway].pointsEarned += matchPointsEarned;
+          } else if (predictedOutcome === 'X') {
+            // Remis to zasługa obu ekip
             teamStats[tHome].pointsEarned += matchPointsEarned;
             teamStats[tAway].pointsEarned += matchPointsEarned;
-          } else {
-            // Jeśli padł rozstrzygający wynik, punktowo zawiodła drużyna, która wygrała mecz niszcząc remis
-            if (actualOutcome === '1') teamStats[tAway].pointsLost += 1;
-            if (actualOutcome === '2') teamStats[tHome].pointsLost += 1;
+          }
+        } else {
+          // Jeśli zdobyliśmy 0 punktów, sprawdzamy kto zawalił Twój kupon (wtopa potencjalnych 3 pkt)
+          if (predictedOutcome === '1' && actualOutcome !== '1') {
+            teamStats[tHome].matchesBlown += 1; // Postawiłeś na nich, a nie wygrali
+          } else if (predictedOutcome === '2' && actualOutcome !== '2') {
+            teamStats[tAway].matchesBlown += 1; // Postawiłeś na nich, a nie wygrali
+          } else if (predictedOutcome === 'X') {
+            // Jeśli polowałeś na remis, a ktoś wygrał, to wygrany zniszczył podział punktów
+            if (actualOutcome === '1') teamStats[tHome].matchesBlown += 1;
+            if (actualOutcome === '2') teamStats[tAway].matchesBlown += 1;
           }
         }
       });
@@ -242,19 +227,19 @@ const Stats = () => {
 
       const validTeams = Object.entries(teamStats).filter(([name]) => !name.startsWith("Klub "));
       
-      // Sortowanie: Najwięcej zarobionych punktów czystych
+      // Ranking zysków: Kto dał Ci realnie najwięcej punktów do tabeli
       const bestPointTeams = [...validTeams]
         .filter(([_, v]) => v.pointsEarned > 0)
         .sort((a, b) => b[1].pointsEarned - a[1].pointsEarned)
         .slice(0, 3)
         .map(([team, v]) => `${team} (+${v.pointsEarned}pkt)`);
 
-      // Sortowanie: Najbardziej dotkliwe straty punktów
+      // Ranking wtop: Kto najwięcej razy zepsuł Twój czysty typ (0 punktów)
       const worstPointTeams = [...validTeams]
-        .filter(([_, v]) => v.pointsLost > 0)
-        .sort((a, b) => b[1].pointsLost - a[1].pointsLost)
+        .filter(([_, v]) => v.matchesBlown > 0)
+        .sort((a, b) => b[1].matchesBlown - a[1].matchesBlown)
         .slice(0, 3)
-        .map(([team, v]) => `${team} (-${v.pointsLost}pkt)`);
+        .map(([team, v]) => `${team} (${v.matchesBlown}x wtopa)`);
 
       rawProfiles.push({
         user, index, outcomeRate, scoreRate, calculatedPoints,
