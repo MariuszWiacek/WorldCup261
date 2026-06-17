@@ -220,21 +220,27 @@ const Stats = () => {
 
       const validTeams = Object.entries(teamStats).filter(([name]) => !name.startsWith("Klub "));
       
-      // Wyświetlanie maksymalnie do 5 drużyn zarobkowych
-      const sortedBest = [...validTeams]
-        .filter(([_, v]) => v.pointsEarned > 0)
-        .sort((a, b) => b[1].pointsEarned - a[1].pointsEarned);
-      
-      const bestPointTeams = sortedBest.slice(0, 5).map(([team, v]) => `${team} (+${v.pointsEarned}pkt)`);
-      if (sortedBest.length > 5) bestPointTeams.push("i inne...");
+      // 🎯 ZARABIASZ NA: Filtrowanie tylko absolutnego TOPU punktowego
+      const activeEarners = validTeams.filter(([_, v]) => v.pointsEarned > 0);
+      let bestPointTeams = [];
+      if (activeEarners.length > 0) {
+        const maxEarned = Math.max(...activeEarners.map(([_, v]) => v.pointsEarned));
+        const absoluteTopEarners = activeEarners.filter(([_, v]) => v.pointsEarned === maxEarned);
+        
+        bestPointTeams = absoluteTopEarners.slice(0, 5).map(([team, v]) => `${team} (+${v.pointsEarned}pkt)`);
+        if (absoluteTopEarners.length > 5) bestPointTeams.push("i inne...");
+      }
 
-      // Wyświetlanie maksymalnie do 5 drużyn stratnych
-      const sortedWorst = [...validTeams]
-        .filter(([_, v]) => v.matchesBlown > 0)
-        .sort((a, b) => b[1].matchesBlown - a[1].matchesBlown);
-
-      const worstPointTeams = sortedWorst.slice(0, 5).map(([team, v]) => `${team} (${v.matchesBlown}x wtopa)`);
-      if (sortedWorst.length > 5) worstPointTeams.push("i inne...");
+      // 🎯 TRACISZ PRZEZ: Filtrowanie tylko absolutnego TOPU wtop
+      const activeLosers = validTeams.filter(([_, v]) => v.matchesBlown > 0);
+      let worstPointTeams = [];
+      if (activeLosers.length > 0) {
+        const maxBlown = Math.max(...activeLosers.map(([_, v]) => v.matchesBlown));
+        const absoluteTopLosers = activeLosers.filter(([_, v]) => v.matchesBlown === maxBlown);
+        
+        worstPointTeams = absoluteTopLosers.slice(0, 5).map(([team, v]) => `${team} (${v.matchesBlown}x wtopa)`);
+        if (absoluteTopLosers.length > 5) worstPointTeams.push("i inne...");
+      }
 
       rawProfiles.push({
         user, index, outcomeRate, scoreRate, calculatedPoints,
