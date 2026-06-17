@@ -220,7 +220,7 @@ const Stats = () => {
 
       const validTeams = Object.entries(teamStats).filter(([name]) => !name.startsWith("Klub "));
       
-      // 🎯 ZARABIASZ NA: Filtrowanie tylko absolutnego TOPU punktowego
+      // 🙂 Punktują dla Ciebie: Filtrowanie tylko absolutnego TOPU punktowego
       const activeEarners = validTeams.filter(([_, v]) => v.pointsEarned > 0);
       let bestPointTeams = [];
       if (activeEarners.length > 0) {
@@ -231,14 +231,14 @@ const Stats = () => {
         if (absoluteTopEarners.length > 5) bestPointTeams.push("i inne...");
       }
 
-      // 🎯 TRACISZ PRZEZ: Filtrowanie tylko absolutnego TOPU wtop
+      // 😡 Zawiedli Cię: Filtrowanie tylko absolutnego TOPU wtop
       const activeLosers = validTeams.filter(([_, v]) => v.matchesBlown > 0);
       let worstPointTeams = [];
       if (activeLosers.length > 0) {
         const maxBlown = Math.max(...activeLosers.map(([_, v]) => v.matchesBlown));
         const absoluteTopLosers = activeLosers.filter(([_, v]) => v.matchesBlown === maxBlown);
         
-        worstPointTeams = absoluteTopLosers.slice(0, 5).map(([team, v]) => `${team} (${v.matchesBlown}x wtopa)`);
+        worstPointTeams = absoluteTopLosers.slice(0, 5).map(([team, v]) => `${team} (${v.matchesBlown}x)`);
         if (absoluteTopLosers.length > 5) worstPointTeams.push("i inne...");
       }
 
