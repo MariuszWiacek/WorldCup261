@@ -46,7 +46,7 @@ const VERDICTS_BANK = {
     { s: "Sponsor Oficjalny", v: "Rywale powinni zrzucić się dla Ciebie na pizzę w podzięce za to, jak skutecznie windujesz ich w górę tabeli." },
     { s: "Anty-Jasnowidz", v: "Gdy stawiasz na drużynę A, bezpieczniej jest postawić dom, oszczędności życia i nerkę na drużynę B." },
     { s: "Koszmar Typera", v: "Twoja forma jest stabilna – stabilnie zła. Nawet sędziowie z B-klasy mieliby lepszą skuteczność." },
-    { s: "Maskotka Ligi", v: "Nikit się Ciebie nie boi, ale wszyscy Cię lubią, bo tak pięknie zamykasz tabelę od dołu." },
+    { s: "Maskotka Ligi", v: "Nikt się Ciebie nie boi, ale wszyscy Cię lubią, bo tak pięknie zamykasz tabelę od dołu." },
     { s: "Sabotażysta Roku", v: "Twoje predykcje wywołują u innych graczy niekontrolowane napady śmiechu. Zmień dyscyplinę na krykiet." }
   ],
   nieaktywny: [
@@ -161,12 +161,10 @@ const Stats = () => {
         scoreTotal++;
 
         let matchPointsEarned = 0;
-        let isExact = false;
         
         if (bh === rh && ba === ra) {
           scoreCorrect++;
           matchPointsEarned = 3; 
-          isExact = true;
           if (actualOutcome === 'X') drawBetsCorrect++;
           outcomeCorrect++; 
         } else if (String(bet.bet).toUpperCase() === actualOutcome) {
@@ -192,26 +190,21 @@ const Stats = () => {
 
         const predictedOutcome = String(bet.bet).toUpperCase();
 
-        // 🌟 CAŁKOWICIE NOWA LOGIKA PRZYPISYWANIA DRUŻYN (ZYSKI / WTOPY)
         if (matchPointsEarned > 0) {
-          // Jeśli zdobyliśmy punkty, przypisujemy je tylko tym, na których faktycznie stawialiśmy
           if (predictedOutcome === '1') {
             teamStats[tHome].pointsEarned += matchPointsEarned;
           } else if (predictedOutcome === '2') {
             teamStats[tAway].pointsEarned += matchPointsEarned;
           } else if (predictedOutcome === 'X') {
-            // Remis to zasługa obu ekip
             teamStats[tHome].pointsEarned += matchPointsEarned;
             teamStats[tAway].pointsEarned += matchPointsEarned;
           }
         } else {
-          // Jeśli zdobyliśmy 0 punktów, sprawdzamy kto zawalił Twój kupon (wtopa potencjalnych 3 pkt)
           if (predictedOutcome === '1' && actualOutcome !== '1') {
-            teamStats[tHome].matchesBlown += 1; // Postawiłeś na nich, a nie wygrali
+            teamStats[tHome].matchesBlown += 1;
           } else if (predictedOutcome === '2' && actualOutcome !== '2') {
-            teamStats[tAway].matchesBlown += 1; // Postawiłeś na nich, a nie wygrali
+            teamStats[tAway].matchesBlown += 1;
           } else if (predictedOutcome === 'X') {
-            // Jeśli polowałeś na remis, a ktoś wygrał, to wygrany zniszczył podział punktów
             if (actualOutcome === '1') teamStats[tHome].matchesBlown += 1;
             if (actualOutcome === '2') teamStats[tAway].matchesBlown += 1;
           }
@@ -227,19 +220,21 @@ const Stats = () => {
 
       const validTeams = Object.entries(teamStats).filter(([name]) => !name.startsWith("Klub "));
       
-      // Ranking zysków: Kto dał Ci realnie najwięcej punktów do tabeli
-      const bestPointTeams = [...validTeams]
+      // Wyświetlanie maksymalnie do 5 drużyn zarobkowych
+      const sortedBest = [...validTeams]
         .filter(([_, v]) => v.pointsEarned > 0)
-        .sort((a, b) => b[1].pointsEarned - a[1].pointsEarned)
-        .slice(0, 3)
-        .map(([team, v]) => `${team} (+${v.pointsEarned}pkt)`);
+        .sort((a, b) => b[1].pointsEarned - a[1].pointsEarned);
+      
+      const bestPointTeams = sortedBest.slice(0, 5).map(([team, v]) => `${team} (+${v.pointsEarned}pkt)`);
+      if (sortedBest.length > 5) bestPointTeams.push("i inne...");
 
-      // Ranking wtop: Kto najwięcej razy zepsuł Twój czysty typ (0 punktów)
-      const worstPointTeams = [...validTeams]
+      // Wyświetlanie maksymalnie do 5 drużyn stratnych
+      const sortedWorst = [...validTeams]
         .filter(([_, v]) => v.matchesBlown > 0)
-        .sort((a, b) => b[1].matchesBlown - a[1].matchesBlown)
-        .slice(0, 3)
-        .map(([team, v]) => `${team} (${v.matchesBlown}x wtopa)`);
+        .sort((a, b) => b[1].matchesBlown - a[1].matchesBlown);
+
+      const worstPointTeams = sortedWorst.slice(0, 5).map(([team, v]) => `${team} (${v.matchesBlown}x wtopa)`);
+      if (sortedWorst.length > 5) worstPointTeams.push("i inne...");
 
       rawProfiles.push({
         user, index, outcomeRate, scoreRate, calculatedPoints,
