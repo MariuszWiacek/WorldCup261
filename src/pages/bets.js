@@ -68,13 +68,26 @@ const Bets = () => {
 
   const activeTabInfo = paginatedTabs[currentPage] || paginatedTabs[0];
 
-  // AUTOMATYCZNY WYBÓR STRONY (AKTYWNEJ KOLEJKI) PRZY URUCHOMIENIU
+  // AUTOMATYCZNY WYBÓR STRONY (AKTYWNEJ KOLEJKI) TYLKO PRZY ELEMENTU MONTOWANIU (WJEŹDZIE NA STRONĘ)
   useEffect(() => {
+    const sortedGames = [...gameData].sort((a, b) => a.id - b.id);
+    const kolejka1 = sortedGames.filter(game => game.id <= 24);
+    const kolejka2 = sortedGames.filter(game => game.id > 24 && game.id <= 48);
+    const kolejka3 = sortedGames.filter(game => game.id > 48 && game.id <= 72);
+    const fazaPucharowa = sortedGames.filter(game => game.id > 72);
+
+    const tempTabs = [
+      { label: "Kolejka 1", games: kolejka1 },
+      { label: "Kolejka 2", games: kolejka2 },
+      { label: "Kolejka 3", games: kolejka3 },
+      { label: "Faza pucharowa", games: fazaPucharowa }
+    ];
+
     const now = DateTime.now().setZone('Europe/Warsaw');
     let dynamicTargetPage = 0;
 
-    for (let i = 0; i < paginatedTabs.length; i++) {
-      const tabGames = paginatedTabs[i].games;
+    for (let i = 0; i < tempTabs.length; i++) {
+      const tabGames = tempTabs[i].games;
       
       const hasActiveMatches = tabGames.some(game => {
         const kickoff = DateTime.fromISO(`${game.date}T${game.kickoff}:00`, { zone: 'Europe/Warsaw' });
@@ -87,29 +100,24 @@ const Bets = () => {
         break;
       }
       
-      if (i === paginatedTabs.length - 1) {
+      if (i === tempTabs.length - 1) {
         dynamicTargetPage = i; 
       }
     }
 
     setCurrentPage(dynamicTargetPage);
-  }, [allGames, paginatedTabs]);
+  }, []); // Pusta tablica zależności uniemożliwia "skakanie" z powrotem do Kolejki 1 podczas pisania
 
-  // NAPRAWIONY INTERWAŁ: Aktualizuje czas bez wymazywania wpisywanych typów użytkownika
+  // NAPRAWIONY INTERWAŁ: Aktualizuje czas zachowując to, co użytkownik aktualnie pisze
   useEffect(() => {
     const timer = setInterval(() => {
       setAllGames(prevGames => {
-        return gameData.map(staticGame => {
-          const userEditedGame = prevGames.find(g => g.id === staticGame.id);
-          
-          if (userEditedGame && userEditedGame.score) {
-            return {
-              ...staticGame,
-              score: userEditedGame.score,
-              bet: userEditedGame.bet
-            };
-          }
-          return staticGame;
+        return prevGames.map(currentGame => {
+          const staticGame = gameData.find(g => g.id === currentGame.id);
+          return {
+            ...staticGame,
+            ...currentGame, // Priorytet dla zmienionych wartości stanów (score, bet itp.)
+          };
         });
       });
     }, 60000);
