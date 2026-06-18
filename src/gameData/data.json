@@ -37,7 +37,7 @@
   { "id": 36, "kolejkaId": "F", "home": "Tunezja", "away": "Japonia", "kickoff": "06:00", "date": "2026-06-21", "disabled": false },
   { "id": 37, "kolejkaId": "H", "home": "Hiszpania", "away": "Arabia Saudyjska", "kickoff": "18:00", "date": "2026-06-21", "disabled": false },
   { "id": 38, "kolejkaId": "G", "home": "Belgia", "away": "Iran", "kickoff": "21:00", "date": "2026-06-21", "disabled": false },
-  { "id": 39, "kolejkaId": "H", "home": "Urugwaj", "away": "Wyspy Zielonego Przylądkaa", "kickoff": "00:00", "date": "2026-06-22", "disabled": false },
+  { "id": 39, "kolejkaId": "H", "home": "Urugwaj", "away": "Wyspy Zielonego Przylądka", "kickoff": "00:00", "date": "2026-06-22", "disabled": false },
   { "id": 40, "kolejkaId": "G", "home": "Nowa Zelandia", "away": "Egipt", "kickoff": "03:00", "date": "2026-06-22", "disabled": false },
   { "id": 41, "kolejkaId": "J", "home": "Argentyna", "away": "Austria", "kickoff": "19:00", "date": "2026-06-22", "disabled": false },
   { "id": 42, "kolejkaId": "I", "home": "Francja", "away": "Irak", "kickoff": "23:00", "date": "2026-06-22", "disabled": false },
