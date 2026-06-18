@@ -189,7 +189,9 @@ const Table = () => {
         prizePool[kolejkaID] = { winners: [], prize: 0, isSplit: false };
       } else {
         // Calculates dynamic split shares (e.g., 100 flat / 2 winners = 50 each)
-        const splitPrize = flatPrize / winners.length;
+        // New code using Math.round()
+const splitPrize = Math.round(flatPrize / winners.length);
+
         prizePool[kolejkaID] = { 
           winners, 
           prize: splitPrize, 
