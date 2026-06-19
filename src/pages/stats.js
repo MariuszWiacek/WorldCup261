@@ -175,7 +175,8 @@ const Stats = () => {
         
         calculatedPoints += matchPointsEarned;
 
-        if (String(bet.bet).toUpperCase() === 'X') drawBetsPredicted++;
+        const predictedOutcome = String(bet.bet).toUpperCase();
+        if (predictedOutcome === 'X') drawBetsPredicted++;
 
         let tHome = bet.home || (matchId.includes('_') ? matchId.split('_')[0] : null);
         let tAway = bet.away || (matchId.includes('_') ? matchId.split('_')[1] : null);
@@ -188,27 +189,21 @@ const Stats = () => {
         if (!teamStats[tHome]) teamStats[tHome] = { pointsEarned: 0, matchesBlown: 0 };
         if (!teamStats[tAway]) teamStats[tAway] = { pointsEarned: 0, matchesBlown: 0 };
 
-        const predictedOutcome = String(bet.bet).toUpperCase();
-
+        // Poprawiona, jasna logika rozliczania statystyk drużynowych
         if (matchPointsEarned > 0) {
           if (predictedOutcome === '1') {
             teamStats[tHome].pointsEarned += matchPointsEarned;
           } else if (predictedOutcome === '2') {
             teamStats[tAway].pointsEarned += matchPointsEarned;
-          } else if (predictedOutcome === 'X') {
-  if (actualOutcome === '1') {
-    teamStats[tAway].matchesBlown += 1;
-  } else if (actualOutcome === '2') {
-    teamStats[tHome].matchesBlown += 1;
-  }
-} else {
-          if (predictedOutcome === '1' && actualOutcome !== '1') {
+          }
+        } else {
+          if (predictedOutcome === '1') {
             teamStats[tHome].matchesBlown += 1;
-          } else if (predictedOutcome === '2' && actualOutcome !== '2') {
+          } else if (predictedOutcome === '2') {
             teamStats[tAway].matchesBlown += 1;
           } else if (predictedOutcome === 'X') {
-            if (actualOutcome === '1') teamStats[tHome].matchesBlown += 1;
-            if (actualOutcome === '2') teamStats[tAway].matchesBlown += 1;
+            if (actualOutcome === '1') teamStats[tAway].matchesBlown += 1;
+            if (actualOutcome === '2') teamStats[tHome].matchesBlown += 1;
           }
         }
       });
