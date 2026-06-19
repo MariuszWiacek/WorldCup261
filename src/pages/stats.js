@@ -196,10 +196,13 @@ const Stats = () => {
           } else if (predictedOutcome === '2') {
             teamStats[tAway].pointsEarned += matchPointsEarned;
           } else if (predictedOutcome === 'X') {
-            teamStats[tHome].pointsEarned += matchPointsEarned;
-            teamStats[tAway].pointsEarned += matchPointsEarned;
-          }
-        } else {
+  // For a failed draw bet, blame the losing side
+  if (actualOutcome === '1') {
+    teamStats[tAway].matchesBlown += 1; // away team lost
+  } else if (actualOutcome === '2') {
+    teamStats[tHome].matchesBlown += 1; // home team lost
+  }
+} else {
           if (predictedOutcome === '1' && actualOutcome !== '1') {
             teamStats[tHome].matchesBlown += 1;
           } else if (predictedOutcome === '2' && actualOutcome !== '2') {
