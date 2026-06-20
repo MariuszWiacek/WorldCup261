@@ -495,7 +495,7 @@ const Stats = () => {
                     <div style={{ background: '#161616', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: 'bold' }}>🎯 DOKŁADNE WYNIKI</div>
                       <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2196f3' }}>{pct(p.scoreRate)}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#666' }}>({p.scoreCorrect} x 3pkt)</div>
+                      <div style={{ fontSize: '0.7rem', color: '#666' }}>{p.scoreCorrect}</div>
                     </div>
                   </Col>
                 </Row>
