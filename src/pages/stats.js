@@ -224,7 +224,7 @@ const Stats = () => {
         const maxEarned = Math.max(...activeEarners.map(([_, v]) => v.pointsEarned));
         const absoluteTopEarners = activeEarners.filter(([_, v]) => v.pointsEarned === maxEarned);
         
-        bestPointTeams = absoluteTopEarners.slice(0, 5).map(([team, v]) => `${team} (+${v.pointsEarned}pkt)`);
+        bestPointTeams = absoluteTopEarners.slice(0, 5).map(([team, v]) => `${team}`);
         if (absoluteTopEarners.length > 5) bestPointTeams.push("i inne...");
       }
 
@@ -502,10 +502,10 @@ const Stats = () => {
 
                 <div style={{ fontSize: '0.9rem', marginBottom: '15px', paddingBottom: '10px', borderBottom: '1px solid #333' }}>
                   <div style={{ margin: '6px 0', color: '#ccc' }}>
-                    <span style={{ color: '#4caf50', fontWeight: '600' }}>⚽ Zarabiasz na:</span> {p.bestPointTeams.join(', ') || 'Brak danych'}
+                    <span style={{ color: '#4caf50', fontWeight: '600' }}>🟢 Punktują:</span> {p.bestPointTeams.join(', ') || 'Brak danych'}
                   </div>
                   <div style={{ margin: '6px 0', color: '#ccc' }}>
-                    <span style={{ color: '#f44336', fontWeight: '600' }}>💔 Tracisz przez:</span> {p.worstPointTeams.join(', ') || 'Brak danych'}
+                    <span style={{ color: '#f44336', fontWeight: '600' }}>🔴 Zawodzą:</span> {p.worstPointTeams.join(', ') || 'Brak danych'}
                   </div>
                 </div>
 
