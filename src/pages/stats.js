@@ -18,7 +18,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ROZBUDOWANY BANK WERDYKTÓW
+// WYPAKOWANY BANK WERDYKTÓW (PO 15+ NA GRUPĘ)
 const VERDICTS_BANK = {
   zloto: [
     { s: "Jasnowidz na etacie", v: "Typujesz z taką precyzją, że zaraz zgłosi się do Ciebie ABW z podejrzeniem o podróże w czasie." },
@@ -30,7 +30,12 @@ const VERDICTS_BANK = {
     { s: "Architekt Wyników", v: "Twoja intuicja nie pyta, czy można. Ona wchodzi na salony razem z drzwiami i bierze wszystko." },
     { s: "Naczelny Strateg", v: "Przejrzałeś taktykę wszystkich trenerów na turnieju. Nawet Guardiola dzwoni pytać, co postawić." },
     { s: "Dziecko Przeznaczenia", v: "Gwiazdy ułożyły się w idealną sygnaturę Twoich typów. Absolutny kosmos punktowy." },
-    { s: "Złoty Nos", v: "Wyczuwasz gole zanim zawodnicy wyjdą z szatni na rozgrzewkę. Niebywały instynkt łowcy." }
+    { s: "Złoty Nos", v: "Wyczuwasz gole zanim zawodnicy wyjdą z szatni na rozgrzewkę. Niebywały instynkt łowcy." },
+    { s: "Algorytm Nostradamusa", v: "Twoje konto powinno być zablokowane za oszukiwanie rzeczywistości. Bezbłędne czytanie gry." },
+    { s: "Generał Zwycięstwa", v: "Dowodzisz swoimi typami z precyzją Napoleona. Każdy mecz to dla Ciebie formalność i punkty." },
+    { s: "Piłkarny Iluzjonista", v: "Sprawiasz, że najtrudniejsze wyniki wyglądają na banalne. Rywale po prostu przecierają oczy." },
+    { s: "Główny Reżyser", v: "Scenariusze meczowe chyba piszesz sam przed weekendem. Niemożliwy poziom wyczucia." },
+    { s: "Szachista Zielonej Murawy", v: "Widzisz trzy ruchy do przodu, podczas gdy reszta ligi wciąż zastanawia się, kto gra w obronie." }
   ],
   srebro: [
     { s: "Prawie Jak Szpakowski", v: "Wiesz, że dzwoni, wiesz, w którym kościele, ale czasem zamiast trójki wpada tylko skromny punkcik." },
@@ -42,7 +47,12 @@ const VERDICTS_BANK = {
     { s: "Cichy Zabójca", v: "Nikt na Ciebie nie stawia na głos, a Ty po cichu, bez fleszy, podgryzasz liderów od zaplecza." },
     { s: "Taktyczny Średniak", v: "Twoja forma faluje jak Bałtyk w listopadzie. Jeden dzień jak profesor, drugi jak stażysta." },
     { s: "O krok od Chwały", v: "Do pełni szczęścia brakuje Ci tak niewiele, że aż boli. Jeden gol w końcówce dzieli Cię od elity." },
-    { s: "Główny Inspektor", v: "Analizujesz, liczysz, kalkulujesz. Masz wiedzę, ale czasem brakuje Ci odrobiny szaleństwa." }
+    { s: "Główny Inspektor", v: "Analizujesz, liczysz, kalkulujesz. Masz wiedzę, ale czasem brakuje Ci odrobiny szaleństwa." },
+    { s: "Prezes Zarządu Efektywności", v: "Robisz minimum tego, co trzeba, żeby być wysoko. Bez popisów, czysta matematyczna kalkulacja." },
+    { s: "Dżentelmen z Klasą", v: "Trzymasz fason i nie schodzisz poniżej pewnego poziomu. Solidna, europejska marka typera." },
+    { s: "Łowca Okazji", v: "Budzisz się w najważniejszych meczach. Gdy stawka rośnie, Twoje typy nagle zaczynają trafiać." },
+    { s: "Kolekcjoner Srebra", v: "Masz wszystko, by wygrać, prócz tego ostatniego błysku szczęścia. Ale podium jest blisko." },
+    { s: "Cień Lidera", v: "Ktokolwiek jest pierwszy, czuje Twój oddech na plecach. Czekasz na jeden potknięty krok." }
   ],
   braz: [
     { s: "Ofiara 93. minuty", v: "Twoim największym wrogiem są doliczone minuty. Gdyby mecze trwały 80 minut, byłbyś bogaty." },
@@ -54,30 +64,33 @@ const VERDICTS_BANK = {
     { s: "Czołg bez Paliwa", v: "Miały być wielkie wyniki i marsz po puchar, a skończyło się na rzężeniu silnika w środku stawki." },
     { s: "Janusz Typerki", v: "Typujesz przy grillu, rzucając okiem na skróty meczów. Wyniki są... dokładnie takie, jak metoda." },
     { s: "Kolekcjoner Jedynek", v: "Zbierasz te pojedyncze punkciki z takim mozołem, jakby to były kupony rabatowe do marketu." },
-    { s: "Wieczny Optymista", v: "Wierzysz w piękną piłkę i czyste intencje. Szkoda tylko, że brutalny świat weryfikuje to co drugi wieczór." }
+    { s: "Wieczny Optymista", v: "Wierzysz w piękną piłkę i czyste intencje. Szkoda tylko, że brutalny świat weryfikuje to co drugi wieczór." },
+    { s: "Koneser Dogrywek", v: "Zawsze liczysz na cud tam, gdzie go nie ma. Żyjesz nadziejami, punkty zdobywasz od święta." },
+    { s: "Brat Łata Tabeli", v: "Wszyscy Cię lubią, nikomu nie zagrażasz. Idealny środek stawki bez żadnych ambicji." },
+    { s: "Zagubiony w Analizie", v: "Przeczytasz sto artykułów przed meczem, a na koniec i tak zaznaczysz zły wynik. Przeanalizowany pech." },
+    { s: "Ofiara VAR-u", v: "Twoje punkty ulatują z dymem za każdym razem, gdy sędzia podchodzi do monitora. Fatum." },
+    { s: "Minimalista Roku", v: "Cieszysz się z jednego punktu, jakbyś wygrał całą ligę. Ambicje dopasowane do możliwości." }
   ],
   mul: [
     { s: "Dno i metr mułu", v: "Oficjalnie szorujesz po dnie. Gdyby odwrócić tabelę do góry nogami, Twoja dominacja byłaby bezdyskusyjna." },
     { s: "Generator Losowych Liczb", v: "Twoje typy wyglądają tak, jakby kot przeszedł się po klawiaturze numerycznej. Pełen chaos." },
     { s: "Sponsor Oficjalny", v: "Rywale powinni zrzucić się dla Ciebie na pizzę w podzięce za to, jak skutecznie windujesz ich w górę tabeli." },
-    { s: "Anty-Jasnowidz", v: "Gdyn stawiasz na drużynę A, bezpieczniej jest postawić dom, oszczędności życia i nerkę na drużynę B." },
+    { s: "Anty-Jasnowidz", v: "Gdy stawiasz na drużynę A, bezpieczniej jest postawić dom, oszczędności życia i nerkę na drużynę B." },
     { s: "Koszmar Typera", v: "Twoja forma jest stabilna – stabilnie zła. Nawet sędziowie z B-klasy mieliby lepszą skuteczność." },
-    { s: "Maskotka Ligi", v: "Nikt się Ciebie nie boi, ale wszyscy Cię lubią, bo tak pięknie zamykasz tabelę od dołu." },
+    { s: "Maskotka Ligi", v: "Nikt się Ciebie nie boi, ale wszyscy Cię lubią, bo tak pięknie zamykassan tabelę od dołu." },
     { s: "Sabotażysta Roku", v: "Twoje predykcje wywołują u innych graczy niekontrolowane napady śmiechu. Zmień dyscyplinę na krykiet." },
     { s: "Chaotyczny Selekcjoner", v: "Twoje kupony to czysty surrealizm. Wyglądają jak losowe rzuty rzutkami w tarczę, a mecze skutecznie leczą Cię z resztek optymizmu." },
     { s: "Rozbitek na Mieliźnie", v: "Zgubiłeś kompas, mapę i chyba w ogóle zapomniałeś, jakie zasady panują w tej dyscyplinie sportu." },
     { s: "Czerwona Latarnia", v: "Świecisz tak mocno na dole tabeli, że piloci samolotów omijają Twoje konto szerokim łukiem." },
-    { s: "Niewidzialna Ręka Rynku", v: "Twoje typy spektakularnie niszczą jakąkolwiek logikę matematyczną. To wręcz unikalny talent." }
-  ],
-  nieaktywny: [
-    { s: "VIP bez internetu", v: "Zgłosił się do turnieju, po czym zapomniał hasła do telefonu. Klasyczny kanapowy duch." },
-    { s: "Ambasador Walkowerów", v: "Twoja nieobecność jest bardziej stabilna niż wyniki Reprezentacji Polski." },
-    { s: "Zaginiony w Akcji", v: "Słyszałeś, że grają, ale chyba pomyliłeś imprezy lub utknąłeś w strefie bez zasięgu na dobre." },
-    { s: "Widmo Mundialu", v: "Twoje konto istnieje w bazie danych tylko po to, żeby podnosić ogólną liczbę zarejestrowanych uczestników." }
+    { s: "Niewidzialna Ręka Rynku", v: "Twoje typy spektakularnie niszczą jakąkolwiek logikę matematyczną. To wręcz unikalny talent." },
+    { s: "VIP bez internetu", v: "Oddałeś walkowery lub zapomniałeś hasła do telefonu. Klasyczny kanapowy duch tego turnieju." },
+    { s: "Król Ślepych Trafów", v: "Nawet rzucając monetą, miałbyś statystycznie lepsze wyniki. Twój system to czysta destrukcja." },
+    { s: "Królewski Donator", v: "Twoja hojność w oddawaniu punktów za darmo przejdzie do historii tej ligi. Samarytanin." },
+    { s: "Kreator Wolnego Czasu", v: "Wygląda na to, że typujesz z zamkniętymi oczami podczas jazdy tramwajem. Zero kontroli." },
+    { s: "Piłkarski Ignorant", v: "Czy Ty na pewno wiesz, że w piłce wygrywa ten, kto strzeli więcej goli? Twoje typy sugerują coś innego." }
   ]
 };
 
-// Funkcja mieszająca (hashująca) string na liczbę dla lepszego losowania werdyktów
 const getStableSeed = (str) => {
   let hash = 1789;
   for (let i = 0; i < str.length; i++) {
@@ -274,6 +287,9 @@ const Stats = () => {
       });
     });
 
+    // Zbiór przydzielonych już tekstów (zapobiega powtórzeniom u userów)
+    const usedVerdicts = new Set();
+
     const output = rawProfiles.map(p => {
       let OVR = 0;
       if (p.outcomeTotal === 0) {
@@ -293,47 +309,52 @@ const Stats = () => {
       }
 
       let basket = "braz";
-      if (p.emptyBets > 15) {
-        basket = "nieaktywny";
+      if (p.emptyBets > 15 || OVR < 30) {
+        basket = "mul"; // "nieaktywni" i najsłabsi trafiają do wspólnego wora
       } else if (OVR >= 65) { 
         basket = "zloto";
       } else if (OVR >= 48) { 
         basket = "srebro";
-      } else if (OVR >= 30) { 
-        basket = "braz";
       } else {
-        basket = "mul"; 
+        basket = "braz"; 
       }
 
       let style = "";
       let verdict = "";
       
-      // Zaawansowany i stabilny dobór indeksu na podstawie nazwy użytkownika i punktów
-      const stableSeed = getStableSeed(p.user) + p.calculatedPoints + p.emptyBets;
-
-      if (basket === "nieaktywny") {
-        const pool = VERDICTS_BANK.nieaktywny;
-        const item = pool[stableSeed % pool.length];
-        style = item.s;
-        verdict = item.v;
-      } 
-      else if (p.scoreCorrect === absoluteMaxExactScores && p.scoreCorrect > 0 && OVR >= 48) {
+      if (p.scoreCorrect === absoluteMaxExactScores && p.scoreCorrect > 0 && OVR >= 48 && !usedVerdicts.has("Chirurg Wyników (Snajper)")) {
         style = "Chirurg Wyników (Snajper)";
         verdict = `Niewiarygodne! Masz najwięcej idealnie trafionych wyników w lidze (${p.scoreCorrect}). Podczas gdy reszta bawi się w drobne, Ty wjeżdżasz z buta i kasujesz pakiety po 3 punkty. Strach z Tobą grać.`;
+        usedVerdicts.add(style);
       }
-      else if (p.outcomeCorrect === absoluteMaxOutcomeCorrect && p.outcomeCorrect > 0 && OVR >= 48) {
+      else if (p.outcomeCorrect === absoluteMaxOutcomeCorrect && p.outcomeCorrect > 0 && OVR >= 48 && !usedVerdicts.has("Analityk Trendów (Mózg Ligi)")) {
         style = "Analityk Trendów (Mózg Ligi)";
         verdict = `Twoje wyczucie boiskowych intencji jest przerażające. Masz najwięcej bezbłędnie wytypowanych tendencji (${p.outcomeCorrect}). Twój wewnętrzny algorytm rzadko kiedy się myli!`;
+        usedVerdicts.add(style);
       }
-      else if (p.drawBetsCorrect === absoluteMaxDrawsCorrect && p.drawBetsCorrect > 0) {
+      else if (p.drawBetsCorrect === absoluteMaxDrawsCorrect && p.drawBetsCorrect > 0 && !usedVerdicts.has("Oficjalny Król Remisów")) {
         style = "Oficjalny Król Remisów";
         verdict = `Podczas gdy cała liga ślepo stawia na faworytów, Ty ze stoickim spokojem namierzasz nudne mecze bez rozstrzygnięcia. Twój nos do 'iksów' ratuje Ci skórę w tabeli.`;
+        usedVerdicts.add(style);
       } 
       else {
-        let currentPool = VERDICTS_BANK[basket];
-        const item = currentPool[stableSeed % currentPool.length];
+        const currentPool = VERDICTS_BANK[basket];
+        const stableSeed = getStableSeed(p.user) + p.calculatedPoints;
+        
+        let poolIndex = stableSeed % currentPool.length;
+        let item = currentPool[poolIndex];
+
+        // Pętla wyszukująca najbliższy NIEUŻYWANY werdykt w danej grupie
+        let attempts = 0;
+        while (usedVerdicts.has(item.s) && attempts < currentPool.length) {
+          poolIndex = (poolIndex + 1) % currentPool.length;
+          item = currentPool[poolIndex];
+          attempts++;
+        }
+
         style = item.s;
         verdict = item.v;
+        usedVerdicts.add(style);
       }
 
       return { ...p, OVR, style, verdict, basket };
@@ -541,7 +562,7 @@ const Stats = () => {
                   lineHeight: '1.45',
                   color: '#ddd' 
                 }}>
-                  <strong>🧠 Werdykt systemu:</strong> {p.verdict}
+                  <strong>🧠 Werdykt systemu:</strong> {verdict}
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '8px', borderTop: '1px dashed #333', fontSize: '0.75rem', color: '#777' }}>
