@@ -62,13 +62,13 @@ p {
   font-family: "Rubik";
 }
 
-/* styles.css */
 .glossy-text {
   font-family: 'Rubik';
   font-size: 36px;
   font-weight: bold;
   font-style: italic;
-  background: linear-gradient(45deg, rgb(255, 0, 43), rgb(0, 21, 255));
+  /* World Cup Gold to Victory Blue */
+  background: linear-gradient(45deg, rgb(246, 191, 0) 0%, rgb(255, 233, 142) 40%, rgb(10, 50, 130) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   position: relative;
@@ -77,6 +77,8 @@ p {
   margin-right: 5px;
   margin-top: 1px;
 }
+
+
 
 .glossy-text::before {
   content: '';

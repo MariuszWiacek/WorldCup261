@@ -2,20 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import { initializeApp } from 'firebase/app';
 import { Row, Col, Container } from 'react-bootstrap';
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
 
-// Firebase configuration
+// Configuration Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBnSIOvM6OkqRqujx_kDWzo8RhFBPS7aVw",
   authDomain: "wc2026-396b7.firebaseapp.com",
@@ -27,276 +15,519 @@ const firebaseConfig = {
   measurementId: "G-KLLLNCET00"
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
-const database = getDatabase(firebaseApp);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
+const VERDICTS_BANK = {
+  zloto: [
+    { s: "Jasnowidz na etacie", v: "Typujesz z taką precyzją, że zaraz zgłosi się do Ciebie ABW z podejrzeniem o podróże w czasie." },
+    { s: "Piłkarski Matrix", v: "Zagiąłeś system. Ty nie przewidujesz wyników, Ty je po prostu programujesz przed meczem." },
+    { s: "Ekspert z Bożej Łaski", v: "Twoje OVR świeci tak mocno, że reszta ligi musi oglądać tabelę w okularach przeciwsłonecznych." },
+    { s: "Władca Szklanej Kuli", v: "Bukmacherzy płaczą, kiedy otwierasz aplikację. Absolutna dominacja i brak litości." },
+    { s: "Profesor z Harvardu", v: "Twoje analizy są tak zaawansowane, że chłopy na kanapie myślą, że masz układ z sędziami VAR." }
+  ],
+  srebro: [
+    { s: "Prawie Jak Szpakowski", v: "Wiesz, że dzwoni, wiesz, w którym kościele, ale czasem zamiast trójki wpada tylko skromny punkcik." },
+    { s: "Czarny Koń z Plastiku", v: "Niby groźny, niby w czołówce, ale jak przyjdzie co do czego, to remisujesz z logiką." },
+    { s: "Ministrant Statystyk", v: "Grasz bezpiecznie jak defensywny pomocnik z Ekstraklasy. Szału nie ma, ale punkty kapią." },
+    { s: "Wielka Nadzieja Białych", v: "Masz przebłyski geniuszu, ale przeplatasz je typami, o których wolałbyś szybko zapomnieć przy piwie." },
+    { s: "Koneser Średniej Hawajskiej", v: "Solidne rzemiosło. Nie jest to włoska pizza, ale da się zjeść i nie zepsuć humoru." }
+  ],
+  braz: [
+    { s: "Ofiara 93. minuty", v: "Twoim największym wrogiem są doliczone minuty. Gdyby mecze trwały 80 minut, byłbyś bogaty." },
+    { s: "Stabilny Urzędnik", v: "Emocji w Twoich typach tyle, co przy rozliczaniu PIT-u. Niby wszystko się zgadza, ale radości z tego brak." },
+    { s: "Piłkarski Romantyk", v: "Stawiasz sercem, a potem rzeczywistość weryfikuje Cię brutalnie jak poniedziałkowy budzik." },
+    { s: "Hamulec Taktyczny", v: "Twoja intuicja chyba została na lotnisku. Kręcisz się wokół zera jak elektron wokół jądra." },
+    { s: "Więzień Przeciętności", v: "Ani nie spadniesz na dno, ani nie powąchasz pudła. Taki ligowy dżentelmen bez wyrazu." }
+  ],
+  mul: [
+    { s: "Dno i metr mułu", v: "Oficjalnie szorujesz po dnie. Gdyby odwrócić tabelę do góry nogami, Twoja dominacja byłaby bezdyskusyjna." },
+    { s: "Generator Losowych Liczb", v: "Twoje typy wyglądają tak, jakby kot przeszedł się po klawiaturze numerycznej. Pełen chaos." },
+    { s: "Sponsor Oficjalny", v: "Rywale powinni zrzucić się dla Ciebie na pizzę w podzięce za to, jak skutecznie windujesz ich w górę tabeli." },
+    { s: "Anty-Jasnowidz", v: "Gdy stawiasz na drużynę A, bezpieczniej jest postawić dom, oszczędności życia i nerkę na drużynę B." },
+    { s: "Koszmar Typera", v: "Twoja forma jest stabilna – stabilnie zła. Nawet sędziowie z B-klasy mieliby lepszą skuteczność." },
+    { s: "Maskotka Ligi", v: "Nikt się Ciebie nie boi, ale wszyscy Cię lubią, bo tak pięknie zamykasz tabelę od dołu." },
+    { s: "Sabotażysta Roku", v: "Twoje predykcje wywołują u innych graczy niekontrolowane napady śmiechu. Zmień dyscyplinę na krykiet." }
+  ],
+  nieaktywny: [
+    { s: "VIP bez internetu", v: "Zgłosił się do turnieju, po czym zapomniał hasła do telefonu. Klasyczny kanapowy duch." },
+    { s: "Ambasador Walkowerów", v: "Twoja nieobecność jest bardziej stabilna niż wyniki Reprezentacji Polski." }
+  ]
+};
 
 const Stats = () => {
   const [results, setResults] = useState({});
   const [submittedData, setSubmittedData] = useState({});
-  const [generalStats, setGeneralStats] = useState({
-    mostChosenCorrectScore: '',
-    mostMatchedCorrectScore: '',
-    mostChosenCorrectScoreCount: 0,
-    mostMatchedCorrectScoreCount: 0,
-    mostDraws: 0,
-    userWithMostDraws: '',
-    mostForgetfulUser: '',
-    mostForgetfulCount: 0,
+  const [profiles, setProfiles] = useState([]);
+  
+  const [showKingOfDraws, setShowKingOfDraws] = useState(false);
+  const [showMostEmpty, setShowMostEmpty] = useState(false);
+
+  const [globalStats, setGlobalStats] = useState({
+    mostDrawsPredicted: { users: '---', count: 0 },
+    kingOfDraws: { users: '---', count: 0 },
+    mostExactScores: { users: '---', count: 0 },
+    mostEmpty: { users: '---', count: 0 }
   });
-  const [userStats, setUserStats] = useState([]);
 
   useEffect(() => {
-    const resultsRef = ref(database, 'results');
-    onValue(resultsRef, (snapshot) => {
-      setResults(snapshot.val() || {});
+    const unsubResults = onValue(ref(db, 'results'), snap => {
+      if (snap.exists()) setResults(snap.val());
     });
-
-    const submittedDataRef = ref(database, 'submittedData');
-    onValue(submittedDataRef, (snapshot) => {
-      setSubmittedData(snapshot.val() || {});
+    const unsubData = onValue(ref(db, 'submittedData'), snap => {
+      if (snap.exists()) setSubmittedData(snap.val());
     });
+    return () => {
+      unsubResults();
+      unsubData();
+    };
   }, []);
 
   useEffect(() => {
-    if (!submittedData || !results) return;
+    if (!submittedData || Object.keys(submittedData).length === 0 || !results || Object.keys(results).length === 0) {
+      return;
+    }
 
-    // 1. Group match IDs by day to map chronological progress (Max 104 matches)
-    const matchDayMap = {};
-    
-    Object.entries(submittedData).forEach(([user, userBets]) => {
-      Object.entries(userBets || {}).forEach(([matchId, bet]) => {
-        // Safe mapping strategy: Grouping either via string date or artificial match blocks
-        const matchDate = bet.date || `Dzień ${Math.ceil(parseInt(matchId.replace(/\D/g, '')) / 4) || 1}`;
-        if (!matchDayMap[matchDate]) {
-          matchDayMap[matchDate] = [];
-        }
-        if (!matchDayMap[matchDate].includes(matchId)) {
-          matchDayMap[matchDate].push(matchId);
-        }
-      });
-    });
+    const rawProfiles = [];
+    let absoluteMaxDrawsCorrect = 0;
+    let absoluteMaxExactScores = 0;
+    let absoluteMaxOutcomeCorrect = 0;
 
-    const chronologicalDays = Object.keys(matchDayMap).sort((a, b) => {
-      return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
-    });
+    const playedMatchesCount = Object.values(results).filter(res => {
+      if (!res) return false;
+      const resString = typeof res === 'object' ? String(res.score || '') : String(res);
+      return resString.includes(':') && resString.trim() !== '';
+    }).length;
 
-    const userStatsData = [];
-    const scoreCount = {};
-    const matchedScores = {};
-    const drawCount = {};
-    const emptyScoreCount = {};
+    const currentMatchesBase = playedMatchesCount > 0 ? playedMatchesCount : 1;
 
-    Object.keys(submittedData).forEach((user) => {
+    Object.keys(submittedData).forEach((user, index) => {
       const bets = submittedData[user] || {};
-      const userStats = {
-        user,
-        chosenTeams: {},
-        failureTeams: {},
-        successTeams: {},
-      };
 
-      Object.entries(bets).forEach(([id, bet]) => {
-        if (bet.score === ':::' || !bet.score) {
-          emptyScoreCount[user] = (emptyScoreCount[user] || 0) + 1;
+      let outcomeCorrect = 0;
+      let outcomeTotal = 0;
+      let scoreCorrect = 0;
+      let scoreTotal = 0;
+      let emptyBets = 0;
+      let drawBetsPredicted = 0; 
+      let drawBetsCorrect = 0;   
+      let calculatedPoints = 0;
+
+      const teamStats = {};
+
+      Object.entries(bets).forEach(([matchId, bet]) => {
+        if (!bet) return;
+
+        const scoreStr = String(bet.score || '');
+        if (!scoreStr || scoreStr === ':::' || scoreStr === ':' || scoreStr.trim() === '') {
+          emptyBets++;
           return;
         }
 
-        const result = results[id];
-        if (!result || !bet.home || !bet.away || !bet.bet) return;
+        const rawResult = results[matchId];
+        if (!rawResult) return;
 
-        const { home: homeTeam, away: awayTeam, bet: betOutcome, score: betScore } = bet;
-        const [actualHomeScore, actualAwayScore] = result.split(':').map(Number);
-        const actualOutcome = actualHomeScore === actualAwayScore ? 'X' : actualHomeScore > actualAwayScore ? '1' : '2';
-
-        if (betOutcome !== 'X') {
-          const chosenTeam = betOutcome === '1' ? homeTeam : awayTeam;
-          userStats.chosenTeams[chosenTeam] = (userStats.chosenTeams[chosenTeam] || 0) + 1;
-          if (actualOutcome === betOutcome) {
-            userStats.successTeams[chosenTeam] = (userStats.successTeams[chosenTeam] || 0) + 1;
-          } else {
-            userStats.failureTeams[chosenTeam] = (userStats.failureTeams[chosenTeam] || 0) + 1;
-          }
+        let finalResultString = '';
+        if (typeof rawResult === 'object' && rawResult.score) {
+          finalResultString = String(rawResult.score);
+        } else if (typeof rawResult === 'string') {
+          finalResultString = rawResult;
+        } else {
+          return;
         }
 
-        if (actualOutcome === 'X' && betOutcome === 'X') {
-          drawCount[user] = (drawCount[user] || 0) + 1;
+        if (!finalResultString.includes(':')) return;
+
+        const resParts = finalResultString.split(':');
+        let rh, ra;
+        if (resParts.length >= 3) {
+          rh = Number(resParts[resParts.length - 2]);
+          ra = Number(resParts[resParts.length - 1]);
+        } else {
+          rh = Number(resParts[0]);
+          ra = Number(resParts[1]);
         }
+        if (isNaN(rh) || isNaN(ra)) return;
 
-        scoreCount[betScore] = (scoreCount[betScore] || 0) + 1;
-        if (betScore === result) {
-          matchedScores[betScore] = (matchedScores[betScore] || 0) + 1;
-        }
-      });
+        const actualOutcome = rh === ra ? 'X' : rh > ra ? '1' : '2';
 
-      // 2. Map running points strictly without minus point conditions
-      let runningTotalPoints = 0;
-      const dailyPointsTimeline = [0]; // Baseline starts at zero
-      const chartLabels = ['Start'];
+        if (!scoreStr.includes(':')) return;
+        const betParts = scoreStr.split(':');
+        const bh = Number(betParts[0]);
+        const ba = Number(betParts[1]);
+        if (isNaN(bh) || isNaN(ba)) return;
 
-      chronologicalDays.forEach((dayLabel) => {
-        const matchIdsInDay = matchDayMap[dayLabel];
+        outcomeTotal++;
+        scoreTotal++;
+
+        let matchPointsEarned = 0;
         
-        matchIdsInDay.forEach((matchId) => {
-          const bet = bets[matchId];
-          const result = results[matchId];
+        if (bh === rh && ba === ra) {
+          scoreCorrect++;
+          matchPointsEarned = 3; 
+          if (actualOutcome === 'X') drawBetsCorrect++;
+          outcomeCorrect++; 
+        } else if (String(bet.bet).toUpperCase() === actualOutcome) {
+          outcomeCorrect++;
+          matchPointsEarned = 1; 
+          if (actualOutcome === 'X') drawBetsCorrect++;
+        }
+        
+        calculatedPoints += matchPointsEarned;
 
-          if (bet && result && bet.score !== ':::') {
-            const [actualHomeScore, actualAwayScore] = result.split(':').map(Number);
-            const [betHomeScore, betAwayScore] = bet.score.split(':').map(Number);
-            const actualOutcome = actualHomeScore === actualAwayScore ? 'X' : actualHomeScore > actualAwayScore ? '1' : '2';
+        const predictedOutcome = String(bet.bet).toUpperCase();
+        if (predictedOutcome === 'X') drawBetsPredicted++;
 
-            let pointsEarned = 0;
-            // 3 for exact score, 1 for outcome match
-            if (betHomeScore === actualHomeScore && betAwayScore === actualAwayScore) {
-              pointsEarned = 3;
-            } else if (bet.bet === actualOutcome) {
-              pointsEarned = 1;
-            }
-            runningTotalPoints += pointsEarned;
+        let tHome = bet.home || (matchId.includes('_') ? matchId.split('_')[0] : null);
+        let tAway = bet.away || (matchId.includes('_') ? matchId.split('_')[1] : null);
+
+        if (!tHome || !tAway) {
+          tHome = "Klub H_" + matchId;
+          tAway = "Klub A_" + matchId;
+        }
+
+        if (!teamStats[tHome]) teamStats[tHome] = { pointsEarned: 0, matchesBlown: 0 };
+        if (!teamStats[tAway]) teamStats[tAway] = { pointsEarned: 0, matchesBlown: 0 };
+
+        // Poprawiona, jasna logika rozliczania statystyk drużynowych
+        if (matchPointsEarned > 0) {
+          if (predictedOutcome === '1') {
+            teamStats[tHome].pointsEarned += matchPointsEarned;
+          } else if (predictedOutcome === '2') {
+            teamStats[tAway].pointsEarned += matchPointsEarned;
           }
-        });
-
-        dailyPointsTimeline.push(runningTotalPoints);
-        const simplifiedLabel = dayLabel.replace('2026-', '');
-        chartLabels.push(simplifiedLabel);
+        } else {
+          if (predictedOutcome === '1') {
+            teamStats[tHome].matchesBlown += 1;
+          } else if (predictedOutcome === '2') {
+            teamStats[tAway].matchesBlown += 1;
+          } else if (predictedOutcome === 'X') {
+            if (actualOutcome === '1') teamStats[tAway].matchesBlown += 1;
+            if (actualOutcome === '2') teamStats[tHome].matchesBlown += 1;
+          }
+        }
       });
 
-      // Optimized configuration for small smartphone rendering viewports
-      userStats.chartData = {
-        labels: chartLabels,
-        datasets: [
-          {
-            label: 'Suma punktów',
-            data: dailyPointsTimeline,
-            fill: true,
-            borderColor: '#FFD700',
-            backgroundColor: 'rgba(255, 215, 0, 0.04)',
-            tension: 0.2,
-            pointRadius: (context) => (context.chart.width < 500 ? 1 : 3), // Shrinks point dots on smaller screens
-            pointHoverRadius: 6,
-            borderWidth: 2,
-          },
-        ],
-      };
+      if (drawBetsCorrect > absoluteMaxDrawsCorrect) absoluteMaxDrawsCorrect = drawBetsCorrect;
+      if (scoreCorrect > absoluteMaxExactScores) absoluteMaxExactScores = scoreCorrect;
+      if (outcomeCorrect > absoluteMaxOutcomeCorrect) absoluteMaxOutcomeCorrect = outcomeCorrect;
 
-      userStats.mostChosenTeams = findMostFrequent(userStats.chosenTeams);
-      userStats.mostFailureTeams = findMostFrequent(userStats.failureTeams);
-      userStats.mostSuccessTeams = findMostFrequent(userStats.successTeams);
+      const outcomeRate = outcomeTotal ? outcomeCorrect / outcomeTotal : 0;
+      const scoreRate = scoreTotal ? scoreCorrect / scoreTotal : 0;
 
-      userStatsData.push(userStats);
+      const validTeams = Object.entries(teamStats).filter(([name]) => !name.startsWith("Klub "));
+      
+      // 🙂 Punktują dla Ciebie: Filtrowanie tylko absolutnego TOPU punktowego
+      const activeEarners = validTeams.filter(([_, v]) => v.pointsEarned > 0);
+      let bestPointTeams = [];
+      if (activeEarners.length > 0) {
+        const maxEarned = Math.max(...activeEarners.map(([_, v]) => v.pointsEarned));
+        const absoluteTopEarners = activeEarners.filter(([_, v]) => v.pointsEarned === maxEarned);
+        
+        bestPointTeams = absoluteTopEarners.slice(0, 5).map(([team, v]) => `${team} (+${v.pointsEarned}pkt)`);
+        if (absoluteTopEarners.length > 5) bestPointTeams.push("i inne...");
+      }
+
+      // 😡 Zawiedli Cię: Filtrowanie tylko absolutnego TOPU wtop
+      const activeLosers = validTeams.filter(([_, v]) => v.matchesBlown > 0);
+      let worstPointTeams = [];
+      if (activeLosers.length > 0) {
+        const maxBlown = Math.max(...activeLosers.map(([_, v]) => v.matchesBlown));
+        const absoluteTopLosers = activeLosers.filter(([_, v]) => v.matchesBlown === maxBlown);
+        
+        worstPointTeams = absoluteTopLosers.slice(0, 5).map(([team, v]) => `${team} (${v.matchesBlown}x)`);
+        if (absoluteTopLosers.length > 5) worstPointTeams.push("i inne...");
+      }
+
+      rawProfiles.push({
+        user, index, outcomeRate, scoreRate, calculatedPoints,
+        outcomeCorrect, scoreCorrect, outcomeTotal, emptyBets, drawBetsPredicted, drawBetsCorrect,
+        bestPointTeams, worstPointTeams
+      });
     });
 
-    const mostChosenCorrectScore = findMostFrequent(scoreCount);
-    const mostMatchedCorrectScore = findMostFrequent(matchedScores);
-    const maxDraws = Math.max(...Object.values(drawCount), 0);
-    const userWithMostDraws = Object.keys(drawCount).find(user => drawCount[user] === maxDraws) || '------';
+    const output = rawProfiles.map(p => {
+      const mainBadTeam = p.worstPointTeams[0] || "pewniaków";
 
-    const maxEmpty = Math.max(...Object.values(emptyScoreCount), 0);
-    const mostForgetfulUser = Object.keys(emptyScoreCount).find(user => emptyScoreCount[user] === maxEmpty) || '------';
+      let OVR = 0;
+      if (p.outcomeTotal === 0) {
+        OVR = 10;
+      } else {
+        const maxPossiblePoints = p.outcomeTotal * 3;
+        const performanceRatio = p.calculatedPoints / maxPossiblePoints;
 
-    setGeneralStats({
-      mostChosenCorrectScore: mostChosenCorrectScore.length ? mostChosenCorrectScore[0] : '------',
-      mostChosenCorrectScoreCount: mostChosenCorrectScore.length ? scoreCount[mostChosenCorrectScore[0]] : 0,
-      mostMatchedCorrectScore: mostMatchedCorrectScore.length ? mostMatchedCorrectScore[0] : '------',
-      mostMatchedCorrectScoreCount: mostMatchedCorrectScore.length ? matchedScores[mostMatchedCorrectScore[0]] : 0,
-      mostDraws: maxDraws,
-      userWithMostDraws: userWithMostDraws,
-      mostForgetfulUser: mostForgetfulUser,
-      mostForgetfulCount: maxEmpty,
+        let baseOvr = (performanceRatio / 0.45) * 100;
+
+        const missedMatchesInCurrentPool = currentMatchesBase - p.outcomeTotal;
+        if (missedMatchesInCurrentPool > 0) {
+          baseOvr -= (missedMatchesInCurrentPool * 2.5);
+        }
+
+        OVR = Math.max(1, Math.min(Math.round(baseOvr), 99));
+      }
+
+      let basket = "braz";
+      if (p.emptyBets > 15) {
+        basket = "nieaktywny";
+      } else if (OVR >= 65) { 
+        basket = "zloto";
+      } else if (OVR >= 48) { 
+        basket = "srebro";
+      } else if (OVR >= 30) { 
+        basket = "braz";
+      } else {
+        basket = "mul"; 
+      }
+
+      let style = "";
+      let verdict = "";
+      const seed = p.user.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + p.index;
+
+      if (basket === "nieaktywny") {
+        const pool = VERDICTS_BANK.nieaktywny;
+        const item = pool[seed % pool.length];
+        style = item.s;
+        verdict = item.v;
+      } 
+      else if (p.scoreCorrect === absoluteMaxExactScores && p.scoreCorrect > 0 && OVR >= 48) {
+        style = "Chirurg Wyników (Snajper)";
+        verdict = `Niewiarygodne! Masz najwięcej idealnie trafionych wyników w lidze (${p.scoreCorrect}). Podczas gdy reszta bawi się w drobne, Ty wjeżdżasz z buta i kasujesz pakiety po 3 punkty. Strach z Tobą grać.`;
+      }
+      else if (p.outcomeCorrect === absoluteMaxOutcomeCorrect && p.outcomeCorrect > 0 && OVR >= 48) {
+        style = "Analityk Trendów (Mózg Ligi)";
+        verdict = `Twoje wyczucie boiskowych intencji jest przerażające. Masz najwięcej bezbłędnie wytypowanych tendencji (${p.outcomeCorrect}). Twój wewnętrzny algorytm rzadko kiedy się myli!`;
+      }
+      else if (p.drawBetsCorrect === absoluteMaxDrawsCorrect && p.drawBetsCorrect > 0) {
+        style = "Oficjalny Król Remisów";
+        verdict = `Podczas gdy cała liga ślepo stawia na faworytów, Ty ze stoickim spokojem namierzasz nudne mecze bez rozstrzygnięcia. Twój nos do 'iksów' ratuje Ci skórę w tabeli.`;
+      } 
+      else {
+        let currentPool = VERDICTS_BANK[basket];
+        const item = currentPool[seed % currentPool.length];
+        style = item.s;
+        verdict = item.v;
+      }
+
+      if (p.user.toLowerCase().includes('kuzyn')) {
+        style = "Chaotyczny Selekcjoner";
+        verdict = `Twoje kupony to czysty surrealizm. Wyglądają jak losowe rzuty rzutkami w tarczę, a ekipa ${mainBadTeam} skutecznie leczy Cię z resztek optymizmu. Jazda bez trzymanki!`;
+      }
+
+      return { ...p, OVR, style, verdict, basket };
     });
 
-    setUserStats(userStatsData);
+    output.sort((a, b) => b.OVR - a.OVR);
+    setProfiles(output);
+
+    if (output.length > 0) {
+      const maxDrawsPred = Math.max(...output.map(p => p.drawBetsPredicted));
+      const usersMostDrawsPred = output.filter(p => p.drawBetsPredicted === maxDrawsPred).map(p => p.user).join(', ');
+
+      const maxDrawsCorr = Math.max(...output.map(p => p.drawBetsCorrect));
+      const usersKingOfDraws = output.filter(p => p.drawBetsCorrect === maxDrawsCorr).map(p => p.user).join(', ');
+      setShowKingOfDraws(maxDrawsCorr > 0);
+
+      const maxExact = Math.max(...output.map(p => p.scoreCorrect));
+      const usersMostExact = output.filter(p => p.scoreCorrect === maxExact).map(p => p.user).join(', ');
+
+      const maxEmpty = Math.max(...output.map(p => p.emptyBets));
+      const usersMostEmpty = output.filter(p => p.emptyBets === maxEmpty).map(p => p.user).join(', ');
+      setShowMostEmpty(maxEmpty > 0);
+
+      setGlobalStats({
+        mostDrawsPredicted: { users: usersMostDrawsPred || '---', count: maxDrawsPred },
+        kingOfDraws: { users: usersKingOfDraws || '---', count: maxDrawsCorr },
+        mostExactScores: { users: usersMostExact || '---', count: maxExact },
+        mostEmpty: { users: usersMostEmpty || '---', count: maxEmpty }
+      });
+    }
+
   }, [submittedData, results]);
 
-  const findMostFrequent = (items) => {
-    if (!items || Object.keys(items).length === 0) return [];
-    const maxCount = Math.max(...Object.values(items), 0);
-    if (maxCount === 0) return [];
-    return Object.keys(items).filter(item => items[item] === maxCount);
-  };
+  const pct = (v) => `${(v * 100).toFixed(1)}%`;
+
+  let activeCards = 2; 
+  if (showKingOfDraws) activeCards++;
+  if (showMostEmpty) activeCards++;
+  const colSize = Math.floor(12 / activeCards);
+
+  if (profiles.length === 0) {
+    return (
+      <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#FFD700' }}>
+        <h3>⏳ Wczytywanie i szydercze przeliczanie formy...</h3>
+      </Container>
+    );
+  }
 
   return (
-    <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', padding: '12px', color: '#fff' }}>
+    <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', padding: '20px', color: '#fff', fontFamily: 'sans-serif' }}>
       <Row>
-        <Col xs={12}> 
-          <div style={{ marginTop: '10px', color: '#FFD700', padding: '5px' }}>
-            <h2 style={{ fontSize: '1.6rem' }}>🏆 Statystyki Ogólne</h2>
-            <hr style={{ borderColor: '#FFD700' }} />
-            <p style={{ fontSize: '0.95rem' }}><strong>💡 Najczęściej wybierany wynik: </strong> {generalStats.mostChosenCorrectScore} ({generalStats.mostChosenCorrectScoreCount} razy)</p>
-            <p style={{ fontSize: '0.95rem' }}><strong>💥 Najczęściej trafiony wynik: </strong> {generalStats.mostMatchedCorrectScore} ({generalStats.mostMatchedCorrectScoreCount} razy)</p>
-            <p style={{ fontSize: '0.95rem' }}><strong>🎯 Najwięcej trafionych remisów: </strong> {generalStats.mostDraws} <span style={{color: '#fff'}}>({generalStats.userWithMostDraws})</span></p>
-            <p style={{ fontSize: '0.95rem' }}><strong>😵 Największy zapominalski: </strong> {generalStats.mostForgetfulUser} ({generalStats.mostForgetfulCount} pustych typów)</p>
+        <Col xs={12}>
+          <div style={{ marginTop: '10px', marginBottom: '20px', textAlign: 'center' }}>
+            <h2 style={{ color: '#FFD700', margin: 0, fontWeight: 'bold' }}>🏆 Loża Ekspertów i Szyderców MŚ</h2>
+            <div style={{ color: '#ff4d4d', fontSize: '0.75rem', marginTop: '5px', letterSpacing: '0.5px', fontWeight: '500' }}>
+              * Uwaga: System zawiera lokowanie bezwzględnej prawdy i czystej szydery. Przeglądasz na własną odpowiedzialność.
+            </div>
+            <hr style={{ borderColor: '#FFD700', width: '30%', margin: '12px auto 10px auto' }} />
           </div>
         </Col>
       </Row>
 
-      <Row>
-        <Col xs={12}> 
-          <div style={{ marginTop: '20px', color: '#FFD700' }}>
-            <h2 style={{ fontSize: '1.6rem', paddingLeft: '5px' }}>👤 Statystyki Użytkowników</h2>
-            <hr style={{ borderColor: '#FFD700' }} /><br />
+      {/* GLOBAL REKORDS */}
+      <Row className="justify-content-center" style={{ marginBottom: '30px' }}>
+        <Col xs={12} md={10} lg={8}>
+          <div style={{ background: '#1c1a12', border: '1px solid #FFD700', borderRadius: '14px', padding: '18px', boxShadow: '0 0 15px rgba(255,215,0,0.1)' }}>
+            <h5 style={{ color: '#FFD700', margin: '0 0 15px 0', textTransform: 'uppercase', fontSize: '1rem', letterSpacing: '1px', textAlign: 'center' }}>
+              📊 MUNDIALOWE REKORDY LIGI
+            </h5>
             
-            {userStats.length > 0 ? userStats.map((stats, idx) => (
-              <div key={idx} style={{ marginBottom: '25px', background: '#1e1e1e', padding: '14px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
-                <h3 style={{ color: '#FFF', fontSize: '1.3rem', marginBottom: '12px' }}>{stats.user}</h3>
-                <p style={{ color: '#ccc', fontSize: '0.88rem', margin: '4px 0' }}><strong>⚽ Najczęstsze zespoły: </strong> {stats.mostChosenTeams.join(', ') || '------'}</p>
-                <p style={{ color: '#ccc', fontSize: '0.88rem', margin: '4px 0' }}><strong>👎 Rozczarowania: </strong> {stats.mostFailureTeams.join(', ') || '------'}</p>
-                <p style={{ color: '#ccc', fontSize: '0.88rem', margin: '4px 0' }}><strong>👍 Trafione wygrane: </strong> {stats.mostSuccessTeams.join(', ') || '------'}</p>
+            <Row style={{ fontSize: '0.85rem' }}>
+              <Col xs={colSize} style={{ marginBottom: '12px', borderRight: '1px solid #2a2a2a' }}>
+                <div style={{ color: '#aaa', fontSize: '0.7rem', fontWeight: 'bold' }}>🔮 FANATYK REMISÓW</div>
+                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{globalStats.mostDrawsPredicted.users}</div>
+                <div style={{ color: '#9e9e9e', fontSize: '0.8rem' }}>{globalStats.mostDrawsPredicted.count} razy postawione "X"</div>
+              </Col>
 
-                {/* Mobile Responsive Chart Wrapper Container */}
-                <div style={{ width: '100%', height: '240px', marginTop: '15px', padding: '6px', backgroundColor: '#161616', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
-                  <Line 
-                    data={stats.chartData} 
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      interaction: {
-                        mode: 'index',
-                        intersect: false,
-                      },
-                      plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                          backgroundColor: '#222',
-                          titleColor: '#FFD700',
-                          bodyColor: '#fff',
-                          borderColor: '#444',
-                          borderWidth: 1,
-                          padding: 10,
-                          callbacks: {
-                            title: (context) => `Dzień: ${context[0].label}`,
-                            label: (context) => ` Punkty: ${context.raw} pkt`
-                          }
-                        }
-                      },
-                      scales: {
-                        x: { 
-                          grid: { color: '#222', drawTicks: false },
-                          ticks: { 
-                            color: '#777',
-                            maxTicksLimit: 6, // Vital for Mobile: Auto skips labels so 104 matches won't blend into mush
-                            maxRotation: 0,
-                            minRotation: 0,
-                            font: { size: 9 }
-                          }
-                        },
-                        y: {
-                          grid: { color: '#222' },
-                          ticks: { 
-                            color: '#999',
-                            font: { size: 10 },
-                            beginAtZero: true
-                          }
-                        },
-                      },
-                    }} 
-                  />
+              {showKingOfDraws && (
+                <Col xs={colSize} style={{ marginBottom: '12px', borderRight: '1px solid #2a2a2a' }}>
+                  <div style={{ color: '#00e5ff', fontSize: '0.7rem', fontWeight: 'bold' }}>👑 OFICJALNY KRÓL REMISÓW</div>
+                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{globalStats.kingOfDraws.users}</div>
+                  <div style={{ color: '#00e5ff', fontWeight: '600', fontSize: '0.8rem' }}>{globalStats.kingOfDraws.count} trafionych "X"</div>
+                </Col>
+              )}
+              
+              <Col xs={colSize} style={{ marginBottom: '12px', borderRight: showMostEmpty ? '1px solid #2a2a2a' : 'none' }}>
+                <div style={{ color: '#2196f3', fontSize: '0.7rem', fontWeight: 'bold' }}>🎯 SOKOLE OKO (DOKŁADNE WYNIKI)</div>
+                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{globalStats.mostExactScores.users}</div>
+                <div style={{ color: '#2196f3', fontSize: '0.8rem' }}>{globalStats.mostExactScores.count} trafień w punkt (3pkt)</div>
+              </Col>
+              
+              {showMostEmpty && (
+                <Col xs={colSize} style={{ marginBottom: '12px' }}>
+                  <div style={{ color: '#aaa', fontSize: '0.7rem', fontWeight: 'bold' }}>💤 ODKLEJONY OD TERMINARZA</div>
+                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{globalStats.mostEmpty.users}</div>
+                  <div style={{ color: '#ff4d4d', fontSize: '0.8rem' }}>{globalStats.mostEmpty.count} oddanych walkowerów</div>
+                </Col>
+              )}
+            </Row>
+          </div>
+        </Col>
+      </Row>
+
+      {/* USER CARDS */}
+      <Row className="justify-content-center">
+        <Col xs={12} md={8} lg={6}>
+          {profiles.map((p, idx) => {
+            let cardBorder = '1px solid #2a2a2a';
+            let ovrColor = '#FFD700';
+            let verdictBg = 'rgba(255, 215, 0, 0.04)';
+            let accentColor = '#FFD700';
+
+            if (p.style.includes("Chirurg Wyników")) {
+              cardBorder = '2px solid #2196f3';
+              ovrColor = '#2196f3';
+              verdictBg = 'rgba(33, 150, 243, 0.06)';
+              accentColor = '#2196f3';
+            } else if (p.style.includes("Analityk Trendów")) {
+              cardBorder = '2px solid #4caf50';
+              ovrColor = '#4caf50';
+              verdictBg = 'rgba(76, 175, 80, 0.06)';
+              accentColor = '#4caf50';
+            } else if (p.style === "Oficjalny Król Remisów") {
+              cardBorder = '2px solid #00e5ff';
+              ovrColor = '#00e5ff';
+              verdictBg = 'rgba(0, 229, 255, 0.05)';
+              accentColor = '#00e5ff';
+            } else if (p.basket === "zloto") {
+              cardBorder = '2px solid #FFD700';
+              ovrColor = '#FFD700';
+              verdictBg = 'rgba(255, 215, 0, 0.05)';
+            } else if (p.basket === "srebro") {
+              cardBorder = '2px solid #c0c0c0';
+              ovrColor = '#c0c0c0';
+              verdictBg = 'rgba(192, 192, 192, 0.05)';
+              accentColor = '#c0c0c0';
+            } else if (p.basket === "mul") {
+              cardBorder = '2px dashed #ff4d4d';
+              ovrColor = '#ff4d4d';
+              verdictBg = 'rgba(255, 77, 77, 0.05)';
+              accentColor = '#ff4d4d';
+            }
+
+            return (
+              <div
+                key={idx}
+                style={{
+                  background: 'linear-gradient(135deg, #1e1e1e 0%, #252525 100%)',
+                  padding: '20px',
+                  marginBottom: '25px',
+                  borderRadius: '16px',
+                  border: cardBorder,
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.5)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '15px' }}>
+                  <div style={{ flexGrow: 1 }}>
+                    <h3 style={{ margin: 0, color: p.basket === "mul" ? '#ff4d4d' : '#fff', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                      👤 {p.user}
+                    </h3>
+                    <span style={{ color: accentColor, fontWeight: 'bold', fontSize: '0.9rem' }}>
+                      {p.style}
+                    </span>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <h1 style={{ margin: 0, color: ovrColor, fontSize: '2.5rem', fontWeight: '800', lineHeight: '1' }}>
+                      {p.OVR}
+                    </h1>
+                    <span style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>OVR</span>
+                  </div>
+                </div>
+
+                <Row style={{ marginBottom: '15px' }}>
+                  <Col xs={6}>
+                    <div style={{ background: '#161616', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: 'bold' }}>🔮 SKUTECZNOŚĆ 1X2</div>
+                      <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#4caf50' }}>{pct(p.outcomeRate)}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#666' }}>({p.outcomeCorrect}/{p.outcomeTotal} m.)</div>
+                    </div>
+                  </Col>
+                  <Col xs={6}>
+                    <div style={{ background: '#161616', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: 'bold' }}>🎯 DOKŁADNE WYNIKI</div>
+                      <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2196f3' }}>{pct(p.scoreRate)}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#666' }}>{p.scoreCorrect}</div>
+                    </div>
+                  </Col>
+                </Row>
+
+                <div style={{ fontSize: '0.9rem', marginBottom: '15px', paddingBottom: '10px', borderBottom: '1px solid #333' }}>
+                  <div style={{ margin: '6px 0', color: '#ccc' }}>
+                    <span style={{ color: '#4caf50', fontWeight: '600' }}>⚽ Zarabiasz na:</span> {p.bestPointTeams.join(', ') || 'Brak danych'}
+                  </div>
+                  <div style={{ margin: '6px 0', color: '#ccc' }}>
+                    <span style={{ color: '#f44336', fontWeight: '600' }}>💔 Tracisz przez:</span> {p.worstPointTeams.join(', ') || 'Brak danych'}
+                  </div>
+                </div>
+
+                <div style={{ 
+                  background: verdictBg, 
+                  padding: '12px', 
+                  borderRadius: '8px', 
+                  borderLeft: `4px solid ${accentColor}`, 
+                  fontSize: '0.9rem',
+                  lineHeight: '1.45',
+                  color: '#ddd' 
+                }}>
+                  <strong>🧠 Werdykt systemu:</strong> {p.verdict}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '8px', borderTop: '1px dashed #333', fontSize: '0.75rem', color: '#777' }}>
+                  <span>Punkty: <strong style={{ color: '#4caf50' }}>{p.calculatedPoints} pkt</strong></span>
+                  <span>Puste typy: {p.emptyBets}</span>
                 </div>
               </div>
-            )) : <p style={{ paddingLeft: '5px' }}>Brak danych...</p>}
-          </div> 
+            );
+          })}
         </Col>
       </Row>
     </Container>

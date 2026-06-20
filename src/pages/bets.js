@@ -68,13 +68,26 @@ const Bets = () => {
 
   const activeTabInfo = paginatedTabs[currentPage] || paginatedTabs[0];
 
-  // AUTOMATYCZNY WYBÓR STRONY (AKTYWNEJ KOLEJKI) PRZY URUCHOMIENIU
+  // AUTOMATYCZNY WYBÓR STRONY (AKTYWNEJ KOLEJKI) TYLKO PRZY ELEMENTU MONTOWANIU (WJEŹDZIE NA STRONĘ)
   useEffect(() => {
+    const sortedGames = [...gameData].sort((a, b) => a.id - b.id);
+    const kolejka1 = sortedGames.filter(game => game.id <= 24);
+    const kolejka2 = sortedGames.filter(game => game.id > 24 && game.id <= 48);
+    const kolejka3 = sortedGames.filter(game => game.id > 48 && game.id <= 72);
+    const fazaPucharowa = sortedGames.filter(game => game.id > 72);
+
+    const tempTabs = [
+      { label: "Kolejka 1", games: kolejka1 },
+      { label: "Kolejka 2", games: kolejka2 },
+      { label: "Kolejka 3", games: kolejka3 },
+      { label: "Faza pucharowa", games: fazaPucharowa }
+    ];
+
     const now = DateTime.now().setZone('Europe/Warsaw');
     let dynamicTargetPage = 0;
 
-    for (let i = 0; i < paginatedTabs.length; i++) {
-      const tabGames = paginatedTabs[i].games;
+    for (let i = 0; i < tempTabs.length; i++) {
+      const tabGames = tempTabs[i].games;
       
       const hasActiveMatches = tabGames.some(game => {
         const kickoff = DateTime.fromISO(`${game.date}T${game.kickoff}:00`, { zone: 'Europe/Warsaw' });
@@ -87,30 +100,24 @@ const Bets = () => {
         break;
       }
       
-      if (i === paginatedTabs.length - 1) {
+      if (i === tempTabs.length - 1) {
         dynamicTargetPage = i; 
       }
     }
 
     setCurrentPage(dynamicTargetPage);
-  }, [allGames, paginatedTabs]);
+  }, []); // Pusta tablica zależności uniemożliwia "skakanie" z powrotem do Kolejki 1 podczas pisania
 
-  // NAPRAWIONY INTERWAŁ: Aktualizuje czas bez wymazywania wpisywanych typów użytkownika
+  // NAPRAWIONY INTERWAŁ: Aktualizuje czas zachowując to, co użytkownik aktualnie pisze
   useEffect(() => {
     const timer = setInterval(() => {
       setAllGames(prevGames => {
-        return gameData.map(staticGame => {
-          const userEditedGame = prevGames.find(g => g.id === staticGame.id);
-          
-          // Jeśli użytkownik zaczął wpisywać wynik, nie nadpisuj go pustym stanem bazowym!
-          if (userEditedGame && userEditedGame.score) {
-            return {
-              ...staticGame,
-              score: userEditedGame.score,
-              bet: userEditedGame.bet
-            };
-          }
-          return staticGame;
+        return prevGames.map(currentGame => {
+          const staticGame = gameData.find(g => g.id === currentGame.id);
+          return {
+            ...staticGame,
+            ...currentGame, // Priorytet dla zmienionych wartości stanów (score, bet itp.)
+          };
         });
       });
     }, 60000);
@@ -140,17 +147,32 @@ const Bets = () => {
     return now >= kickoff;
   };
 
+  // DETEKCJA TYPU ZAKŁADU (ZAKŁADA BRAK TYPU DLA ":::")
   const autoDetectBetType = (score) => {
+    if (score === ':::' || score.replace(/[^:]/g, "").length >= 3) {
+      return ''; 
+    }
+
     const [home, away] = score.split(':').map(Number);
+    if (isNaN(home) || isNaN(away)) return '';
+
     if (home === away) return 'X';
     return home > away ? '1' : '2';
   };
 
+  // OBSŁUGA ZMIANY WYNIKU Z POMINIĘCIEM AUTO-FORMATU DLA POTRÓJNEGO DWUKROPKA
   const handleScoreChange = (gameId, scoreInput) => {
-    const cleaned = scoreInput.replace(/[^0-9:]/g, '');
-    const formatted = cleaned.replace(/^(?:(\d))([^:]*$)/, '$1:$2');
+    let formatted = scoreInput.replace(/[^0-9:]/g, '');
     
-    setAllGames(prev => prev.map(game => game.id === gameId ? { ...game, score: formatted, bet: autoDetectBetType(formatted) } : game));
+    if (formatted !== ':::' && !formatted.startsWith('::')) {
+      formatted = formatted.replace(/^(?:(\d))([^:]*$)/, '$1:$2');
+    }
+    
+    setAllGames(prev => prev.map(game => 
+      game.id === gameId 
+        ? { ...game, score: formatted, bet: autoDetectBetType(formatted) } 
+        : game
+    ));
   };
 
   const handleSubmit = () => {
@@ -300,7 +322,10 @@ const Bets = () => {
                     <td style={{ textAlign: 'center', fontSize: '20px' }}>{results[game.id]}</td>
                     <td style={{ textAlign: 'center' }}>
                       <select value={game.bet || ''} disabled>
-                        <option value="1">1</option><option value="X">X</option><option value="2">2</option>
+                        <option value="">--</option>
+                        <option value="1">1</option>
+                        <option value="X">X</option>
+                        <option value="2">2</option>
                       </select>
                     </td>
                     <td>

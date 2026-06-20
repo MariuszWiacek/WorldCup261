@@ -14,14 +14,14 @@ import History from './pages/history';
 import Stats from './pages/stats';
 import Rules from './pages/rules';
 import Loading from './components/loading';
-import SignupPage from './pages/poll';
+
 import pitch from './images/pitc.jpeg';
 import TeamLogos from './components/teamLogos';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [showSignup, setShowSignup] = useState(true);
+ 
   
 
   useEffect(() => {
@@ -81,7 +81,7 @@ function App() {
               </Routes>
             </div>
             <Footer />
-             {showSignup && <SignupPage onClose={() => setShowSignup(false)} />}
+            
           </div>
         )}
       </AnimatePresence>

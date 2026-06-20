@@ -189,7 +189,9 @@ const Table = () => {
         prizePool[kolejkaID] = { winners: [], prize: 0, isSplit: false };
       } else {
         // Calculates dynamic split shares (e.g., 100 flat / 2 winners = 50 each)
-        const splitPrize = flatPrize / winners.length;
+        // New code using Math.round()
+const splitPrize = Math.round(flatPrize / winners.length);
+
         prizePool[kolejkaID] = { 
           winners, 
           prize: splitPrize, 
@@ -329,16 +331,16 @@ const Table = () => {
           <div style={earningsStyle}>
             <hr />
             <p style={{ fontSize: '15px' }}>
-              22 x 60 = 1320 🥮 <br />
+              22 x 60 = 1380 🥮 <br />
               3 kolejek + 1 faza pucharowa x 100 🥮 = 400 🥮 <br />
-              1320 - 400 = 920 🥮 w głównej puli
+              1320 - 400 = 980 🥮 w głównej puli
             </p>
             <hr />
             <div style={{ marginTop: '10px', color: '#FFD700' }}>
               <b>Aktualne Nagrody Główne:</b>
               <hr />
-              {mainTableData[0] && <p>🥇 1 miejsce – <b>{mainTableData[0].user} - 520 🥮</b></p>}
-              {mainTableData[1] && <p>🥈 2 miejsce – <b>{mainTableData[1].user} – 250 🥮</b></p>}
+              {mainTableData[0] && <p>🥇 1 miejsce – <b>{mainTableData[0].user} - 530 🥮</b></p>}
+              {mainTableData[1] && <p>🥈 2 miejsce – <b>{mainTableData[1].user} – 300 🥮</b></p>}
               {mainTableData[2] && <p>🥉 3 miejsce – <b>{mainTableData[2].user} – 150 🥮</b></p>}
             </div>
             <hr />

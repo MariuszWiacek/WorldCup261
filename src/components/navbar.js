@@ -1,197 +1,211 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { faHome, faTableList, faFutbol, faComments } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import Chatbox from '../pages/chatbox'; // 
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, onValue } from 'firebase/database';
+import Chatbox from '../pages/chatbox'; 
 
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyCGD41f7YT-UQyGZ7d1GzzB19B9wDNbg58",
+  authDomain: "guestbook-73dfc.firebaseapp.com",
+  databaseURL: "https://guestbook-73dfc-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "guestbook-73dfc",
+  storageBucket: "guestbook-73dfc.appspot.com",
+  messagingSenderId: "674344514507",
+  appId: "1:674344514507:web:fc587317fa516369a3bc4e",
+  measurementId: "G-1TZ4B0BK9D"
+};
+
+const secondaryApp = initializeApp(firebaseConfig, 'navbar-firebase');
+const db = getDatabase(secondaryApp);
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isChatboxOpen, setIsChatboxOpen] = useState(false);
+  
+  const [unreadCount, setUnreadCount] = useState(0);
+  const totalMessagesRef = useRef(0);
+  const isFirstLoad = useRef(true);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrollPosition(window.scrollY);
-    };
-
+    const handleScroll = () => setScrollPosition(window.scrollY);
     window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  useEffect(() => {
+    const entriesRef = ref(db, 'guestbookEntries');
+    
+    const unsubscribe = onValue(entriesRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const currentTotal = data ? Object.keys(data).length : 0;
 
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
+        if (isFirstLoad.current) {
+          totalMessagesRef.current = currentTotal;
+          isFirstLoad.current = false;
+        } else if (!isChatboxOpen) {
+          const newMessagesCount = currentTotal - totalMessagesRef.current;
+          if (newMessagesCount > 0) {
+            setUnreadCount(prev => prev + newMessagesCount);
+          }
+          totalMessagesRef.current = currentTotal;
+        } else {
+          totalMessagesRef.current = currentTotal;
+        }
+      }
+    });
 
+    return () => unsubscribe();
+  }, [isChatboxOpen]);
+
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const closeMenu = () => setIsMenuOpen(false);
+  
   const toggleChatbox = () => {
-    setIsChatboxOpen(!isChatboxOpen);
+    setIsChatboxOpen(prev => {
+      if (!prev) setUnreadCount(0);
+      return !prev;
+    });
   };
 
   const menuClass = isMenuOpen ? 'collapse navbar-collapse show' : 'collapse navbar-collapse';
-  const toggleButtonStyle = {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    display: 'flex',
-    color: 'aliceblue',
-    fontSize: '16px',
-    fontWeight: 'bold',
-  };
-  const navbarStyle = {
-    position: 'fixed',
-    top: 0,
-    width: '100%',
-    background: scrollPosition > 0 ? '#0A0F2C' : 'black',
-    zIndex: 1000,
-    transition: 'background-color 0.3s ease',
-  };
 
-  const brandStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    textDecoration: 'none',
-    fontSize: '24px',
-    fontWeight: 'bold',
-    color: scrollPosition > 0 ? 'orange' : 'black',
-    transition: 'color 0.3s ease',
-  };
-
-  const linksStyle = {
-    marginLeft: 'auto',
-    fontWeight: '700',
-  };
-
-  const messageContainerStyle = {
-    position: 'fixed',
-    bottom: 0,
-    left: 0,
-    width: '100%',
-    height: '50px', // Adjust the height as needed
-    backgroundColor: 'black',
-    zIndex: 999,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between', // Space evenly between icons
-    padding: '0 10px', // Adjust padding to make space for icons
-  };
-
-  const messageStyle = {
-    whiteSpace: 'nowrap',
-    fontSize: '16px',
-    color: 'aliceblue',
-    fontWeight: 'bold',
-    position: 'absolute',
-    top: '0%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)'
-  };
-
-
-  const iconStyle = {
-    color: '#0274ff',
+  const styles = {
+    navbar: {
+      position: 'fixed',
+      top: 0,
+      width: '100%',
+      background: scrollPosition > 0 ? '#0A0F2C' : 'black',
+      zIndex: 1000,
+      transition: 'background-color 0.3s ease',
+    },
+    brand: {
+      display: 'flex',
+      alignItems: 'center',
+      textDecoration: 'none',
+      fontSize: '24px',
+      fontWeight: 'bold',
+      color: scrollPosition > 0 ? 'orange' : 'black',
+      transition: 'color 0.3s ease',
+    },
+    links: {
+      marginLeft: 'auto',
+      fontWeight: '700',
+    },
+    messageContainer: {
+      position: 'fixed',
+      bottom: 0,
+      left: 0,
+      width: '100%',
+      height: '50px',
+      backgroundColor: 'black',
+      zIndex: 999,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '0 20px',
+      boxSizing: 'border-box'
+    },
+    toggleButton: {
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      color: 'aliceblue',
+      fontSize: '16px',
+      fontWeight: 'bold',
+      position: 'relative',
+    },
+    icon: {
+      color: '#0274ff',
+      fontSize: '20px'
+    },
+    navBadge: {
+      position: 'absolute',
+      top: '-8px',
+      right: '-10px',
+      backgroundColor: '#ff3b30',
+      color: 'white',
+      fontSize: '11px',
+      borderRadius: '10px',
+      padding: '2px 6px',
+      fontWeight: 'bold',
+      boxShadow: '0 0 4px rgba(0,0,0,0.5)'
+    }
   };
 
   return (
     <>
-      <nav className="navbar navbar-expand-lg navbar-light navbar-white" style={navbarStyle}>
+      <nav className="navbar navbar-expand-lg navbar-light navbar-white" style={styles.navbar}>
         <div className="container">
           <motion.div
             key="superliga"
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
-            exit={{ scale: 0, rotate: 180 }}
             transition={{ type: 'spring', stiffness: 100, damping: 10, duration: 1.5 }}
           >
-            <Link to="/" className="navbar-brand" style={brandStyle}>
+            <Link to="/" className="navbar-brand" style={styles.brand}>
               <h5 className="glossy-text">EKSTRABET.</h5>
             </Link>
           </motion.div>
 
-          <button
-            className={`navbar-toggler ${isMenuOpen ? 'open' : ''}`}
-            type="button"
-            onClick={toggleMenu}
-          >
+          <button className={`navbar-toggler ${isMenuOpen ? 'open' : ''}`} type="button" onClick={toggleMenu}>
             <span className="bar"></span>
             <span className="bar"></span>
             <span className="bar"></span>
           </button>
+          
           <div className={menuClass} id="navbarNav">
-            <ul className="navbar-nav" style={linksStyle}>
+            <ul className="navbar-nav" style={styles.links}>
               <li className="nav-item">
-                <Link to="/bets" className="nav-link" onClick={closeMenu}>
-                  Zakłady
-                </Link>
+                <Link to="/bets" className="nav-link" onClick={closeMenu}>Zakłady</Link>
               </li>
               <li className="nav-item">
-                <Link to="/table" className="nav-link" onClick={closeMenu}>
-                  Tabela
-                </Link>
+                <Link to="/table" className="nav-link" onClick={closeMenu}>Tabela</Link>
               </li>
               <li className="nav-item">
-                <Link to="/results" className="nav-link" onClick={closeMenu}>
-                  Wyniki
-                </Link>
+                <Link to="/results" className="nav-link" onClick={closeMenu}>Wyniki</Link>
               </li>
               <li className="nav-item">
-                <Link to="/stats" className="nav-link" onClick={closeMenu}>
-                  Stats
-                </Link>
+                <Link to="/stats" className="nav-link" onClick={closeMenu}>Stats</Link>
               </li>
               <li className="nav-item">
-                <Link to="/rules" className="nav-link" onClick={closeMenu}>
-                  Regulamin
-                </Link>
+                <Link to="/rules" className="nav-link" onClick={closeMenu}>Regulamin</Link>
               </li>
               <li className="nav-item">
-                <Link to="/history" className="nav-link" onClick={closeMenu}>
-                  Historia
-                </Link>
+                <Link to="/history" className="nav-link" onClick={closeMenu}>Historia</Link>
               </li>
               <li className="nav-item">
-                <Link to="/admin" className="nav-link" onClick={closeMenu}>
-                  Admin
-                </Link>
-              
+                <Link to="/admin" className="nav-link" onClick={closeMenu}>Admin</Link>
               </li>
             </ul>
           </div>
         </div>
       </nav>
-      <Chatbox isOpen={isChatboxOpen} toggleChatbox={toggleChatbox} />
-       {/* Moving Message */}
-       <div style={messageContainerStyle}>
-        <Link to="/" style={{ textDecoration: 'none' }}>
-          <FontAwesomeIcon icon={faHome} style={iconStyle} />
-        </Link>
-        <Link to="/bets" style={{ textDecoration: 'none' }}>
-          <FontAwesomeIcon icon={faFutbol} size="1x" style={iconStyle} />
-        </Link>
-        <Link to="/table" style={{ textDecoration: 'none' }}>
-          <FontAwesomeIcon icon={faTableList} style={iconStyle} />
-        </Link>
-        <button onClick={toggleChatbox} style={toggleButtonStyle}>
-          <h5 style={{ color: 'aliceblue', marginRight: '8px' }}>chatbox</h5>
-          <FontAwesomeIcon icon={faComments} style={iconStyle} />
+
+      {/* Dolny pasek nawigacji */}
+      <div style={styles.messageContainer}>
+        <Link to="/"><FontAwesomeIcon icon={faHome} style={styles.icon} /></Link>
+        <Link to="/bets"><FontAwesomeIcon icon={faFutbol} style={styles.icon} /></Link>
+        <Link to="/table"><FontAwesomeIcon icon={faTableList} style={styles.icon} /></Link>
+        
+        {/* Przycisk czatu z licznikiem powiadomień */}
+        <button onClick={toggleChatbox} style={styles.toggleButton}>
+          <h5 style={{ color: 'aliceblue', marginRight: '8px', marginBottom: 0 }}>chatbox</h5>
+          <FontAwesomeIcon icon={faComments} style={styles.icon} />
+          {!isChatboxOpen && unreadCount > 0 && (
+            <span style={styles.navBadge}>{unreadCount}</span>
+          )}
         </button>
-        <motion.div
-          style={messageStyle}
-          animate={{ x: ['-100%', '100%'] }}
-          transition={{ duration: 20, ease: 'linear', repeat: Infinity }}
-        >
-          
-        </motion.div>
       </div>
-       {/* Chatbox Component */}
-       {isChatboxOpen && <Chatbox isOpen={isChatboxOpen} toggleChatbox={toggleChatbox} />}
+
+      <Chatbox isOpen={isChatboxOpen} toggleChatbox={toggleChatbox} externalUnreadCount={unreadCount} />
     </>
   );
 };
