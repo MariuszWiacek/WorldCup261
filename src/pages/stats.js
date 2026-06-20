@@ -18,41 +18,72 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// ROZBUDOWANY BANK WERDYKTÓW
 const VERDICTS_BANK = {
   zloto: [
     { s: "Jasnowidz na etacie", v: "Typujesz z taką precyzją, że zaraz zgłosi się do Ciebie ABW z podejrzeniem o podróże w czasie." },
     { s: "Piłkarski Matrix", v: "Zagiąłeś system. Ty nie przewidujesz wyników, Ty je po prostu programujesz przed meczem." },
     { s: "Ekspert z Bożej Łaski", v: "Twoje OVR świeci tak mocno, że reszta ligi musi oglądać tabelę w okularach przeciwsłonecznych." },
     { s: "Władca Szklanej Kuli", v: "Bukmacherzy płaczą, kiedy otwierasz aplikację. Absolutna dominacja i brak litości." },
-    { s: "Profesor z Harvardu", v: "Twoje analizy są tak zaawansowane, że chłopy na kanapie myślą, że masz układ z sędziami VAR." }
+    { s: "Profesor z Harvardu", v: "Twoje analizy są tak zaawansowane, że chłopy na kanapie myślą, że masz układ z sędziami VAR." },
+    { s: "Bóg Typerki", v: "Gdybyś rzucił pracę i zajął się tylko tym, zakłady bukmacherskie ogłosiłyby upadłość w trzy dni." },
+    { s: "Architekt Wyników", v: "Twoja intuicja nie pyta, czy można. Ona wchodzi na salony razem z drzwiami i bierze wszystko." },
+    { s: "Naczelny Strateg", v: "Przejrzałeś taktykę wszystkich trenerów na turnieju. Nawet Guardiola dzwoni pytać, co postawić." },
+    { s: "Dziecko Przeznaczenia", v: "Gwiazdy ułożyły się w idealną sygnaturę Twoich typów. Absolutny kosmos punktowy." },
+    { s: "Złoty Nos", v: "Wyczuwasz gole zanim zawodnicy wyjdą z szatni na rozgrzewkę. Niebywały instynkt łowcy." }
   ],
   srebro: [
     { s: "Prawie Jak Szpakowski", v: "Wiesz, że dzwoni, wiesz, w którym kościele, ale czasem zamiast trójki wpada tylko skromny punkcik." },
     { s: "Czarny Koń z Plastiku", v: "Niby groźny, niby w czołówce, ale jak przyjdzie co do czego, to remisujesz z logiką." },
     { s: "Ministrant Statystyk", v: "Grasz bezpiecznie jak defensywny pomocnik z Ekstraklasy. Szału nie ma, ale punkty kapią." },
     { s: "Wielka Nadzieja Białych", v: "Masz przebłyski geniuszu, ale przeplatasz je typami, o których wolałbyś szybko zapomnieć przy piwie." },
-    { s: "Koneser Średniej Hawajskiej", v: "Solidne rzemiosło. Nie jest to włoska pizza, ale da się zjeść i nie zepsuć humoru." }
+    { s: "Koneser Średniej Hawajskiej", v: "Solidne rzemiosło. Nie jest to włoska pizza, ale da się zjeść i nie zepsuć humoru." },
+    { s: "Książę Solidności", v: "Nie porywasz tłumów, ale metodycznie zbierasz to, co los rzuci na stół. Stabilny pretendent do pudła." },
+    { s: "Cichy Zabójca", v: "Nikt na Ciebie nie stawia na głos, a Ty po cichu, bez fleszy, podgryzasz liderów od zaplecza." },
+    { s: "Taktyczny Średniak", v: "Twoja forma faluje jak Bałtyk w listopadzie. Jeden dzień jak profesor, drugi jak stażysta." },
+    { s: "O krok od Chwały", v: "Do pełni szczęścia brakuje Ci tak niewiele, że aż boli. Jeden gol w końcówce dzieli Cię od elity." },
+    { s: "Główny Inspektor", v: "Analizujesz, liczysz, kalkulujesz. Masz wiedzę, ale czasem brakuje Ci odrobiny szaleństwa." }
   ],
   braz: [
     { s: "Ofiara 93. minuty", v: "Twoim największym wrogiem są doliczone minuty. Gdyby mecze trwały 80 minut, byłbyś bogaty." },
     { s: "Stabilny Urzędnik", v: "Emocji w Twoich typach tyle, co przy rozliczaniu PIT-u. Niby wszystko się zgadza, ale radości z tego brak." },
     { s: "Piłkarski Romantyk", v: "Stawiasz sercem, a potem rzeczywistość weryfikuje Cię brutalnie jak poniedziałkowy budzik." },
     { s: "Hamulec Taktyczny", v: "Twoja intuicja chyba została na lotnisku. Kręcisz się wokół zera jak elektron wokół jądra." },
-    { s: "Więzień Przeciętności", v: "Ani nie spadniesz na dno, ani nie powąchasz pudła. Taki ligowy dżentelmen bez wyrazu." }
+    { s: "Więzień Przeciętności", v: "Ani nie spadniesz na dno, ani nie powąchasz pudła. Taki ligowy dżentelmen bez wyrazu." },
+    { s: "Mistrz Przetrwania", v: "Twoja taktyka to rozpaczliwa obrona Częstochowy. Ledwo dychasz, ale wciąż utrzymujesz się nad kreską." },
+    { s: "Czołg bez Paliwa", v: "Miały być wielkie wyniki i marsz po puchar, a skończyło się na rzężeniu silnika w środku stawki." },
+    { s: "Janusz Typerki", v: "Typujesz przy grillu, rzucając okiem na skróty meczów. Wyniki są... dokładnie takie, jak metoda." },
+    { s: "Kolekcjoner Jedynek", v: "Zbierasz te pojedyncze punkciki z takim mozołem, jakby to były kupony rabatowe do marketu." },
+    { s: "Wieczny Optymista", v: "Wierzysz w piękną piłkę i czyste intencje. Szkoda tylko, że brutalny świat weryfikuje to co drugi wieczór." }
   ],
   mul: [
     { s: "Dno i metr mułu", v: "Oficjalnie szorujesz po dnie. Gdyby odwrócić tabelę do góry nogami, Twoja dominacja byłaby bezdyskusyjna." },
     { s: "Generator Losowych Liczb", v: "Twoje typy wyglądają tak, jakby kot przeszedł się po klawiaturze numerycznej. Pełen chaos." },
     { s: "Sponsor Oficjalny", v: "Rywale powinni zrzucić się dla Ciebie na pizzę w podzięce za to, jak skutecznie windujesz ich w górę tabeli." },
-    { s: "Anty-Jasnowidz", v: "Gdy stawiasz na drużynę A, bezpieczniej jest postawić dom, oszczędności życia i nerkę na drużynę B." },
+    { s: "Anty-Jasnowidz", v: "Gdyn stawiasz na drużynę A, bezpieczniej jest postawić dom, oszczędności życia i nerkę na drużynę B." },
     { s: "Koszmar Typera", v: "Twoja forma jest stabilna – stabilnie zła. Nawet sędziowie z B-klasy mieliby lepszą skuteczność." },
     { s: "Maskotka Ligi", v: "Nikt się Ciebie nie boi, ale wszyscy Cię lubią, bo tak pięknie zamykasz tabelę od dołu." },
-    { s: "Sabotażysta Roku", v: "Twoje predykcje wywołują u innych graczy niekontrolowane napady śmiechu. Zmień dyscyplinę na krykiet." }
+    { s: "Sabotażysta Roku", v: "Twoje predykcje wywołują u innych graczy niekontrolowane napady śmiechu. Zmień dyscyplinę na krykiet." },
+    { s: "Chaotyczny Selekcjoner", v: "Twoje kupony to czysty surrealizm. Wyglądają jak losowe rzuty rzutkami w tarczę, a mecze skutecznie leczą Cię z resztek optymizmu." },
+    { s: "Rozbitek na Mieliźnie", v: "Zgubiłeś kompas, mapę i chyba w ogóle zapomniałeś, jakie zasady panują w tej dyscyplinie sportu." },
+    { s: "Czerwona Latarnia", v: "Świecisz tak mocno na dole tabeli, że piloci samolotów omijają Twoje konto szerokim łukiem." },
+    { s: "Niewidzialna Ręka Rynku", v: "Twoje typy spektakularnie niszczą jakąkolwiek logikę matematyczną. To wręcz unikalny talent." }
   ],
   nieaktywny: [
     { s: "VIP bez internetu", v: "Zgłosił się do turnieju, po czym zapomniał hasła do telefonu. Klasyczny kanapowy duch." },
-    { s: "Ambasador Walkowerów", v: "Twoja nieobecność jest bardziej stabilna niż wyniki Reprezentacji Polski." }
+    { s: "Ambasador Walkowerów", v: "Twoja nieobecność jest bardziej stabilna niż wyniki Reprezentacji Polski." },
+    { s: "Zaginiony w Akcji", v: "Słyszałeś, że grają, ale chyba pomyliłeś imprezy lub utknąłeś w strefie bez zasięgu na dobre." },
+    { s: "Widmo Mundialu", v: "Twoje konto istnieje w bazie danych tylko po to, żeby podnosić ogólną liczbę zarejestrowanych uczestników." }
   ]
+};
+
+// Funkcja mieszająca (hashująca) string na liczbę dla lepszego losowania werdyktów
+const getStableSeed = (str) => {
+  let hash = 1789;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash) + str.charCodeAt(i);
+  }
+  return Math.abs(hash);
 };
 
 const Stats = () => {
@@ -189,7 +220,6 @@ const Stats = () => {
         if (!teamStats[tHome]) teamStats[tHome] = { pointsEarned: 0, matchesBlown: 0 };
         if (!teamStats[tAway]) teamStats[tAway] = { pointsEarned: 0, matchesBlown: 0 };
 
-        // Poprawiona, jasna logika rozliczania statystyk drużynowych
         if (matchPointsEarned > 0) {
           if (predictedOutcome === '1') {
             teamStats[tHome].pointsEarned += matchPointsEarned;
@@ -217,18 +247,16 @@ const Stats = () => {
 
       const validTeams = Object.entries(teamStats).filter(([name]) => !name.startsWith("Klub "));
       
-      // 🙂 Punktują dla Ciebie: Filtrowanie tylko absolutnego TOPU punktowego
       const activeEarners = validTeams.filter(([_, v]) => v.pointsEarned > 0);
       let bestPointTeams = [];
       if (activeEarners.length > 0) {
         const maxEarned = Math.max(...activeEarners.map(([_, v]) => v.pointsEarned));
         const absoluteTopEarners = activeEarners.filter(([_, v]) => v.pointsEarned === maxEarned);
         
-        bestPointTeams = absoluteTopEarners.slice(0, 5).map(([team, v]) => `${team}`);
+        bestPointTeams = absoluteTopEarners.slice(0, 5).map(([team]) => `${team}`);
         if (absoluteTopEarners.length > 5) bestPointTeams.push("i inne...");
       }
 
-      // 😡 Zawiedli Cię: Filtrowanie tylko absolutnego TOPU wtop
       const activeLosers = validTeams.filter(([_, v]) => v.matchesBlown > 0);
       let worstPointTeams = [];
       if (activeLosers.length > 0) {
@@ -247,8 +275,6 @@ const Stats = () => {
     });
 
     const output = rawProfiles.map(p => {
-      const mainBadTeam = p.worstPointTeams[0] || "pewniaków";
-
       let OVR = 0;
       if (p.outcomeTotal === 0) {
         OVR = 10;
@@ -281,11 +307,13 @@ const Stats = () => {
 
       let style = "";
       let verdict = "";
-      const seed = p.user.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + p.index;
+      
+      // Zaawansowany i stabilny dobór indeksu na podstawie nazwy użytkownika i punktów
+      const stableSeed = getStableSeed(p.user) + p.calculatedPoints + p.emptyBets;
 
       if (basket === "nieaktywny") {
         const pool = VERDICTS_BANK.nieaktywny;
-        const item = pool[seed % pool.length];
+        const item = pool[stableSeed % pool.length];
         style = item.s;
         verdict = item.v;
       } 
@@ -303,14 +331,9 @@ const Stats = () => {
       } 
       else {
         let currentPool = VERDICTS_BANK[basket];
-        const item = currentPool[seed % currentPool.length];
+        const item = currentPool[stableSeed % currentPool.length];
         style = item.s;
         verdict = item.v;
-      }
-
-      if (p.user.toLowerCase().includes('kuzyn')) {
-        style = "Chaotyczny Selekcjoner";
-        verdict = `Twoje kupony to czysty surrealizm. Wyglądają jak losowe rzuty rzutkami w tarczę, a ekipa ${mainBadTeam} skutecznie leczy Cię z resztek optymizmu. Jazda bez trzymanki!`;
       }
 
       return { ...p, OVR, style, verdict, basket };
