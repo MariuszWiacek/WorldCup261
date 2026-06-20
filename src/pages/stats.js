@@ -18,7 +18,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// WYPAKOWANY BANK WERDYKTÓW (PO 15+ NA GRUPĘ)
+// PEŁNY BANK WERDYKTÓW (ZWIĘKSZONY DO 15+ NA GRUPĘ, USUNIĘCI NIEAKTYWNI)
 const VERDICTS_BANK = {
   zloto: [
     { s: "Jasnowidz na etacie", v: "Typujesz z taką precyzją, że zaraz zgłosi się do Ciebie ABW z podejrzeniem o podróże w czasie." },
@@ -77,11 +77,11 @@ const VERDICTS_BANK = {
     { s: "Sponsor Oficjalny", v: "Rywale powinni zrzucić się dla Ciebie na pizzę w podzięce za to, jak skutecznie windujesz ich w górę tabeli." },
     { s: "Anty-Jasnowidz", v: "Gdy stawiasz na drużynę A, bezpieczniej jest postawić dom, oszczędności życia i nerkę na drużynę B." },
     { s: "Koszmar Typera", v: "Twoja forma jest stabilna – stabilnie zła. Nawet sędziowie z B-klasy mieliby lepszą skuteczność." },
-    { s: "Maskotka Ligi", v: "Nikt się Ciebie nie boi, ale wszyscy Cię lubią, bo tak pięknie zamykassan tabelę od dołu." },
+    { s: "Maskotka Ligi", v: "Nikt się Ciebie nie boi, ale wszyscy Cię lubią, bo tak pięknie zamykasz tabelę od dołu." },
     { s: "Sabotażysta Roku", v: "Twoje predykcje wywołują u innych graczy niekontrolowane napady śmiechu. Zmień dyscyplinę na krykiet." },
     { s: "Chaotyczny Selekcjoner", v: "Twoje kupony to czysty surrealizm. Wyglądają jak losowe rzuty rzutkami w tarczę, a mecze skutecznie leczą Cię z resztek optymizmu." },
     { s: "Rozbitek na Mieliźnie", v: "Zgubiłeś kompas, mapę i chyba w ogóle zapomniałeś, jakie zasady panują w tej dyscyplinie sportu." },
-    { s: "Czerwona Latarnia", v: "Świecisz tak mocno na dole tabeli, że piloci samolotów omijają Twoje konto szerokim łukiem." },
+    { s: "Czerwona Latarnia", v: "Świecisz tak mocno na dole tabeli, że piloci samolotów omijają Twoje konto szerokim luukiem." },
     { s: "Niewidzialna Ręka Rynku", v: "Twoje typy spektakularnie niszczą jakąkolwiek logikę matematyczną. To wręcz unikalny talent." },
     { s: "VIP bez internetu", v: "Oddałeś walkowery lub zapomniałeś hasła do telefonu. Klasyczny kanapowy duch tego turnieju." },
     { s: "Król Ślepych Trafów", v: "Nawet rzucając monetą, miałbyś statystycznie lepsze wyniki. Twój system to czysta destrukcja." },
@@ -287,7 +287,7 @@ const Stats = () => {
       });
     });
 
-    // Zbiór przydzielonych już tekstów (zapobiega powtórzeniom u userów)
+    // Pula wykorzystanych już unikalnych nazw stylów (zapobiega jakimkolwiek powtórzeniom)
     const usedVerdicts = new Set();
 
     const output = rawProfiles.map(p => {
@@ -310,7 +310,7 @@ const Stats = () => {
 
       let basket = "braz";
       if (p.emptyBets > 15 || OVR < 30) {
-        basket = "mul"; // "nieaktywni" i najsłabsi trafiają do wspólnego wora
+        basket = "mul"; 
       } else if (OVR >= 65) { 
         basket = "zloto";
       } else if (OVR >= 48) { 
@@ -319,9 +319,11 @@ const Stats = () => {
         basket = "braz"; 
       }
 
+      // !!! DEKLARACJA ZMIENNYCH NA POZIOMIE MAPY - ROZWIĄZUJE PROBLEM SQUASH / NO-UNDEF !!!
       let style = "";
       let verdict = "";
       
+      // Odznaki unikalne za ekstremalne osiągnięcia
       if (p.scoreCorrect === absoluteMaxExactScores && p.scoreCorrect > 0 && OVR >= 48 && !usedVerdicts.has("Chirurg Wyników (Snajper)")) {
         style = "Chirurg Wyników (Snajper)";
         verdict = `Niewiarygodne! Masz najwięcej idealnie trafionych wyników w lidze (${p.scoreCorrect}). Podczas gdy reszta bawi się w drobne, Ty wjeżdżasz z buta i kasujesz pakiety po 3 punkty. Strach z Tobą grać.`;
@@ -344,17 +346,23 @@ const Stats = () => {
         let poolIndex = stableSeed % currentPool.length;
         let item = currentPool[poolIndex];
 
-        // Pętla wyszukująca najbliższy NIEUŻYWANY werdykt w danej grupie
         let attempts = 0;
+        // Szukanie najbliższego wolnego tekstu w grupie (próbkowanie liniowe)
         while (usedVerdicts.has(item.s) && attempts < currentPool.length) {
           poolIndex = (poolIndex + 1) % currentPool.length;
           item = currentPool[poolIndex];
           attempts++;
         }
 
-        style = item.s;
-        verdict = item.v;
-        usedVerdicts.add(style);
+        // BEZPIECZNIK LOGICZNY: Jeśli graczy w jednym koszyku jest WIĘCEJ niż tekstów w banku
+        if (usedVerdicts.has(item.s)) {
+          style = `${item.s} #${p.index + 1}`; 
+          verdict = item.v;
+        } else {
+          style = item.s;
+          verdict = item.v;
+          usedVerdicts.add(item.s);
+        }
       }
 
       return { ...p, OVR, style, verdict, basket };
@@ -477,7 +485,7 @@ const Stats = () => {
               ovrColor = '#4caf50';
               verdictBg = 'rgba(76, 175, 80, 0.06)';
               accentColor = '#4caf50';
-            } else if (p.style === "Oficjalny Król Remisów") {
+            } else if (p.style.includes("Oficjalny Król Remisów")) {
               cardBorder = '2px solid #00e5ff';
               ovrColor = '#00e5ff';
               verdictBg = 'rgba(0, 229, 255, 0.05)';
@@ -562,7 +570,7 @@ const Stats = () => {
                   lineHeight: '1.45',
                   color: '#ddd' 
                 }}>
-                  <strong>🧠 Werdykt systemu:</strong> {verdict}
+                  <strong>🧠 Werdykt systemu:</strong> {p.verdict}
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '8px', borderTop: '1px dashed #333', fontSize: '0.75rem', color: '#777' }}>
