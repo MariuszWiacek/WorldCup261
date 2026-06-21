@@ -103,6 +103,7 @@
   { "id": 85, "kolejkaId": "1/2", "home": "Zwycięzca M97", "away": "Zwycięzca M98", "kickoff": "21:00", "date": "2026-07-14", "disabled": false },
   { "id": 86, "kolejkaId": "1/2", "home": "Zwycięzca M99", "away": "Zwycięzca M100", "kickoff": "21:00", "date": "2026-07-15", "disabled": false },
   { "id": 87, "kolejkaId": "Finał", "home": "Zwycięzca M101", "away": "Zwycięzca M102", "kickoff": "21:00", "date": "2026-07-19", "disabled": false }
+  
  ]
 
  
