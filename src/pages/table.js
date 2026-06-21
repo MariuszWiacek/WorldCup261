@@ -19,6 +19,9 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const database = getDatabase(firebaseApp);
 
+// Constant table ordering moved outside component to prevent re-allocation
+const TABLE_ORDER = ['Kolejka 1', 'Kolejka 2', 'Kolejka 3', 'Faza pucharowa'];
+
 // --- Styles ---
 const linkContainerStyle = {
   textAlign: 'left',
@@ -78,17 +81,24 @@ const Table = () => {
 
   useEffect(() => {
     const resultsRef = ref(database, 'results');
-    onValue(resultsRef, (snapshot) => {
+    const unsubscribeResults = onValue(resultsRef, (snapshot) => {
       setResults(snapshot.val() || {});
     });
 
     const submittedDataRef = ref(database, 'submittedData');
-    onValue(submittedDataRef, (snapshot) => {
+    const unsubscribeSubmitted = onValue(submittedDataRef, (snapshot) => {
       setSubmittedData(snapshot.val() || {});
     });
+
+    return () => {
+      unsubscribeResults();
+      unsubscribeSubmitted();
+    };
   }, []);
 
   useEffect(() => {
+    if (!submittedData || Object.keys(submittedData).length === 0) return;
+
     const kolejkaPoints = {};
 
     // 1. Compile overall points data alongside itemized structures
@@ -162,57 +172,54 @@ const Table = () => {
         : 'same';
     });
 
-    previousTableData.current = overallTableData;
+    // Save history after processing trend calculation using a deep clone
+    previousTableData.current = JSON.parse(JSON.stringify(overallTableData));
     setMainTableData(overallTableData);
 
     // --- Dynamic Main Prize Split Logic ---
     const baseMainPrizes = { 1: 530, 2: 300, 3: 150 };
     const calculatedMainPrizes = [];
     
-    // Group users by their exact final rank position to split pools
-    let i = 0;
-    while (i < overallTableData.length && i < 3) {
-      const currentRank = overallTableData[i].place;
-      // Find all users sharing this exact position tier
+    let mainLoopIndex = 0;
+    while (mainLoopIndex < overallTableData.length && mainLoopIndex < 3) {
+      const currentRank = overallTableData[mainLoopIndex].place;
       const tiedUsers = overallTableData.filter(e => e.place === currentRank);
       const count = tiedUsers.length;
 
-      // Sum all prizes allocated for the absolute physical slots they span
       let combinedPrizePool = 0;
-      for (let slot = i + 1; slot <= i + count; slot++) {
+      for (let slot = mainLoopIndex + 1; slot <= mainLoopIndex + count; slot++) {
         combinedPrizePool += baseMainPrizes[slot] || 0;
       }
 
       const fairSplitPrize = Math.round(combinedPrizePool / count);
 
-      tiedUsers.forEach((entry) => {
-        if (i < 3) { // Ensure we only output for podium rows
-          let label = "🥉 3 miejsce";
-          if (currentRank === 1) label = "🥇 1 miejsce";
-          else if (currentRank === 2) label = "🥈 2 miejsce";
+      // Variables captured inside scope to cleanly address no-loop-func rules
+      const currentRankLabel = currentRank; 
+      const totalTiedCount = count;
 
-          calculatedMainPrizes.push({
-            label,
-            user: entry.user,
-            prize: fairSplitPrize,
-            isSplit: count > 1
-          });
-        }
+      tiedUsers.forEach((entry) => {
+        let label = "🥉 3 miejsce";
+        if (currentRankLabel === 1) label = "🥇 1 miejsce";
+        else if (currentRankLabel === 2) label = "🥈 2 miejsce";
+
+        calculatedMainPrizes.push({
+          label,
+          user: entry.user,
+          prize: fairSplitPrize,
+          isSplit: totalTiedCount > 1
+        });
       });
 
-      i += count; // Advance loop beyond all matched tied items
+      mainLoopIndex += count; 
     }
     setMainPrizesDistribution(calculatedMainPrizes);
-
 
     // 2. Process separate tables, handle split rules instead of rollovers
     const sortedKolejkaTables = {};
     const prizePool = {};
     let earnings = {};
 
-    const tableOrder = ['Kolejka 1', 'Kolejka 2', 'Kolejka 3', 'Faza pucharowa'];
-
-    tableOrder.forEach((kolejkaID) => {
+    TABLE_ORDER.forEach((kolejkaID) => {
       const roundUsersData = kolejkaPoints[kolejkaID] ? Object.values(kolejkaPoints[kolejkaID]) : [];
       
       const sortedKolejka = roundUsersData.sort((a, b) => {
@@ -241,14 +248,11 @@ const Table = () => {
         const winnersCount = topTierWinners.length;
         const winnerNames = topTierWinners.map(entry => entry.user);
 
-        const getPrizeForPlace = (placeIndex) => {
-          if (placeIndex === 1) return 100;
-          return 0;
-        };
-
         let totalAllocatedPool = 0;
-        for (let i = 1; i <= winnersCount; i++) {
-          totalAllocatedPool += getPrizeForPlace(i);
+        for (let j = 1; j <= winnersCount; j++) {
+          if (j === 1) {
+            totalAllocatedPool += 100;
+          }
         }
 
         const splitPrize = Math.round(totalAllocatedPool / winnersCount);
@@ -276,8 +280,6 @@ const Table = () => {
   const toggleKolejkaVisibility = (kolejkaID) => {
     setVisibleKolejka((prev) => (prev === kolejkaID ? null : kolejkaID));
   };
-
-  const tableOrder = ['Kolejka 1', 'Kolejka 2', 'Kolejka 3', 'Faza pucharowa'];
 
   return (
     <Container fluid style={linkContainerStyle}>
@@ -316,7 +318,7 @@ const Table = () => {
 
           <hr />
           
-          {tableOrder.map((kolejkaID) => {
+          {TABLE_ORDER.map((kolejkaID) => {
             const kolejkaData = kolejkaTables[kolejkaID] || [];
             const allZeroPoints = kolejkaData.length === 0 || kolejkaData.every((entry) => entry.points === 0);
             const roundPrizeInfo = prizes[kolejkaID];
