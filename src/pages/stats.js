@@ -309,11 +309,11 @@ const Stats = () => {
       }
 
       let basket = "braz";
-      if (p.emptyBets > 15 || OVR < 30) {
+      if (p.emptyBets > 15 || OVR < 35) {
         basket = "mul"; 
-      } else if (OVR >= 65) { 
+      } else if (OVR >= 55) { 
         basket = "zloto";
-      } else if (OVR >= 48) { 
+      } else if (OVR >= 45) { 
         basket = "srebro";
       } else {
         basket = "braz"; 

@@ -73,6 +73,7 @@ const Table = () => {
   const [visibleKolejka, setVisibleKolejka] = useState(null);
   const [prizes, setPrizes] = useState({});
   const [userEarnings, setUserEarnings] = useState({});
+  const [mainPrizesDistribution, setMainPrizesDistribution] = useState([]);
   const previousTableData = useRef([]);
 
   useEffect(() => {
@@ -132,12 +133,25 @@ const Table = () => {
     // Sort overall table
     overallTableData.sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
-      return b.correctResults - a.correctResults;
+      if (b.correctResults !== a.correctResults) return b.correctResults - a.correctResults;
+      return b.correctTypes - a.correctTypes;
     });
 
-    // Assign placement standings trends
+    // Assign placement standings trends supporting shared ranking ranks (Ties)
+    let currentMainPlace = 1;
     overallTableData.forEach((entry, index) => {
-      entry.place = index + 1;
+      if (index > 0) {
+        const prevEntry = overallTableData[index - 1];
+        if (
+          entry.points !== prevEntry.points || 
+          entry.correctResults !== prevEntry.correctResults || 
+          entry.correctTypes !== prevEntry.correctTypes
+        ) {
+          currentMainPlace = index + 1;
+        }
+      }
+      entry.place = currentMainPlace;
+
       const previousEntry = previousTableData.current.find((e) => e.user === entry.user);
       entry.trend = previousEntry
         ? previousEntry.place > entry.place
@@ -150,6 +164,46 @@ const Table = () => {
 
     previousTableData.current = overallTableData;
     setMainTableData(overallTableData);
+
+    // --- Dynamic Main Prize Split Logic ---
+    const baseMainPrizes = { 1: 530, 2: 300, 3: 150 };
+    const calculatedMainPrizes = [];
+    
+    // Group users by their exact final rank position to split pools
+    let i = 0;
+    while (i < overallTableData.length && i < 3) {
+      const currentRank = overallTableData[i].place;
+      // Find all users sharing this exact position tier
+      const tiedUsers = overallTableData.filter(e => e.place === currentRank);
+      const count = tiedUsers.length;
+
+      // Sum all prizes allocated for the absolute physical slots they span
+      let combinedPrizePool = 0;
+      for (let slot = i + 1; slot <= i + count; slot++) {
+        combinedPrizePool += baseMainPrizes[slot] || 0;
+      }
+
+      const fairSplitPrize = Math.round(combinedPrizePool / count);
+
+      tiedUsers.forEach((entry) => {
+        if (i < 3) { // Ensure we only output for podium rows
+          let label = "🥉 3 miejsce";
+          if (currentRank === 1) label = "🥇 1 miejsce";
+          else if (currentRank === 2) label = "🥈 2 miejsce";
+
+          calculatedMainPrizes.push({
+            label,
+            user: entry.user,
+            prize: fairSplitPrize,
+            isSplit: count > 1
+          });
+        }
+      });
+
+      i += count; // Advance loop beyond all matched tied items
+    }
+    setMainPrizesDistribution(calculatedMainPrizes);
+
 
     // 2. Process separate tables, handle split rules instead of rollovers
     const sortedKolejkaTables = {};
@@ -166,39 +220,46 @@ const Table = () => {
         return b.correctResults - a.correctResults;
       });
 
+      let currentPlace = 1;
       sortedKolejka.forEach((entry, index) => {
-        entry.place = index + 1;
+        if (index > 0) {
+          const prevEntry = sortedKolejka[index - 1];
+          if (entry.points !== prevEntry.points || entry.correctResults !== prevEntry.correctResults) {
+            currentPlace = index + 1;
+          }
+        }
+        entry.place = currentPlace;
       });
 
-      // Find top scorers based on points AND exact scores
-      const maxPoints = sortedKolejka[0]?.points || 0;
-      const maxCorrectResults = sortedKolejka[0]?.correctResults || 0;
       const roundHasPoints = sortedKolejka.some(entry => entry.points > 0);
       
-      let winners = [];
-      if (roundHasPoints) {
-        // Tied if they have both the top points and same number of exact scores
-        winners = sortedKolejka
-          .filter((entry) => entry.points === maxPoints && entry.correctResults === maxCorrectResults)
-          .map((entry) => entry.user);
-      }
-
-      const flatPrize = 100;
-
-      if (winners.length === 0) {
+      if (!roundHasPoints || sortedKolejka.length === 0) {
         prizePool[kolejkaID] = { winners: [], prize: 0, isSplit: false };
       } else {
-        // Calculates dynamic split shares (e.g., 100 flat / 2 winners = 50 each)
-        // New code using Math.round()
-const splitPrize = Math.round(flatPrize / winners.length);
+        const topPlace = sortedKolejka[0].place;
+        const topTierWinners = sortedKolejka.filter(entry => entry.place === topPlace);
+        const winnersCount = topTierWinners.length;
+        const winnerNames = topTierWinners.map(entry => entry.user);
+
+        const getPrizeForPlace = (placeIndex) => {
+          if (placeIndex === 1) return 100;
+          return 0;
+        };
+
+        let totalAllocatedPool = 0;
+        for (let i = 1; i <= winnersCount; i++) {
+          totalAllocatedPool += getPrizeForPlace(i);
+        }
+
+        const splitPrize = Math.round(totalAllocatedPool / winnersCount);
 
         prizePool[kolejkaID] = { 
-          winners, 
+          winners: winnerNames, 
           prize: splitPrize, 
-          isSplit: winners.length > 1 
+          isSplit: winnersCount > 1 
         };
         
-        winners.forEach((winner) => {
+        winnerNames.forEach((winner) => {
           if (!earnings[winner]) earnings[winner] = 0;
           earnings[winner] += splitPrize;
         });
@@ -239,7 +300,7 @@ const splitPrize = Math.round(flatPrize / winners.length);
                   <tr
                     key={index}
                     style={{
-                      backgroundColor: index < 3 ? '#ffea007d' : 'rgba(0, 0, 0, 0.336)',
+                      backgroundColor: entry.place === 1 ? '#ffea007d' : entry.place === 2 ? '#c0c0c07d' : entry.place === 3 ? '#cd7f327d' : 'rgba(0, 0, 0, 0.336)',
                     }}
                   >
                     <td style={tableCellStyle}>{entry.place}</td>
@@ -309,7 +370,7 @@ const splitPrize = Math.round(flatPrize / winners.length);
                           <tr
                             key={index}
                             style={{
-                              backgroundColor: index < 3 ? '#ffea007d' : 'rgba(0, 0, 0, 0.336)',
+                              backgroundColor: entry.place === 1 ? '#ffea007d' : 'rgba(0, 0, 0, 0.336)',
                             }}
                           >
                             <td style={tableCellStyle}>{entry.place}</td>
@@ -331,17 +392,23 @@ const splitPrize = Math.round(flatPrize / winners.length);
           <div style={earningsStyle}>
             <hr />
             <p style={{ fontSize: '15px' }}>
-              22 x 60 = 1380 🥮 <br />
+              22 x 60 = 1320 🥮 <br />
               3 kolejek + 1 faza pucharowa x 100 🥮 = 400 🥮 <br />
-              1320 - 400 = 980 🥮 w głównej puli
+              1320 - 400 = 920 🥮 w głównej puli
             </p>
             <hr />
             <div style={{ marginTop: '10px', color: '#FFD700' }}>
               <b>Aktualne Nagrody Główne:</b>
               <hr />
-              {mainTableData[0] && <p>🥇 1 miejsce – <b>{mainTableData[0].user} - 530 🥮</b></p>}
-              {mainTableData[1] && <p>🥈 2 miejsce – <b>{mainTableData[1].user} – 300 🥮</b></p>}
-              {mainTableData[2] && <p>🥉 3 miejsce – <b>{mainTableData[2].user} – 150 🥮</b></p>}
+              {mainPrizesDistribution.length === 0 ? (
+                <p>Brak danych o nagrodach.</p>
+              ) : (
+                mainPrizesDistribution.map((prizeNode, idx) => (
+                  <p key={idx}>
+                    {prizeNode.label} – <b>{prizeNode.user} - {prizeNode.prize} 🥮</b> {prizeNode.isSplit && <span style={{fontSize: '12px', color: '#0f0'}}>(Podzielona pula)</span>}
+                  </p>
+                ))
+              )}
             </div>
             <hr />
             <div style={{ marginTop: '10px', color: '#FFD700' }}>
