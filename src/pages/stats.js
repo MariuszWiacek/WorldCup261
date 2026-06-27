@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import { initializeApp } from 'firebase/app';
 import { Row, Col, Container } from 'react-bootstrap';
+import VERDICTS_BANK from '../gameData/verdictsBank.json'; // Import z zewnętrznego pliku JSON
 
 // Configuration Firebase
 const firebaseConfig = {
@@ -17,79 +18,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-
-// PEŁNY BANK WERDYKTÓW (ZWIĘKSZONY DO 15+ NA GRUPĘ, USUNIĘCI NIEAKTYWNI)
-const VERDICTS_BANK = {
-  zloto: [
-    { s: "Jasnowidz na etacie", v: "Typujesz z taką precyzją, że zaraz zgłosi się do Ciebie ABW z podejrzeniem o podróże w czasie." },
-    { s: "Piłkarski Matrix", v: "Zagiąłeś system. Ty nie przewidujesz wyników, Ty je po prostu programujesz przed meczem." },
-    { s: "Ekspert z Bożej Łaski", v: "Twoje OVR świeci tak mocno, że reszta ligi musi oglądać tabelę w okularach przeciwsłonecznych." },
-    { s: "Władca Szklanej Kuli", v: "Bukmacherzy płaczą, kiedy otwierasz aplikację. Absolutna dominacja i brak litości." },
-    { s: "Profesor z Harvardu", v: "Twoje analizy są tak zaawansowane, że chłopy na kanapie myślą, że masz układ z sędziami VAR." },
-    { s: "Bóg Typerki", v: "Gdybyś rzucił pracę i zajął się tylko tym, zakłady bukmacherskie ogłosiłyby upadłość w trzy dni." },
-    { s: "Architekt Wyników", v: "Twoja intuicja nie pyta, czy można. Ona wchodzi na salony razem z drzwiami i bierze wszystko." },
-    { s: "Naczelny Strateg", v: "Przejrzałeś taktykę wszystkich trenerów na turnieju. Nawet Guardiola dzwoni pytać, co postawić." },
-    { s: "Dziecko Przeznaczenia", v: "Gwiazdy ułożyły się w idealną sygnaturę Twoich typów. Absolutny kosmos punktowy." },
-    { s: "Złoty Nos", v: "Wyczuwasz gole zanim zawodnicy wyjdą z szatni na rozgrzewkę. Niebywały instynkt łowcy." },
-    { s: "Algorytm Nostradamusa", v: "Twoje konto powinno być zablokowane za oszukiwanie rzeczywistości. Bezbłędne czytanie gry." },
-    { s: "Generał Zwycięstwa", v: "Dowodzisz swoimi typami z precyzją Napoleona. Każdy mecz to dla Ciebie formalność i punkty." },
-    { s: "Piłkarny Iluzjonista", v: "Sprawiasz, że najtrudniejsze wyniki wyglądają na banalne. Rywale po prostu przecierają oczy." },
-    { s: "Główny Reżyser", v: "Scenariusze meczowe chyba piszesz sam przed weekendem. Niemożliwy poziom wyczucia." },
-    { s: "Szachista Zielonej Murawy", v: "Widzisz trzy ruchy do przodu, podczas gdy reszta ligi wciąż zastanawia się, kto gra w obronie." }
-  ],
-  srebro: [
-    { s: "Prawie Jak Szpakowski", v: "Wiesz, że dzwoni, wiesz, w którym kościele, ale czasem zamiast trójki wpada tylko skromny punkcik." },
-    { s: "Czarny Koń z Plastiku", v: "Niby groźny, niby w czołówce, ale jak przyjdzie co do czego, to remisujesz z logiką." },
-    { s: "Ministrant Statystyk", v: "Grasz bezpiecznie jak defensywny pomocnik z Ekstraklasy. Szału nie ma, ale punkty kapią." },
-    { s: "Wielka Nadzieja Białych", v: "Masz przebłyski geniuszu, ale przeplatasz je typami, o których wolałbyś szybko zapomnieć przy piwie." },
-    { s: "Koneser Średniej Hawajskiej", v: "Solidne rzemiosło. Nie jest to włoska pizza, ale da się zjeść i nie zepsuć humoru." },
-    { s: "Książę Solidności", v: "Nie porywasz tłumów, ale metodycznie zbierasz to, co los rzuci na stół. Stabilny pretendent do pudła." },
-    { s: "Cichy Zabójca", v: "Nikt na Ciebie nie stawia na głos, a Ty po cichu, bez fleszy, podgryzasz liderów od zaplecza." },
-    { s: "Taktyczny Średniak", v: "Twoja forma faluje jak Bałtyk w listopadzie. Jeden dzień jak profesor, drugi jak stażysta." },
-    { s: "O krok od Chwały", v: "Do pełni szczęścia brakuje Ci tak niewiele, że aż boli. Jeden gol w końcówce dzieli Cię od elity." },
-    { s: "Główny Inspektor", v: "Analizujesz, liczysz, kalkulujesz. Masz wiedzę, ale czasem brakuje Ci odrobiny szaleństwa." },
-    { s: "Prezes Zarządu Efektywności", v: "Robisz minimum tego, co trzeba, żeby być wysoko. Bez popisów, czysta matematyczna kalkulacja." },
-    { s: "Dżentelmen z Klasą", v: "Trzymasz fason i nie schodzisz poniżej pewnego poziomu. Solidna, europejska marka typera." },
-    { s: "Łowca Okazji", v: "Budzisz się w najważniejszych meczach. Gdy stawka rośnie, Twoje typy nagle zaczynają trafiać." },
-    { s: "Kolekcjoner Srebra", v: "Masz wszystko, by wygrać, prócz tego ostatniego błysku szczęścia. Ale podium jest blisko." },
-    { s: "Cień Lidera", v: "Ktokolwiek jest pierwszy, czuje Twój oddech na plecach. Czekasz na jeden potknięty krok." }
-  ],
-  braz: [
-    { s: "Ofiara 93. minuty", v: "Twoim największym wrogiem są doliczone minuty. Gdyby mecze trwały 80 minut, byłbyś bogaty." },
-    { s: "Stabilny Urzędnik", v: "Emocji w Twoich typach tyle, co przy rozliczaniu PIT-u. Niby wszystko się zgadza, ale radości z tego brak." },
-    { s: "Piłkarski Romantyk", v: "Stawiasz sercem, a potem rzeczywistość weryfikuje Cię brutalnie jak poniedziałkowy budzik." },
-    { s: "Hamulec Taktyczny", v: "Twoja intuicja chyba została na lotnisku. Kręcisz się wokół zera jak elektron wokół jądra." },
-    { s: "Więzień Przeciętności", v: "Ani nie spadniesz na dno, ani nie powąchasz pudła. Taki ligowy dżentelmen bez wyrazu." },
-    { s: "Mistrz Przetrwania", v: "Twoja taktyka to rozpaczliwa obrona Częstochowy. Ledwo dychasz, ale wciąż utrzymujesz się nad kreską." },
-    { s: "Czołg bez Paliwa", v: "Miały być wielkie wyniki i marsz po puchar, a skończyło się na rzężeniu silnika w środku stawki." },
-    { s: "Janusz Typerki", v: "Typujesz przy grillu, rzucając okiem na skróty meczów. Wyniki są... dokładnie takie, jak metoda." },
-    { s: "Kolekcjoner Jedynek", v: "Zbierasz te pojedyncze punkciki z takim mozołem, jakby to były kupony rabatowe do marketu." },
-    { s: "Wieczny Optymista", v: "Wierzysz w piękną piłkę i czyste intencje. Szkoda tylko, że brutalny świat weryfikuje to co drugi wieczór." },
-    { s: "Koneser Dogrywek", v: "Zawsze liczysz na cud tam, gdzie go nie ma. Żyjesz nadziejami, punkty zdobywasz od święta." },
-    { s: "Brat Łata Tabeli", v: "Wszyscy Cię lubią, nikomu nie zagrażasz. Idealny środek stawki bez żadnych ambicji." },
-    { s: "Zagubiony w Analizie", v: "Przeczytasz sto artykułów przed meczem, a na koniec i tak zaznaczysz zły wynik. Przeanalizowany pech." },
-    { s: "Ofiara VAR-u", v: "Twoje punkty ulatują z dymem za każdym razem, gdy sędzia podchodzi do monitora. Fatum." },
-    { s: "Minimalista Roku", v: "Cieszysz się z jednego punktu, jakbyś wygrał całą ligę. Ambicje dopasowane do możliwości." }
-  ],
-  mul: [
-    { s: "Dno i metr mułu", v: "Oficjalnie szorujesz po dnie. Gdyby odwrócić tabelę do góry nogami, Twoja dominacja byłaby bezdyskusyjna." },
-    { s: "Generator Losowych Liczb", v: "Twoje typy wyglądają tak, jakby kot przeszedł się po klawiaturze numerycznej. Pełen chaos." },
-    { s: "Sponsor Oficjalny", v: "Rywale powinni zrzucić się dla Ciebie na pizzę w podzięce za to, jak skutecznie windujesz ich w górę tabeli." },
-    { s: "Anty-Jasnowidz", v: "Gdy stawiasz na drużynę A, bezpieczniej jest postawić dom, oszczędności życia i nerkę na drużynę B." },
-    { s: "Koszmar Typera", v: "Twoja forma jest stabilna – stabilnie zła. Nawet sędziowie z B-klasy mieliby lepszą skuteczność." },
-    { s: "Maskotka Ligi", v: "Nikt się Ciebie nie boi, ale wszyscy Cię lubią, bo tak pięknie zamykasz tabelę od dołu." },
-    { s: "Sabotażysta Roku", v: "Twoje predykcje wywołują u innych graczy niekontrolowane napady śmiechu. Zmień dyscyplinę na krykiet." },
-    { s: "Chaotyczny Selekcjoner", v: "Twoje kupony to czysty surrealizm. Wyglądają jak losowe rzuty rzutkami w tarczę, a mecze skutecznie leczą Cię z resztek optymizmu." },
-    { s: "Rozbitek na Mieliźnie", v: "Zgubiłeś kompas, mapę i chyba w ogóle zapomniałeś, jakie zasady panują w tej dyscyplinie sportu." },
-    { s: "Czerwona Latarnia", v: "Świecisz tak mocno na dole tabeli, że piloci samolotów omijają Twoje konto szerokim luukiem." },
-    { s: "Niewidzialna Ręka Rynku", v: "Twoje typy spektakularnie niszczą jakąkolwiek logikę matematyczną. To wręcz unikalny talent." },
-    { s: "VIP bez internetu", v: "Oddałeś walkowery lub zapomniałeś hasła do telefonu. Klasyczny kanapowy duch tego turnieju." },
-    { s: "Król Ślepych Trafów", v: "Nawet rzucając monetą, miałbyś statystycznie lepsze wyniki. Twój system to czysta destrukcja." },
-    { s: "Królewski Donator", v: "Twoja hojność w oddawaniu punktów za darmo przejdzie do historii tej ligi. Samarytanin." },
-    { s: "Kreator Wolnego Czasu", v: "Wygląda na to, że typujesz z zamkniętymi oczami podczas jazdy tramwajem. Zero kontroli." },
-    { s: "Piłkarski Ignorant", v: "Czy Ty na pewno wiesz, że w piłce wygrywa ten, kto strzeli więcej goli? Twoje typy sugerują coś innego." }
-  ]
-};
 
 const getStableSeed = (str) => {
   let hash = 1789;
@@ -287,7 +215,6 @@ const Stats = () => {
       });
     });
 
-    // Pula wykorzystanych już unikalnych nazw stylów (zapobiega jakimkolwiek powtórzeniom)
     const usedVerdicts = new Set();
 
     const output = rawProfiles.map(p => {
@@ -309,21 +236,20 @@ const Stats = () => {
       }
 
       let basket = "braz";
-      if (p.emptyBets > 15 || OVR < 35) {
+      if (p.emptyBets > 15 || OVR < 40){
         basket = "mul"; 
-      } else if (OVR >= 55) { 
+      } else if (OVR >= 55
+      ) { 
         basket = "zloto";
-      } else if (OVR >= 45) { 
+      } else if (OVR >= 48) { 
         basket = "srebro";
       } else {
         basket = "braz"; 
       }
 
-      // !!! DEKLARACJA ZMIENNYCH NA POZIOMIE MAPY - ROZWIĄZUJE PROBLEM SQUASH / NO-UNDEF !!!
       let style = "";
       let verdict = "";
       
-      // Odznaki unikalne za ekstremalne osiągnięcia
       if (p.scoreCorrect === absoluteMaxExactScores && p.scoreCorrect > 0 && OVR >= 48 && !usedVerdicts.has("Chirurg Wyników (Snajper)")) {
         style = "Chirurg Wyników (Snajper)";
         verdict = `Niewiarygodne! Masz najwięcej idealnie trafionych wyników w lidze (${p.scoreCorrect}). Podczas gdy reszta bawi się w drobne, Ty wjeżdżasz z buta i kasujesz pakiety po 3 punkty. Strach z Tobą grać.`;
@@ -347,14 +273,12 @@ const Stats = () => {
         let item = currentPool[poolIndex];
 
         let attempts = 0;
-        // Szukanie najbliższego wolnego tekstu w grupie (próbkowanie liniowe)
         while (usedVerdicts.has(item.s) && attempts < currentPool.length) {
           poolIndex = (poolIndex + 1) % currentPool.length;
           item = currentPool[poolIndex];
           attempts++;
         }
 
-        // BEZPIECZNIK LOGICZNY: Jeśli graczy w jednym koszyku jest WIĘCEJ niż tekstów w banku
         if (usedVerdicts.has(item.s)) {
           style = `${item.s} #${p.index + 1}`; 
           verdict = item.v;
@@ -416,58 +340,83 @@ const Stats = () => {
       <Row>
         <Col xs={12}>
           <div style={{ marginTop: '10px', marginBottom: '20px', textAlign: 'center' }}>
-            <h2 style={{ color: '#FFD700', margin: 0, fontWeight: 'bold' }}>🏆 Loża Ekspertów i Szyderców MŚ</h2>
-            <div style={{ color: '#ff4d4d', fontSize: '0.75rem', marginTop: '5px', letterSpacing: '0.5px', fontWeight: '500' }}>
-              * Uwaga: System zawiera lokowanie bezwzględnej prawdy i czystej szydery. Przeglądasz na własną odpowiedzialność.
-            </div>
+            <h2 style={{ color: '#FFD700', textTransform: 'uppercase', fontSize: '1.4rem', fontWeight: '900', letterSpacing: '1px', margin: '0' }}>
+     <hr></hr> 🏆 Loża Ekspertów i Szyderców MŚ<hr></hr>
+    </h2>
+    <div style={{ color: '#ff4d4d', fontSize: '0.95rem', marginTop: '8px', fontWeight: '600', letterSpacing: '0.5px' }}>
+      * Brutalne fakty i czysta szydera. Słabeusze zostają w szatni.
+    </div>
             <hr style={{ borderColor: '#FFD700', width: '30%', margin: '12px auto 10px auto' }} />
           </div>
         </Col>
       </Row>
 
-      {/* GLOBAL REKORDS */}
-      <Row className="justify-content-center" style={{ marginBottom: '30px' }}>
-        <Col xs={12} md={10} lg={8}>
-          <div style={{ background: '#1c1a12', border: '1px solid #FFD700', borderRadius: '14px', padding: '18px', boxShadow: '0 0 15px rgba(255,215,0,0.1)' }}>
-            <h5 style={{ color: '#FFD700', margin: '0 0 15px 0', textTransform: 'uppercase', fontSize: '1rem', letterSpacing: '1px', textAlign: 'center' }}>
-              📊 MUNDIALOWE REKORDY LIGI
-            </h5>
-            
-            <Row style={{ fontSize: '0.85rem' }}>
-              <Col xs={colSize} style={{ marginBottom: '12px', borderRight: '1px solid #2a2a2a' }}>
-                <div style={{ color: '#aaa', fontSize: '0.7rem', fontWeight: 'bold' }}>🔮 FANATYK REMISÓW</div>
-                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{globalStats.mostDrawsPredicted.users}</div>
-                <div style={{ color: '#9e9e9e', fontSize: '0.8rem' }}>{globalStats.mostDrawsPredicted.count} razy postawione "X"</div>
-              </Col>
+     <Row className="justify-content-center" style={{ marginBottom: '40px' }}>
+  <Col xs={12} md={8} lg={6}>
+    
+    <h5 style={{ color: '#FFD700', textTransform: 'uppercase', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '20px' }}>
+      📊 Mundialowe Rekordy Ligi
+    </h5>
+    
+    <div>
+      {/* 1. TYPY NA REMIS */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 8px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <div>
+          <div style={{ color: '#aaa', fontSize: '0.9rem', fontWeight: '500' }}>Najwięcej typów na remis</div>
+          <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '4px' }}>{globalStats.mostDrawsPredicted.users}</div>
+        </div>
+        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'monospace', color: '#FFD700' }}>
+          {globalStats.mostDrawsPredicted.count} x "X"
+        </div>
+      </div>
 
-              {showKingOfDraws && (
-                <Col xs={colSize} style={{ marginBottom: '12px', borderRight: '1px solid #2a2a2a' }}>
-                  <div style={{ color: '#00e5ff', fontSize: '0.7rem', fontWeight: 'bold' }}>👑 OFICJALNY KRÓL REMISÓW</div>
-                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{globalStats.kingOfDraws.users}</div>
-                  <div style={{ color: '#00e5ff', fontWeight: '600', fontSize: '0.8rem' }}>{globalStats.kingOfDraws.count} trafionych "X"</div>
-                </Col>
-              )}
-              
-              <Col xs={colSize} style={{ marginBottom: '12px', borderRight: showMostEmpty ? '1px solid #2a2a2a' : 'none' }}>
-                <div style={{ color: '#2196f3', fontSize: '0.7rem', fontWeight: 'bold' }}>🎯 SOKOLE OKO (DOKŁADNE WYNIKI)</div>
-                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{globalStats.mostExactScores.users}</div>
-                <div style={{ color: '#2196f3', fontSize: '0.8rem' }}>{globalStats.mostExactScores.count} trafień w punkt (3pkt)</div>
-              </Col>
-              
-              {showMostEmpty && (
-                <Col xs={colSize} style={{ marginBottom: '12px' }}>
-                  <div style={{ color: '#aaa', fontSize: '0.7rem', fontWeight: 'bold' }}>💤 ODKLEJONY OD TERMINARZA</div>
-                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{globalStats.mostEmpty.users}</div>
-                  <div style={{ color: '#ff4d4d', fontSize: '0.8rem' }}>{globalStats.mostEmpty.count} oddanych walkowerów</div>
-                </Col>
-              )}
-            </Row>
+      {/* 2. TRAFIONE REMISY */}
+      {showKingOfDraws && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 8px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          <div>
+            <div style={{ color: '#00e5ff', fontSize: '0.9rem', fontWeight: '500' }}>Król remisów (Trafione)</div>
+            <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '4px' }}>{globalStats.kingOfDraws.users}</div>
           </div>
-        </Col>
-      </Row>
+          <div style={{ fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'monospace', color: '#00e5ff' }}>
+            {globalStats.kingOfDraws.count} trafień
+          </div>
+        </div>
+      )}
+      
+      {/* 3. DOKŁADNE WYNIKI */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 8px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <div>
+          <div style={{ color: '#2196f3', fontSize: '0.9rem', fontWeight: '500' }}>Najwięcej dokładnych wyników</div>
+          <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '4px' }}>{globalStats.mostExactScores.users}</div>
+        </div>
+        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'monospace', color: '#2196f3' }}>
+          {globalStats.mostExactScores.count} x
+        </div>
+      </div>
+      
+      {/* 4. WALKOWERY */}
+      {showMostEmpty && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 8px' }}>
+          <div>
+            <div style={{ color: '#ff4d4d', fontSize: '0.9rem', fontWeight: '500' }}>Niedokończone kupony</div>
+            <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '4px' }}>{globalStats.mostEmpty.users}</div>
+          </div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'monospace', color: '#ff4d4d' }}>
+            {globalStats.mostEmpty.count} w.o.
+          </div>
+        </div>
+      )}
+    </div>
+
+  </Col>
+</Row>
 
       {/* USER CARDS */}
       <Row className="justify-content-center">
+         <div style={{ marginTop: '10px', marginBottom: '20px', textAlign: 'center' }}>
+            <h2 style={{ color: '#FFD700', textTransform: 'uppercase', fontSize: '1.4rem', fontWeight: '900', letterSpacing: '1px', margin: '0' }}>
+     <hr></hr> Statystyki indywidualne<hr></hr>
+    </h2></div>
         <Col xs={12} md={8} lg={6}>
           {profiles.map((p, idx) => {
             let cardBorder = '1px solid #2a2a2a';
@@ -531,7 +480,7 @@ const Stats = () => {
                     <h1 style={{ margin: 0, color: ovrColor, fontSize: '2.5rem', fontWeight: '800', lineHeight: '1' }}>
                       {p.OVR}
                     </h1>
-                    <span style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>OVR</span>
+                    <span style={{ fontSize: '0.75rem', color: '#88', textTransform: 'uppercase' }}>OVR</span>
                   </div>
                 </div>
 
