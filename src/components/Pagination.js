@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Pagination = ({ currentPage, totalPages, onPageChange, label }) => {
+const Pagination = ({ currentPage, totalPages, onPageChange, label, note }) => {
   const handlePrev = () => {
     if (currentPage > 0) {
       onPageChange(currentPage - 1);
@@ -15,45 +15,79 @@ const Pagination = ({ currentPage, totalPages, onPageChange, label }) => {
 
   return (
     <div style={{ textAlign: 'center' }}>
-      <button
-        onClick={handlePrev}
-        disabled={currentPage === 0}
+      
+ 
+  <div
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '10px',
+    }}
+  >
+    {/* LEFT */}
+    <button
+      onClick={handlePrev}
+      disabled={currentPage === 0}
+      style={{
+        padding: '10px',
+        fontSize: '10px',
+        fontWeight: 'bold',
+        backgroundColor: '#ffffff00',
+        color: 'gold',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+      }}
+    >
+      &lt;&lt;
+    </button>
+
+    {/* CENTER (label + note) */}
+    <div style={{ textAlign: 'center' }}>
+      <div
         style={{
-          padding: '10px',
-          fontSize: '10px',
+          fontSize: '16px',
           fontWeight: 'bold',
-          backgroundColor: '#ffffff00',
-          color: 'gold',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          margin: '0 5px',
-          transition: 'background-color 0.3s',
         }}
       >
-        &lt;&lt;
-      </button>
-      <span style={{ margin: '0 0px', fontSize: '16px', fontWeight: 'bold' }}>
-        {label} 
-      </span>
-      <button
-        onClick={handleNext}
-        disabled={currentPage === totalPages - 1}
-        style={{
-          padding: '10px',
-          fontSize: '10px',
-          fontWeight: 'bold',
-          backgroundColor: '#ffffff00',
-          color: 'gold',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          margin: '0 5px',
-          transition: 'background-color 0.3s',
-        }}
-      >
-        &gt;&gt;
-      </button>
+        {label}
+      </div>
+
+      {note && (
+        <div
+          style={{
+            color: '#dc2626',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            marginTop: '3px',
+          }}
+        >
+          {note}
+        </div>
+      )}
+    </div>
+
+    {/* RIGHT */}
+    <button
+      onClick={handleNext}
+      disabled={currentPage === totalPages - 1}
+      style={{
+        padding: '10px',
+        fontSize: '10px',
+        fontWeight: 'bold',
+        backgroundColor: '#ffffff00',
+        color: 'gold',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+      }}
+    >
+      &gt;&gt;
+    </button>
+  </div>
+
+      
     </div>
   );
 };

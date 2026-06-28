@@ -62,7 +62,11 @@ const Bets = () => {
       { label: "Kolejka 1", games: kolejka1 },
       { label: "Kolejka 2", games: kolejka2 },
       { label: "Kolejka 3", games: kolejka3 },
-      { label: "Faza pucharowa", games: fazaPucharowa }
+    {
+  label: "Faza pucharowa",
+  note: "wynik do 90'",
+  games: fazaPucharowa,
+}
     ];
   }, [allGames]);
 
@@ -258,12 +262,13 @@ const Bets = () => {
 
       <div style={{ backgroundColor: '#212529ab', color: 'aliceblue', padding: '20px', textAlign: 'center', marginBottom: '10px', marginTop: '5%' }}>
         
-        <Pagination 
-          currentPage={currentPage} 
-          totalPages={paginatedTabs.length} 
-          onPageChange={(page) => setCurrentPage(page)} 
-          label={`${activeTabInfo.label}`} 
-        />
+        <Pagination
+  currentPage={currentPage}
+  totalPages={paginatedTabs.length}
+  onPageChange={(page) => setCurrentPage(page)}
+  label={activeTabInfo.label}
+  note={activeTabInfo.note}
+/>
         
         {activeTabInfo.games.length === 0 ? (
           <div style={{ padding: '20px', color: 'gold' }}>Brak meczów w tej sekcji.</div>
