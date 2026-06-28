@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import { initializeApp } from 'firebase/app';
 import { Row, Col, Container } from 'react-bootstrap';
-import VERDICTS_BANK from '../gameData/verdictsBank.json'; // Import z zewnętrznego pliku JSON
+import VERDICTS_BANK from '../gameData/verdictsBank.json'; 
 
 // Configuration Firebase
 const firebaseConfig = {
@@ -238,8 +238,7 @@ const Stats = () => {
       let basket = "braz";
       if (p.emptyBets > 15 || OVR < 40){
         basket = "mul"; 
-      } else if (OVR >= 55
-      ) { 
+      } else if (OVR >= 55) { 
         basket = "zloto";
       } else if (OVR >= 48) { 
         basket = "srebro";
@@ -250,21 +249,63 @@ const Stats = () => {
       let style = "";
       let verdict = "";
       
-      if (p.scoreCorrect === absoluteMaxExactScores && p.scoreCorrect > 0 && OVR >= 48 && !usedVerdicts.has("Chirurg Wyników (Snajper)")) {
-        style = "Chirurg Wyników (Snajper)";
-        verdict = `Niewiarygodne! Masz najwięcej idealnie trafionych wyników w lidze (${p.scoreCorrect}). Podczas gdy reszta bawi się w drobne, Ty wjeżdżasz z buta i kasujesz pakiety po 3 punkty. Strach z Tobą grać.`;
-        usedVerdicts.add(style);
-      }
-      else if (p.outcomeCorrect === absoluteMaxOutcomeCorrect && p.outcomeCorrect > 0 && OVR >= 48 && !usedVerdicts.has("Analityk Trendów (Mózg Ligi)")) {
-        style = "Analityk Trendów (Mózg Ligi)";
-        verdict = `Twoje wyczucie boiskowych intencji jest przerażające. Masz najwięcej bezbłędnie wytypowanych tendencji (${p.outcomeCorrect}). Twój wewnętrzny algorytm rzadko kiedy się myli!`;
-        usedVerdicts.add(style);
-      }
-      else if (p.drawBetsCorrect === absoluteMaxDrawsCorrect && p.drawBetsCorrect > 0 && !usedVerdicts.has("Oficjalny Król Remisów")) {
-        style = "Oficjalny Król Remisów";
-        verdict = `Podczas gdy cała liga ślepo stawia na faworytów, Ty ze stoickim spokojem namierzasz nudne mecze bez rozstrzygnięcia. Twój nos do 'iksów' ratuje Ci skórę w tabeli.`;
-        usedVerdicts.add(style);
-      } 
+      if (p.scoreCorrect === absoluteMaxExactScores && p.scoreCorrect > 0 && OVR >= 48) {
+  if (!usedVerdicts.has("Chirurg Wyników (Snajper)")) {
+    style = "Chirurg Wyników (Snajper)";
+    verdict = `Niewiarygodne! Masz najwięcej idealnie trafionych wyników w lidze (${p.scoreCorrect}). Podczas gdy reszta bawi się w drobne, Ty wjeżdżasz z buta i kasujesz pakiety po 3 punkty. Strach z Tobą grać.`;
+    usedVerdicts.add(style);
+  } else if (!usedVerdicts.has("Jasnowidz z Krainy Deszczowców")) {
+    style = "Jasnowidz z Krainy Deszczowców";
+    verdict = `Jak Ty to robisz?! ${p.scoreCorrect} razy trafić idealny wynik meczu to nie jest przypadek – to jest albo pakt z diabłem, albo nielegalny dostęp do scenariusza FIFA. Reszta tabeli patrzy na Twoje "trójeczki" z czystą zazdrością.`;
+    usedVerdicts.add(style);
+  } else if (!usedVerdicts.has("Precyzyjny Typer (Laser)")) {
+    style = "Precyzyjny Typer (Laser)";
+    verdict = `Twoje typy wchodzą z dokładnością do milimetra. Masz na koncie aż ${p.scoreCorrect} dokładnych wyników! Gdy inni drżą o końcowy gwizdek, Ty spokojnie dopisujesz 3 punkty, bo przecież zaplanowałeś to przed turniejem.`;
+    usedVerdicts.add(style);
+  } else if (!usedVerdicts.has("Kat Księgowych (3 Pkt Export)")) {
+    style = "Kat Księgowych (3 Pkt Export)";
+    verdict = `Dla Ciebie liczą się tylko pełne pakiety. Zamiast zbierać ochłapy po jednym punkcie, hurtowo windujesz się w tabeli dzięki ${p.scoreCorrect} dokładnym trafieniom. Bezlitosna skuteczność, która rujnuje psychikę Twoich rywali.`;
+    usedVerdicts.add(style);
+  }
+}
+else if (p.outcomeCorrect === absoluteMaxOutcomeCorrect && p.outcomeCorrect > 0 && OVR >= 48) {
+  if (!usedVerdicts.has("Analityk Trendów (Mózg Ligi)")) {
+    style = "Analityk Trendów (Mózg Ligi)";
+    verdict = `Twoje wyczucie boiskowych intencji jest przerażające. Masz najwięcej bezbłędnie wytypowanych tendencji (${p.outcomeCorrect}). Twój wewnętrzny algorytm rzadko kiedy się myli!`;
+    usedVerdicts.add(style);
+  } else if (!usedVerdicts.has("Główny Geodeta Tabeli")) {
+    style = "Główny Geodeta Tabeli";
+    verdict = `Ty nie zgadujesz, Ty to po prostu kalkulujesz. Masz na koncie najwięcej trafionych kierunków meczów (${p.outcomeCorrect}). Perfekcyjnie czytasz, kto ma przewagę psychiczną, a kto pęknie na boisku.`;
+    usedVerdicts.add(style);
+  } else if (!usedVerdicts.has("Makler Giełdy Mundialowej")) {
+    style = "Makler Giełdy Mundialowej";
+    verdict = `Rzadko kiedy dajesz się nabrać na niespodzianki. Bez błędu przewidujesz kierunki, w których pójdą mecze (${p.outcomeCorrect} trafionych tendencji). Twoja stabilność punktowa wykańcza nerwowo goniący Cię peleton.`;
+    usedVerdicts.add(style);
+  } else if (!usedVerdicts.has("Profesor Przewidywania (1X2)")) {
+    style = "Profesor Przewidywania (1X2)";
+    verdict = `Książkowa robota! Twoja skuteczność w wyznaczaniu zwycięzców i remisów to absolutny top ligi (${p.outcomeCorrect} razy wskazany właściwy rozstrzygnięcie). Piłkarze grają dokładnie tak, jak im dyktujesz w kuponie.`;
+    usedVerdicts.add(style);
+  }
+}
+else if (p.drawBetsCorrect === absoluteMaxDrawsCorrect && p.drawBetsCorrect > 0) {
+  if (!usedVerdicts.has("Oficjalny Król Remisów")) {
+    style = "Oficjalny Król Remisów";
+    verdict = `Podczas gdy cała liga ślepo stawia na faworytów, Ty ze stoickim spokojem namierzasz nudne mecze bez rozstrzygnięcia. Twój nos do 'iksów' ratuje Ci skórę w tabeli.`;
+    usedVerdicts.add(style);
+  } else if (!usedVerdicts.has("Saper z Pola Karnego")) {
+    style = "Saper z Pola Karnego";
+    verdict = `Trafianie remisów to wyższa szkoła jazdy, a Ty robisz to taśmowo (${p.drawBetsCorrect} trafionych 'iksów'). Masz stalowe nerwy, żeby stawiać na brak rozstrzygnięcia tam, gdzie inni bezmyślnie szukają zwycięzcy.`;
+    usedVerdicts.add(style);
+  } else if (!usedVerdicts.has("Ambasador Pokoju i Podziału Punktów")) {
+    style = "Ambasador Pokoju i Podziału Punktów";
+    verdict = `Gdy na boisku wieje nudą, Ty otwierasz szampana. Masz najlepsze oko do remisów w tej lidze (${p.drawBetsCorrect}). Ty i sędziowie kończący mecze przed dogrywką nadajecie na tych samych falach.`;
+    usedVerdicts.add(style);
+  } else if (!usedVerdicts.has("Generał Dywizji X")) {
+    style = "Generał Dywizji X";
+    verdict = `Złapać remis to sztuka, ale zgarnąć ich aż tyle (${p.drawBetsCorrect}) to absolutna dominacja taktyczna. Twoje zamiłowanie do remisów sprawia, że jesteś najbardziej nieprzewidywalnym i niebezpiecznym graczem w stawce.`;
+    usedVerdicts.add(style);
+  }
+}
       else {
         const currentPool = VERDICTS_BANK[basket];
         const stableSeed = getStableSeed(p.user) + p.calculatedPoints;
@@ -322,11 +363,6 @@ const Stats = () => {
 
   const pct = (v) => `${(v * 100).toFixed(1)}%`;
 
-  let activeCards = 2; 
-  if (showKingOfDraws) activeCards++;
-  if (showMostEmpty) activeCards++;
-  const colSize = Math.floor(12 / activeCards);
-
   if (profiles.length === 0) {
     return (
       <Container fluid style={{ backgroundColor: '#121212', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#FFD700' }}>
@@ -341,82 +377,76 @@ const Stats = () => {
         <Col xs={12}>
           <div style={{ marginTop: '10px', marginBottom: '20px', textAlign: 'center' }}>
             <h2 style={{ color: '#FFD700', textTransform: 'uppercase', fontSize: '1.4rem', fontWeight: '900', letterSpacing: '1px', margin: '0' }}>
-     <hr></hr> 🏆 Loża Ekspertów i Szyderców MŚ<hr></hr>
-    </h2>
-    <div style={{ color: '#ff4d4d', fontSize: '0.95rem', marginTop: '8px', fontWeight: '600', letterSpacing: '0.5px' }}>
-      * Brutalne fakty i czysta szydera. Słabeusze zostają w szatni.
-    </div>
+              <hr /> 🏆 Loża Ekspertów i Szyderców MŚ<hr />
+            </h2>
+            <div style={{ color: '#ff4d4d', fontSize: '0.95rem', marginTop: '8px', fontWeight: '600', letterSpacing: '0.5px' }}>
+              * Brutalne fakty i czysta szydera. Słabeusze zostają w szatni.
+            </div>
             <hr style={{ borderColor: '#FFD700', width: '30%', margin: '12px auto 10px auto' }} />
           </div>
         </Col>
       </Row>
 
-     <Row className="justify-content-center" style={{ marginBottom: '40px' }}>
-  <Col xs={12} md={8} lg={6}>
-    
-    <h5 style={{ color: '#FFD700', textTransform: 'uppercase', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '20px' }}>
-      📊 Mundialowe Rekordy Ligi
-    </h5>
-    
-    <div>
-      {/* 1. TYPY NA REMIS */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 8px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        <div>
-          <div style={{ color: '#aaa', fontSize: '0.9rem', fontWeight: '500' }}>Najwięcej typów na remis</div>
-          <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '4px' }}>{globalStats.mostDrawsPredicted.users}</div>
-        </div>
-        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'monospace', color: '#FFD700' }}>
-          {globalStats.mostDrawsPredicted.count} x "X"
-        </div>
-      </div>
-
-      {/* 2. TRAFIONE REMISY */}
-      {showKingOfDraws && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 8px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+      <Row className="justify-content-center" style={{ marginBottom: '40px' }}>
+        <Col xs={12} md={8} lg={6}>
+          <h5 style={{ color: '#FFD700', textTransform: 'uppercase', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '20px' }}>
+            📊 Mundialowe Rekordy Ligi
+          </h5>
+          
           <div>
-            <div style={{ color: '#00e5ff', fontSize: '0.9rem', fontWeight: '500' }}>Król remisów (Trafione)</div>
-            <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '4px' }}>{globalStats.kingOfDraws.users}</div>
-          </div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'monospace', color: '#00e5ff' }}>
-            {globalStats.kingOfDraws.count} trafień
-          </div>
-        </div>
-      )}
-      
-      {/* 3. DOKŁADNE WYNIKI */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 8px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        <div>
-          <div style={{ color: '#2196f3', fontSize: '0.9rem', fontWeight: '500' }}>Najwięcej dokładnych wyników</div>
-          <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '4px' }}>{globalStats.mostExactScores.users}</div>
-        </div>
-        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'monospace', color: '#2196f3' }}>
-          {globalStats.mostExactScores.count} x
-        </div>
-      </div>
-      
-      {/* 4. WALKOWERY */}
-      {showMostEmpty && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 8px' }}>
-          <div>
-            <div style={{ color: '#ff4d4d', fontSize: '0.9rem', fontWeight: '500' }}>Niedokończone kupony</div>
-            <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '4px' }}>{globalStats.mostEmpty.users}</div>
-          </div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'monospace', color: '#ff4d4d' }}>
-            {globalStats.mostEmpty.count} w.o.
-          </div>
-        </div>
-      )}
-    </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 8px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <div>
+                <div style={{ color: '#aaa', fontSize: '0.9rem', fontWeight: '500' }}>Najwięcej typów na remis</div>
+                <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '4px' }}>{globalStats.mostDrawsPredicted.users}</div>
+              </div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'monospace', color: '#FFD700' }}>
+                {globalStats.mostDrawsPredicted.count} x "X"
+              </div>
+            </div>
 
-  </Col>
-</Row>
+            {showKingOfDraws && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 8px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <div>
+                  <div style={{ color: '#00e5ff', fontSize: '0.9rem', fontWeight: '500' }}>Król remisów (Trafione)</div>
+                  <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '4px' }}>{globalStats.kingOfDraws.users}</div>
+                </div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'monospace', color: '#00e5ff' }}>
+                  {globalStats.kingOfDraws.count} trafień
+                </div>
+              </div>
+            )}
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 8px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <div>
+                <div style={{ color: '#2196f3', fontSize: '0.9rem', fontWeight: '500' }}>Najwięcej dokładnych wyników</div>
+                <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '4px' }}>{globalStats.mostExactScores.users}</div>
+              </div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'monospace', color: '#2196f3' }}>
+                {globalStats.mostExactScores.count} x
+              </div>
+            </div>
+            
+            {showMostEmpty && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 8px' }}>
+                <div>
+                  <div style={{ color: '#ff4d4d', fontSize: '0.9rem', fontWeight: '500' }}>Niedokończone kupony</div>
+                  <div style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', marginTop: '4px' }}>{globalStats.mostEmpty.users}</div>
+                </div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', fontFamily: 'monospace', color: '#ff4d4d' }}>
+                  {globalStats.mostEmpty.count} w.o.
+                </div>
+              </div>
+            )}
+          </div>
+        </Col>
+      </Row>
 
-      {/* USER CARDS */}
       <Row className="justify-content-center">
-         <div style={{ marginTop: '10px', marginBottom: '20px', textAlign: 'center' }}>
-            <h2 style={{ color: '#FFD700', textTransform: 'uppercase', fontSize: '1.4rem', fontWeight: '900', letterSpacing: '1px', margin: '0' }}>
-     <hr></hr> Statystyki indywidualne<hr></hr>
-    </h2></div>
+        <div style={{ marginTop: '10px', marginBottom: '20px', textAlign: 'center' }}>
+          <h2 style={{ color: '#FFD700', textTransform: 'uppercase', fontSize: '1.4rem', fontWeight: '900', letterSpacing: '1px', margin: '0' }}>
+            <hr /> Statystyki indywidualne<hr />
+          </h2>
+        </div>
         <Col xs={12} md={8} lg={6}>
           {profiles.map((p, idx) => {
             let cardBorder = '1px solid #2a2a2a';
@@ -443,6 +473,7 @@ const Stats = () => {
               cardBorder = '2px solid #FFD700';
               ovrColor = '#FFD700';
               verdictBg = 'rgba(255, 215, 0, 0.05)';
+              accentColor = '#FFD700';
             } else if (p.basket === "srebro") {
               cardBorder = '2px solid #c0c0c0';
               ovrColor = '#c0c0c0';
@@ -480,7 +511,7 @@ const Stats = () => {
                     <h1 style={{ margin: 0, color: ovrColor, fontSize: '2.5rem', fontWeight: '800', lineHeight: '1' }}>
                       {p.OVR}
                     </h1>
-                    <span style={{ fontSize: '0.75rem', color: '#88', textTransform: 'uppercase' }}>OVR</span>
+                    <span style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>OVR</span>
                   </div>
                 </div>
 
