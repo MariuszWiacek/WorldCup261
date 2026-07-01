@@ -113,13 +113,13 @@
 { "id": 87, "kolejkaId": "1/16", "home": "Argentyna", "away": "Wyspy Zielonego Przylądka", "kickoff": "00:00", "date": "2026-07-04", "disabled": false },
 { "id": 88, "kolejkaId": "1/16", "home": "Kolumbia", "away": "Ghana", "kickoff": "03:30", "date": "2026-07-04", "disabled": false },
 
-{ "id": 89, "kolejkaId": "1/8", "home": "Kanada", "away": "Holandia/Maroko", "kickoff": "19:00", "date": "2026-07-04", "disabled": false },
+{ "id": 89, "kolejkaId": "1/8", "home": "Kanada", "away": "Maroko", "kickoff": "19:00", "date": "2026-07-04", "disabled": false },
 
- { "id": 90, "kolejkaId": "1/8", "home": "Paragwaj", "away": "Francja/Szwecja", "kickoff": "23:00", "date": "2026-07-04", "disabled": false },
+ { "id": 90, "kolejkaId": "1/8", "home": "Paragwaj", "away": "Francja", "kickoff": "23:00", "date": "2026-07-04", "disabled": false },
 
 
 
-{ "id": 91, "kolejkaId": "1/8", "home": "Brazylia", "away": "WKS/Norwegia", "kickoff": "22:00", "date": "2026-07-05", "disabled": false },
+{ "id": 91, "kolejkaId": "1/8", "home": "Brazylia", "away": "Norwegia", "kickoff": "22:00", "date": "2026-07-05", "disabled": false },
 
 { "id": 92, "kolejkaId": "1/8", "home": "Zwycięzca M79", "away": "Zwycięzca M80", "kickoff": "04:00", "date": "2026-07-06", "disabled": false },
 
@@ -136,6 +136,9 @@
 { "id": 96, "kolejkaId": "1/8", "home": "Zwycięzca M85", "away": "Zwycięzca M87", "kickoff": "22:00", "date": "2026-07-07", "disabled": false },
 
 { "id": 97, "kolejkaId": "1/4", "home": "Zwycięzca M89", "away": "Zwycięzca M90", "kickoff": "22:00", "date": "2026-07-09", "disabled": false },
+
+
+
 
 { "id": 98, "kolejkaId": "1/4", "home": "Zwycięzca M93", "away": "Zwycięzca M94", "kickoff": "21:00", "date": "2026-07-10", "disabled": false },
 
