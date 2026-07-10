@@ -148,7 +148,7 @@
 
 { "id": 100, "kolejkaId": "1/4", "home": "Argentyna", "away": "Szwajcaria", "kickoff": "03:00", "date": "2026-07-12", "disabled": false },
 
-{ "id": 101, "kolejkaId": "1/2", "home": "Zwycięzca M97", "away": "Zwycięzca M98", "kickoff": "21:00", "date": "2026-07-14", "disabled": false },
+{ "id": 101, "kolejkaId": "1/2", "home": "Francja", "away": "His/Bel", "kickoff": "21:00", "date": "2026-07-14", "disabled": false },
 
 { "id": 102, "kolejkaId": "1/2", "home": "Zwycięzca M99", "away": "Zwycięzca M100", "kickoff": "21:00", "date": "2026-07-15", "disabled": false },
 
