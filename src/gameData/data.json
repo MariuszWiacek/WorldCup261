@@ -152,7 +152,7 @@
 
 { "id": 102, "kolejkaId": "1/2", "home": "Anglia", "away": "Argentyna", "kickoff": "21:00", "date": "2026-07-15", "disabled": false },
 
-{ "id": 103, "kolejkaId": "O 3. miejsce", "home": "Francja", "away": "Anglia", "kickoff": "22:00", "date": "2026-07-18", "disabled": false },
+{ "id": 103, "kolejkaId": "O 3. miejsce", "home": "Francja", "away": "Anglia", "kickoff": "23:00", "date": "2026-07-18", "disabled": false },
 
 { "id": 104, "kolejkaId": "Finał", "home": "Hiszpania", "away": "Argentyna", "kickoff": "21:00", "date": "2026-07-19", "disabled": false }
 ]
